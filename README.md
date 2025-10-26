@@ -6,3 +6,6 @@ After cloning run this: <br>
 5. npm build <br>
 Don't forget to change the database setting in .env file <br>
 After that run php artisan migrte <br>
+<br>
+*Note if yougot error on storage use php artisan storage:link<br>
+as it will create a symbolic link (symlink) from storage/app/public to public/storage
