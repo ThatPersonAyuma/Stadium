@@ -19,10 +19,10 @@ class Card extends Model
     ];
     public function content():BelongsTo
     {
-        return $this->belongsTo(Lesson::class);
+        return $this->belongsTo(Content::class);
     }
     public function blocks():HasMany
     {
-        return $this->hasMany(Card::class);
+        return $this->hasMany(Block::class);
     }
 }

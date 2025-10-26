@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Storage;
 use App\Models\Course;
 use App\Models\Lesson;
 use App\Models\Content;
+use App\Models\Block;
 use Illuminate\Support\Str;
 
 class FileHelper
@@ -36,6 +37,14 @@ class FileHelper
 
     public static function getBlockFilePath($courseId, $lessonId, $contentId, $cardId, $blockId)
     {
-        return "courses/{$courseSlug}/{$lessonSlug}/{$contentSlug}/{$cardSlug}/{$blockId}-{$file->getClientOriginalName()}";
+        $course = Course::findOrFail($courseId);
+        $lesson = Lesson::findOrFail($lessonId);
+        $content = Content::findOrFail($contentId);
+        $courseSlug = "{$course->id}-" . Str::slug(Str::limit($course->title, 20));
+        $lessonSlug = "{$lesson->id}-" . Str::slug(Str::limit($lesson->title, 20));
+        $contentSlug = "{$content->id}-" . Str::slug(Str::limit($content->title, 20));
+        $cardSlug = "{$cardId}-card";
+        $filename = Block::findOrFail($blockId)->data['filename'];
+        return 'storage/' . "courses/{$courseSlug}/{$lessonSlug}/{$contentSlug}/{$cardSlug}/{$blockId}-{$filename}";
     }
 }

@@ -51,7 +51,9 @@ class BlockController extends Controller
      */
     public function index()
     {
-        //
+        $blocks = Block::all();
+
+        return response()->json($blocks);
     }
 
     /**
@@ -91,6 +93,7 @@ class BlockController extends Controller
             'card_id' => 'required|integer', // $cardSlug
         ]);
         $type = $validated['type'];
+        $validated['data']['filename'] = $validated['file']->getClientOriginalName();
         $block_data = [
             'type' => $validated['type'],
             'data' => $validated['data'],

@@ -12,7 +12,9 @@ class ContentController extends Controller
      */
     public function index()
     {
-        //
+        $contents = Content::all();
+
+        return response()->json($contents);
     }
     
     public function getById(int $contentId)
