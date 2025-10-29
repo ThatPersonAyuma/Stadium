@@ -7,6 +7,7 @@ use App\Models\Course;
 use App\Models\Lesson;
 use App\Models\Content;
 use App\Models\Block;
+use App\Models\User;
 use Illuminate\Support\Str;
 
 class FileHelper
@@ -46,5 +47,23 @@ class FileHelper
         $cardSlug = "{$cardId}-card";
         $filename = Block::findOrFail($blockId)->data['filename'];
         return 'storage/' . "courses/{$courseSlug}/{$lessonSlug}/{$contentSlug}/{$cardSlug}/{$blockId}-{$filename}";
+    }
+
+    public static function storeAvatarFile($file, $userId)
+    {
+        $user = User::findOrFail($userId);
+        $filename = "{$user->id}-{$user->avatar_filename}";
+        $stored = Storage::disk('public')->putFileAs(
+            dirname('avatar/a'),
+            $file,
+            $filename
+        );
+        return 'storage/' . $stored; // untuk ditampilkan di view
+    }
+
+    public static function getAvatarPath($userId)
+    {
+        $user = User::findOrFail($userId);
+        return 'storage/avatar/' . "{$user->id}-{$user->avatar_filename}";
     }
 }

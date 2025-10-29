@@ -16,18 +16,15 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+ 
         $this->call([
             CourseSeeder::class,
             LessonSeeder::class,
             ContentSeeder::class,
             CardSeeder::class,
             BlockSeeder::class,
+            RankSeeder::class,
+            UserSeeder::class,
         ]);
     }
 }

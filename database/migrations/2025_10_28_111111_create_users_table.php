@@ -13,10 +13,18 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
+            $table->string('username')->unique();
             $table->string('name');
             $table->string('email')->unique();
+            $table->integer('experience')->default(0); // default 0 agar tidak null
+            $table->foreignId('rank_id')
+                ->nullable()
+                ->constrained('ranks') // pastikan tabel ini ada
+                ->onUpdate('cascade')
+                ->onDelete('set null'); // lebih aman daripada cascade delete user
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            $table->string('avatar_filename', 255)->nullable();
             $table->rememberToken();
             $table->timestamps();
         });

@@ -6,6 +6,8 @@ use App\Http\Controllers\LessonController;
 use App\Http\Controllers\BlockController;
 use App\Http\Controllers\ContentController;
 use App\Http\Controllers\CardController;
+use App\Models\User;
+use App\Models\Rank;
 
 Route::get('/', function () {
     return view('welcome');
@@ -22,9 +24,26 @@ Route::get('/view-courses', function () {
     // kirim ke view
     return view('view_courses', compact('courses'));
 });
+
+Route::get('/ranks', function () {
+    $ranks = Rank::all();
+    return view('ranks', compact('ranks'));
+});
+
+Route::get('/users', function () {
+    $users = User::with('rank')->get();
+    return view('users', compact('users'));
+});
 // Route::get('/view-courses', function () {
 //     return view('view_course');
 // });
 Route::get('/course', [CourseController::class, 'index']);
 Route::get('/lesson-by-course', [LessonController::class, 'getRelationWithCourse'])->name('getLessWCourse');
 Route::post('/add-file', [BlockCOntroller::class, 'store'])->name('addFile');
+
+use App\Http\Controllers\UserAvatarController;
+
+
+Route::get('/user/avatar', [UserAvatarController::class, 'showForm'])->name('avatar.form');
+Route::post('/user/avatar', [UserAvatarController::class, 'upload'])->name('avatar.upload');
+
