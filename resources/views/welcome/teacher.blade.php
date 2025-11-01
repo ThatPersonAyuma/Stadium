@@ -10,7 +10,7 @@
 
 <body>
     <h1>List KRS Mahasiswa</h1>
-    <p>Hai {{ $user->username }}<p>
+    <p>Hello Teacher<br>Hai {{ $user->username }}<p>
     {{-- @foreach ($users as $user)
         <h3>{{ $user->name }} - {{ $user->email }}</h3>
         <ul>
@@ -24,10 +24,10 @@
         </ul>
     @endforeach --}}
 
-    {{-- <form action="{{ route('logout') }}" method="POST">
+    <form action="{{ route('logout') }}" method="POST">
         @csrf
         <button type="submit">Logout</button>
-    </form> --}}
+    </form>
 </body>
 
 </html>
