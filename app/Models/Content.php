@@ -20,7 +20,6 @@ class Content extends Model
     ];
 
 
-
     public function lesson():BelongsTo
     {
         return $this->belongsTo(Lesson::class);

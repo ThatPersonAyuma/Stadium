@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Baru</title>
+    @vite('resources/css/app.css')
 </head>
 
 <body>
@@ -23,7 +24,6 @@
             @endforeach
         </ul>
     @endforeach --}}
-
     <form action="{{ route('logout') }}" method="POST">
         @csrf
         <button type="submit">Logout</button>

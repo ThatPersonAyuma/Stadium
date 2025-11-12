@@ -6,12 +6,24 @@ use App\Http\Controllers\LessonController;
 use App\Http\Controllers\BlockController;
 use App\Http\Controllers\ContentController;
 use App\Http\Controllers\CardController;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\QuizController;
 use App\Models\User;
 use App\Models\Rank;
 
+// Debug Session
 Route::get('/', function () {
-    return view('welcome');
-});
+    $user = Auth::user();
+    if ($user){
+        return match ($user->role) {
+            'student' => view('welcome.student', compact('user')),
+            'teacher' => view('welcome.teacher', compact('user')),
+            default   => abort(403),
+        };
+    }else{
+        return view('loginpage');
+    }
+})->name('welcome');
 Route::get('/upload', function () {
     return view('upload');
 });
@@ -30,6 +42,13 @@ Route::get('/ranks', function () {
     return view('ranks', compact('ranks'));
 });
 
+
+Route::get('/login', function(){
+    return view('loginpage');
+})->name('login');
+Route::post('/login', [AuthController::class, 'login'])->name('checkLogin');
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
 Route::get('/users', function () {
     $users = User::with('rank')->get();
     return view('users', compact('users'));
@@ -47,3 +66,26 @@ use App\Http\Controllers\UserAvatarController;
 Route::get('/user/avatar', [UserAvatarController::class, 'showForm'])->name('avatar.form');
 Route::post('/user/avatar', [UserAvatarController::class, 'upload'])->name('avatar.upload');
 
+Route::middleware('auth')->group(function() { // dont fotget you must have route login
+    Route::get('/debug-session', function () {
+        return session()->all();
+    });
+});
+// Resources
+Route::resource('fasilitas', MatkulController::class);
+
+
+//testing
+Route::get('/test-websocket', 
+    function (){
+        return view('test_websocket');
+    }
+);
+Route::post('/post-question',
+    [QuizController::class, 'startQuestion']
+);
+Route::get('/post-question',
+    function(){
+        return view('post_question');
+    }
+);
