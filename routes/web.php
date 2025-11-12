@@ -66,7 +66,15 @@ use App\Http\Controllers\UserAvatarController;
 Route::get('/user/avatar', [UserAvatarController::class, 'showForm'])->name('avatar.form');
 Route::post('/user/avatar', [UserAvatarController::class, 'upload'])->name('avatar.upload');
 
-Route::middleware('auth')->group(function() { // dont fotget you must have route login
+
+// ini aku yang nambahin yh bang, tolong benerin kalo salh
+Route::get('/', function () {
+    return view('landing.index');
+});
+Route::get('/login', fn() => view('auth.login'))->name('login');
+Route::post('/login', [AuthController::class, 'login'])->name('login.post');
+Route::get('/register', fn() => view('auth.register'))->name('register');
+Route::post('/register', [AuthController::class, 'register'])->name('register.post');Route::middleware('auth')->group(function() { // dont fotget you must have route login
     Route::get('/debug-session', function () {
         return session()->all();
     });

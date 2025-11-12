@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -94,4 +94,4 @@
         <button type="submit">Upload File</button>
     </form>
 </body>
-</html>
+</html> -->

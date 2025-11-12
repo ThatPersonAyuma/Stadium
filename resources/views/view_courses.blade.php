@@ -1,4 +1,4 @@
-{{-- <pre>
+<!-- {{-- <pre>
 {{ App\Helpers\FileHelper::getBlockFilePath($course->id, $lesson->id, $content->id, $card->id, $block->id) }}
 {{ $courses }}
 </pre> --}}
@@ -111,4 +111,4 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
-</html>
+</html> -->
