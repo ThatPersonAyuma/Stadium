@@ -6,6 +6,7 @@ use App\Http\Controllers\LessonController;
 use App\Http\Controllers\BlockController;
 use App\Http\Controllers\ContentController;
 use App\Http\Controllers\CardController;
+use App\Http\Controllers\DashboardController;
 use App\Models\User;
 use App\Models\Rank;
 
@@ -58,3 +59,24 @@ Route::get('/login', fn() => view('auth.login'))->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 Route::get('/register', fn() => view('auth.register'))->name('register');
 Route::post('/register', [AuthController::class, 'register'])->name('register.post');
+
+// Route::middleware(['auth'])->group(function () {
+//     Route::get('/dashboard', [DashboardController::class, 'student'])
+//         ->name('dashboard.index');
+
+//     Route::get('/dashboard/profile', [DashboardController::class, 'profile'])
+//         ->name('dashboard.profile');
+
+//     Route::get('/dashboard/teacher', [DashboardController::class, 'teacher'])
+//         ->name('dashboard.teacher');
+// });
+
+Route::get('/dashboard', [DashboardController::class, 'student'])
+    ->name('dashboard.index');
+
+Route::get('/dashboard/student', [DashboardController::class, 'student'])
+    ->name('dashboard.student');
+    
+Route::post('/logout', function () {
+    return redirect('/');
+})->name('logout');
