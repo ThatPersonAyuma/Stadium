@@ -24,7 +24,6 @@ class BlockSeeder extends Seeder
             [
                 'type' => ContentType::TEXT,
                 'data' => [
-                    'title' => 'Apa itu Pemrograman?',
                     'body' => 'Pemrograman adalah proses menulis serangkaian instruksi agar komputer dapat melakukan tugas tertentu. Bahasa pemrograman digunakan agar manusia dapat berkomunikasi dengan komputer.',
                 ],
                 'order_index' => 1,
@@ -78,7 +77,6 @@ class BlockSeeder extends Seeder
             [
                 'type' => ContentType::TEXT,
                 'data' => [
-                    'title' => 'Mengapa Kita Belajar Pemrograman?',
                     'body' => 'Tujuan utama dari belajar pemrograman adalah untuk memecahkan masalah dan menciptakan solusi digital yang efisien.',
                 ],
                 'order_index' => 1,

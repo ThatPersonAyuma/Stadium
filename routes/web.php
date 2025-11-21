@@ -9,10 +9,11 @@ use App\Http\Controllers\CardController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\QuizController;
 use App\Models\User;
+use App\Models\Content;
 use App\Models\Rank;
 
 // Debug Session
-Route::get('/', function () {
+Route::get('/welcome', function () {
     $user = Auth::user();
     if ($user){
         return match ($user->role) {
@@ -24,6 +25,7 @@ Route::get('/', function () {
         return view('loginpage');
     }
 })->name('welcome');
+// Route::get('/', function (){return view('welcome1');})->name('welcome');
 Route::get('/upload', function () {
     return view('upload');
 });
@@ -43,11 +45,11 @@ Route::get('/ranks', function () {
 });
 
 
-Route::get('/login', function(){
-    return view('loginpage');
-})->name('login');
-Route::post('/login', [AuthController::class, 'login'])->name('checkLogin');
-Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+// Route::get('/login', function(){
+//     return view('loginpage');
+// })->name('login');
+// Route::post('/login', [AuthController::class, 'login'])->name('checkLogin');
+// Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 Route::get('/users', function () {
     $users = User::with('rank')->get();
@@ -58,7 +60,7 @@ Route::get('/users', function () {
 // });
 Route::get('/course', [CourseController::class, 'index']);
 Route::get('/lesson-by-course', [LessonController::class, 'getRelationWithCourse'])->name('getLessWCourse');
-Route::post('/add-file', [BlockCOntroller::class, 'store'])->name('addFile');
+Route::post('/add-file', [BlockController::class, 'store'])->name('addFile');
 
 use App\Http\Controllers\UserAvatarController;
 
@@ -73,14 +75,23 @@ Route::get('/', function () {
 });
 Route::get('/login', fn() => view('auth.login'))->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::get('/register', fn() => view('auth.register'))->name('register');
-Route::post('/register', [AuthController::class, 'register'])->name('register.post');Route::middleware('auth')->group(function() { // dont fotget you must have route login
+Route::post('/register', [AuthController::class, 'register'])->name('register.post');
+Route::middleware('auth')->group(function() { // dont fotget you must have route login
     Route::get('/debug-session', function () {
         return session()->all();
     });
 });
 // Resources
-Route::resource('fasilitas', MatkulController::class);
+// Route::resource('fasilitas', MatkulController::class);
+// Route::resource('contents', ContentController::class);
+Route::Resource('contents', ContentController::class);
+Route::Resource('courses', CourseController::class);
+Route::Resource('blocks', BlockController::class);
+Route::Resource('lessons', LessonController::class);
+Route::Resource('cards', CardController::class);
+Route::get('get-type', [BlockController::class, 'getType'])->name('get-type');
 
 
 //testing
@@ -95,5 +106,12 @@ Route::post('/post-question',
 Route::get('/post-question',
     function(){
         return view('post_question');
+    }
+);
+
+Route::get('/edit-content',
+    function(){
+        $content = Content::findOrFail(1);
+        return view('TESTING.change_content', compact('content'));
     }
 );

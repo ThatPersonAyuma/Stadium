@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Lesson;
 use Illuminate\Http\Request;
+use App\Helpers\FileHelper;
 
 class LessonController extends Controller
 {
@@ -22,6 +23,16 @@ class LessonController extends Controller
     {   
         return Lesson::find($lessonId);
     }
+
+    public function create(Request $request)
+    {
+        return response()->json([
+            ['name' => 'title', 'type' => 'text', 'label' => 'Judul'],
+            ['name' => 'description', 'type' => 'text', 'label' => 'Deskripsi'],
+            ['name' => 'order_index', 'type' => 'number', 'label' => 'Urutan'],
+        ]);
+    }
+
 
     /**
      * Store a newly created resource in storage.
@@ -53,7 +64,6 @@ class LessonController extends Controller
         $lesson = Lesson::where('course_id', $validated['course_id'])
                     ->orderBy('order_index')
                     ->get();
-        
         return response()->json($lesson);
     }
 
@@ -79,9 +89,23 @@ class LessonController extends Controller
             'order_index' => 'required|integer|min:1',
             'course_id' => 'required|integer|exist:course_id',
         ]);
-
-        $lesson->update($validated);
-
+        $old_path = FileHelper::getFolderName($validated['course_id'], $lesson->id);
+        if (file_exists($old_path)) {
+        } else {
+            return response()->json(['message' => 'Ini salah ew old path' . $old_path], 500);
+        }
+        $content->title = $validated['title'];
+        $content->description = $validated['description'];
+        $content->order_index = $validated['order_index'];
+        $content->course_id = $validated['course_id'];
+        $content->save();
+        $new_path = FileHelper::getFolderName($validated['course_id'], $lesson->id);
+        $result = rename($old_path, $new_path);
+        if ($result){
+            return response()->json(['message' => 'Resource created successfully' . $old_path . $new_path], 200); // 201 Created
+        }else{
+            return response()->json(['message' => 'Failed to change folder'], 500); // 201 Created
+        }
         return response()->json($lesson);
     }
 

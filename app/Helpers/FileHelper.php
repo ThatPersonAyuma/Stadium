@@ -12,7 +12,28 @@ use Illuminate\Support\Str;
 
 class FileHelper
 {
-    public static function blockPath($courseId, $lessonId, $contentId, $cardId, $blockId, $filename)
+    public static function getFolderName($courseId, $lessonId=NULL, $contentId=NULL){
+        $course = Course::findOrFail($courseId);
+    $courseSlug = "{$course->id}-" . Str::slug(Str::limit($course->title, 20));
+
+    $path = "courses/{$courseSlug}";
+
+    if ($lessonId) {
+        $lesson = Lesson::findOrFail($lessonId);
+        $lessonSlug = "{$lesson->id}-" . Str::slug(Str::limit($lesson->title, 20));
+        $path .= "/{$lessonSlug}";
+    }
+
+    if ($contentId) {
+        $content = Content::findOrFail($contentId);
+        $contentSlug = "{$content->id}-" . Str::slug(Str::limit($content->title, 20));
+        $path .= "/{$contentSlug}";
+    }
+
+    return Storage::disk('public')->path($path); 
+    }
+
+    public static function blockPath($courseId, $lessonId, $contentId, $cardId)
     {
         $course = Course::findOrFail($courseId);
         $lesson = Lesson::findOrFail($lessonId);
@@ -26,8 +47,8 @@ class FileHelper
 
     public static function storeBlockFile($file, $courseId, $lessonId, $contentId, $cardId, $blockId)
     {
-        $filename = "{$blockId}-{$file->getClientOriginalName()}";
-        $path = self::blockPath($courseId, $lessonId, $contentId, $cardId, $blockId, $filename);
+        $filename =  "{$blockId}-{$file->getClientOriginalName()}";
+        $path = self::blockPath($courseId, $lessonId, $contentId, $cardId);
         $stored = Storage::disk('public')->putFileAs(
             dirname($path),
             $file,
@@ -47,6 +68,19 @@ class FileHelper
         $cardSlug = "{$cardId}-card";
         $filename = Block::findOrFail($blockId)->data['filename'];
         return 'storage/' . "courses/{$courseSlug}/{$lessonSlug}/{$contentSlug}/{$cardSlug}/{$blockId}-{$filename}";
+    }
+
+    public static function getBlockUrl($courseId, $lessonId, $contentId, $cardId, $blockId)
+    {
+        $course = Course::findOrFail($courseId);
+        $lesson = Lesson::findOrFail($lessonId);
+        $content = Content::findOrFail($contentId);
+        $courseSlug = "{$course->id}-" . Str::slug(Str::limit($course->title, 20));
+        $lessonSlug = "{$lesson->id}-" . Str::slug(Str::limit($lesson->title, 20));
+        $contentSlug = "{$content->id}-" . Str::slug(Str::limit($content->title, 20));
+        $cardSlug = "{$cardId}-card";
+        $filename = Block::findOrFail($blockId)->data['filename'];
+        return Storage::Url("courses/{$courseSlug}/{$lessonSlug}/{$contentSlug}/{$cardSlug}/{$blockId}-{$filename}");
     }
 
     public static function storeAvatarFile($file, $userId)

@@ -1,4 +1,4 @@
-<!-- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -70,11 +70,11 @@
             <option value="quiz">Quiz</option>
         </select>
 
-        <label for="file">File (hanya untuk image/gif/video)</label>
-        <input type="file" name="file" id="file" accept=".jpg,.jpeg,.png,.gif,.mp4,.webm">
+        <label for="data.file">File (hanya untuk image/gif/video)</label>
+        <input type="file" name="data[file]" id="data.file" accept=".jpg,.jpeg,.png,.gif,.mp4,.webm">
 
         <label for="data">Data (JSON opsional)</label>
-        <textarea name="data" id="data" rows="4" placeholder='{"text": "Contoh teks"}'></textarea>
+        <textarea name="data[alt]" id="data" rows="4" placeholder='{"text": "Contoh teks"}'></textarea>
 
         <label for="order_index">Order Index</label>
         <input type="number" name="order_index" id="order_index" value="0" min="0">
@@ -94,4 +94,4 @@
         <button type="submit">Upload File</button>
     </form>
 </body>
-</html> -->
+</html>

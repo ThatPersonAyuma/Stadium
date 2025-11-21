@@ -4,14 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Live Quiz</title>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/echo.js'])
 </head>
 <body class="bg-gray-100 flex items-center justify-center min-h-screen">
     <div class="bg-white shadow-lg rounded-xl p-6 w-full max-w-md text-center">
-        <h1 class="text-2xl font-bold mb-4">Live Quiz</h1>
+        <h1 class="text-red-2xl font-bold mb-4">Live Quiz</h1>
 
         <div id="question-container">
-            <p id="question" class="text-lg font-semibold mb-4">Menunggu soal...</p>
+            <p id="question" class="text-red-lg font-semibold mb-4">Menunggu soal...</p>
             <div id="options" class="space-y-2"></div>
         </div>
     </div>

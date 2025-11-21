@@ -9,8 +9,13 @@
 
         <form action="{{ route('login.post') }}" method="POST" class="auth-form">
             @csrf
-            <h3 class="form-label">Username</h3>
-            <input type="text" name="username" placeholder="USERNAME" required>
+            @if ($errors->any())
+                <div style="color: red; margin-bottom: 10px;">
+                    {{ $errors->first() }}
+                </div>
+            @endif
+            <h3 class="form-label">Email</h3>
+            <input type="text" name="email" placeholder="USERNAME" required>
             <h3 class="form-label">Password</h3>
             <input type="password" name="password" placeholder="PASSWORD" required>
             <a href="#" class="auth-link">Forgot Password?</a>
