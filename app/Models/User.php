@@ -53,4 +53,10 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Rank::class);
     }
+    public function courses()
+    {
+        return $this->belongsToMany(Course::class)
+                    ->withPivot(['progress', 'last_lesson_id'])
+                    ->withTimestamps();
+    }
 }

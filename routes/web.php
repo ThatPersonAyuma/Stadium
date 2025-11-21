@@ -6,6 +6,7 @@ use App\Http\Controllers\LessonController;
 use App\Http\Controllers\BlockController;
 use App\Http\Controllers\ContentController;
 use App\Http\Controllers\CardController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\QuizController;
 use App\Models\User;
@@ -78,40 +79,3 @@ Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::get('/register', fn() => view('auth.register'))->name('register');
 Route::post('/register', [AuthController::class, 'register'])->name('register.post');
-Route::middleware('auth')->group(function() { // dont fotget you must have route login
-    Route::get('/debug-session', function () {
-        return session()->all();
-    });
-});
-// Resources
-// Route::resource('fasilitas', MatkulController::class);
-// Route::resource('contents', ContentController::class);
-Route::Resource('contents', ContentController::class);
-Route::Resource('courses', CourseController::class);
-Route::Resource('blocks', BlockController::class);
-Route::Resource('lessons', LessonController::class);
-Route::Resource('cards', CardController::class);
-Route::get('get-type', [BlockController::class, 'getType'])->name('get-type');
-
-
-//testing
-Route::get('/test-websocket', 
-    function (){
-        return view('test_websocket');
-    }
-);
-Route::post('/post-question',
-    [QuizController::class, 'startQuestion']
-);
-Route::get('/post-question',
-    function(){
-        return view('post_question');
-    }
-);
-
-Route::get('/edit-content',
-    function(){
-        $content = Content::findOrFail(1);
-        return view('TESTING.change_content', compact('content'));
-    }
-);
