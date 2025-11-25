@@ -59,7 +59,9 @@ Route::get('/users', function () {
 // Route::get('/view-courses', function () {
 //     return view('view_course');
 // });
-Route::get('/course', [CourseController::class, 'index']);
+Route::get('/course', [CourseController::class, 'index'])->name('course.index');
+Route::get('/course/{courseId}', [CourseController::class, 'detail'])->name('course.detail');
+Route::get('/course/{courseId}/lesson/{lessonId}', [LessonController::class, 'play'])->name('lesson.show');
 Route::get('/lesson-by-course', [LessonController::class, 'getRelationWithCourse'])->name('getLessWCourse');
 Route::post('/add-file', [BlockController::class, 'store'])->name('addFile');
 
@@ -96,10 +98,14 @@ Route::get('/dashboard', [DashboardController::class, 'student'])
 
 Route::get('/dashboard/student', [DashboardController::class, 'student'])
     ->name('dashboard.student');
+
+Route::get('/dashboard/teacher', [DashboardController::class, 'teacher'])
+    ->name('dashboard.teacher');
     
 Route::post('/logout', function () {
     return redirect('/');
 })->name('logout');
+
 Route::middleware('auth')->group(function() { // dont fotget you must have route login
     Route::get('/debug-session', function () {
         return session()->all();

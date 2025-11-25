@@ -19,6 +19,46 @@ class LessonController extends Controller
         return response()->json($lessons);
     }
 
+    protected function sampleLessonContent(int $lessonId): array
+    {
+        $samples = [
+            11 => [
+                'title'    => 'Bilangan dan Operasi Hitung',
+                'subtitle' => 'Pembagian Dasar',
+                'question' => 'Hasil dari 48 ÷ 6 adalah ...',
+                'progress' => 25,
+                'options'  => ['6', '8', '7', '9'],
+            ],
+            21 => [
+                'title'    => 'Perhitungan Linear',
+                'subtitle' => 'Latihan Perkalian',
+                'question' => 'Hitung hasil 7 × 8 adalah ...',
+                'progress' => 40,
+                'options'  => ['48', '52', '54', '56'],
+            ],
+        ];
+
+        return $samples[$lessonId] ?? [
+            'title'    => 'Bilangan dan Operasi Hitung',
+            'subtitle' => 'Latihan Pembagian',
+            'question' => 'Hasil dari 48 ÷ 6 adalah ...',
+            'progress' => 20,
+            'options'  => ['6', '7', '8', '9'],
+        ];
+    }
+
+    public function play(int $courseId, int $lessonId)
+    {
+        $lesson = $this->sampleLessonContent($lessonId);
+
+        return view('courses.lesson', [
+            'courseId' => $courseId,
+            'lessonId' => $lessonId,
+            'lesson'   => $lesson,
+            'progress' => $lesson['progress'] ?? 0,
+        ]);
+    }
+
     public function getById(int $lessonId)
     {   
         return Lesson::find($lessonId);
