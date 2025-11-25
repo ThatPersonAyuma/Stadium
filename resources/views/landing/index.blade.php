@@ -56,12 +56,12 @@
 
 <section class="section-feature">
   <div class="container grid grid-cols-1 md:grid-cols-2 items-center gap-10 md:gap-16">
+    <div class="feature-img">
+      <img src="{{ asset('images/leaderboard.png') }}" alt="Leaderboard Illustration">
+    </div>
     <div class="feature-txt">
       <h2>Leaderboard</h2>
       <p>Earn XP, climb ranks, and compete with friends to stay motivated!</p>
-    </div>
-    <div class="feature-img">
-      <img src="{{ asset('images/leaderboard.png') }}" alt="Leaderboard Illustration">
     </div>
   </div>
 </section>
@@ -80,12 +80,12 @@
 
 <section class="section-feature">
   <div class="container grid grid-cols-1 md:grid-cols-2 items-center gap-10 md:gap-16">
+    <div class="feature-img">
+      <img src="{{ asset('images/community.png') }}" alt="Community-feature Illustration">
+    </div>
     <div class="feature-txt">
       <h2>Community</h2>
       <p>Join a friendly space to share ideas, ask questions, and grow together with other learners</p>
-    </div>
-    <div class="feature-img">
-      <img src="{{ asset('images/community.png') }}" alt="Community-feature Illustration">
     </div>
   </div>
 </section>
@@ -102,5 +102,4 @@
   </div>
 </section>
 
-@include('components.cta')
 @endsection

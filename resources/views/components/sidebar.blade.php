@@ -1,9 +1,10 @@
 <div class="sidebar">
-    <a href="#"
-       class="sidebar-item {{ request()->routeIs('dashboard') ? 'active' : '' }}">
+    <a href="{{ route('dashboard.index') }}"
+       class="sidebar-item {{ request()->routeIs('dashboard.*') ? 'active' : '' }}">
         <img src="/assets/icons/sidebar-icons/home.png" class="icon">
     </a>
-    <a href="#" class="sidebar-item">
+    <a href="{{ route('course.index') }}"
+       class="sidebar-item {{ request()->routeIs('course.*') || request()->routeIs('lesson.*') ? 'active' : '' }}">
         <img src="/assets/icons/sidebar-icons/course.png" class="icon" alt="Courses">
     </a>
     <a href="#" class="sidebar-item">
