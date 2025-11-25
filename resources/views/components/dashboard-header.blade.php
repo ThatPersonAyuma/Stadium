@@ -1,5 +1,7 @@
+@props(['title' => 'Dashboard', 'showPlant' => true])
+
 <div class="header flex justify-between items-center w-full">
-    <h1 class="header-title">Dashboard</h1>
+    <h1 class="header-title">{{ $title }}</h1>
 
     <div class="header-icons flex items-center gap-4">
         <div class="hp-heart">
@@ -14,8 +16,10 @@
     
 </div>
 
-<div class="plant-wrapper flex justify-end mt-3">
-    <div class="icon-plant">
-        <img src="/assets/icons/plant.png">
+@if ($showPlant)
+    <div class="plant-wrapper flex justify-end mt-3">
+        <div class="icon-plant">
+            <img src="/assets/icons/plant.png">
+        </div>
     </div>
-</div>
+@endif

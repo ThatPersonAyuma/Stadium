@@ -91,4 +91,62 @@ class DashboardController extends Controller
             'recentActivity' => $recentActivity,
         ]);
     }
+
+    public function teacher()
+    {
+        $teacher = (object) [
+            'name'            => 'Bu Rani',
+            'totalCourses'    => 3,
+            'totalStudents'   => 74,
+            'completedToday'  => 9,
+        ];
+
+        $courses = collect([
+            (object) [
+                'id'               => 11,
+                'title'            => 'Algoritma Lanjut',
+                'status'           => 'published',
+                'color'            => '#2563EB',
+                'total_students'   => 26,
+                'completed_count'  => 18,
+                'recent_completes' => [
+                    ['name' => 'Sari', 'score' => 95, 'time' => '2 jam lalu'],
+                    ['name' => 'Dedi', 'score' => 90, 'time' => 'Hari ini'],
+                    ['name' => 'Rudi', 'score' => 84, 'time' => 'Kemarin'],
+                ],
+            ],
+            (object) [
+                'id'               => 12,
+                'title'            => 'Dasar PBO',
+                'status'           => 'draft',
+                'color'            => '#F97316',
+                'total_students'   => 20,
+                'completed_count'  => 8,
+                'recent_completes' => [
+                    ['name' => 'Tika', 'score' => 87, 'time' => '1 hari lalu'],
+                    ['name' => 'Yuda', 'score' => 81, 'time' => '2 hari lalu'],
+                ],
+            ],
+            (object) [
+                'id'               => 13,
+                'title'            => 'Laravel Web',
+                'status'           => 'published',
+                'color'            => '#10B981',
+                'total_students'   => 28,
+                'completed_count'  => 14,
+                'recent_completes' => [
+                    ['name' => 'Nina', 'score' => 93, 'time' => '30 menit lalu'],
+                    ['name' => 'Andi', 'score' => 89, 'time' => 'Hari ini'],
+                ],
+            ],
+        ]);
+
+        $summary = [
+            'courses'   => $courses->count(),
+            'students'  => $courses->sum('total_students'),
+            'completed' => $courses->sum('completed_count'),
+        ];
+
+        return view('dashboard.teacher', compact('teacher', 'courses', 'summary'));
+    }
 }

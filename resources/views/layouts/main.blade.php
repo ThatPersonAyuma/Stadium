@@ -9,11 +9,10 @@
     @yield('styles')
 </head>
 
-<body class="font-body bg-gray-50 text-gray-800 flex flex-col min-h-screen">
+<body class="font-body min-h-screen">
     <main class="flex-grow">
         @yield('hero')
         @yield('features')
-        @yield('cta')
         @yield('content')
     </main>
 
