@@ -18,6 +18,7 @@ class CourseSeeder extends Seeder
             [
                 'title' => 'Algoritma dan Pemrograman 1',
                 'description' => 'Module tentang pengenalan dasar-dasar algoritma dan pemrograman. Pada modul ini menggunakan bahasa Python. Diharapkan setelah mempelajari modul ini teman-teman dapat memiliki dasar tentang algoritma dan pemrograman sebagai dasar untuk mempelajari materi yang lebih dalam.',
+                'teacher_id' => 4,
             ],
         );
     }

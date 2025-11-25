@@ -14,6 +14,7 @@ class Course extends Model
     protected $fillable =[
         'title',
         'description',
+        'teacher_id',
     ];
 
     protected static function booted()
