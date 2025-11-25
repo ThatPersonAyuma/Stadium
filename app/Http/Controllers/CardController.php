@@ -24,6 +24,12 @@ class CardController extends Controller
         return Card::find($cardId);
     }
 
+        public function getBlocksOfCard(Card $card)
+    {
+        return $card->blocks;
+        // return response()->json($result, 204);
+    }
+
     /**
      * Show the form for creating a new resource.
      */
@@ -95,6 +101,11 @@ class CardController extends Controller
      */
     public function destroy(Card $card)
     {
+        // $card->load('content.lesson.course');
+        // if (!FileHelper::deleteFolder($card->content->lesson->course->id, $card->content->lesson->id, $card->content->id, $card->id))
+        // {
+        //     Log::error("Gagal menghapus folder untuk card ID: {$card->id}");
+        // }
         $card->delete();
 
         return response()->json(null, 204);

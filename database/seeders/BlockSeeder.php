@@ -24,7 +24,7 @@ class BlockSeeder extends Seeder
             [
                 'type' => ContentType::TEXT,
                 'data' => [
-                    'body' => 'Pemrograman adalah proses menulis serangkaian instruksi agar komputer dapat melakukan tugas tertentu. Bahasa pemrograman digunakan agar manusia dapat berkomunikasi dengan komputer.',
+                    'content' => 'Pemrograman adalah proses menulis serangkaian instruksi agar komputer dapat melakukan tugas tertentu. Bahasa pemrograman digunakan agar manusia dapat berkomunikasi dengan komputer.',
                 ],
                 'order_index' => 1,
                 'card_id' => 1,
@@ -45,7 +45,7 @@ class BlockSeeder extends Seeder
             [
                 'type' => ContentType::TEXT,
                 'data' => [
-                    'body' => 'Dengan pemrograman, kita bisa membuat aplikasi, situs web, sistem otomatisasi, dan masih banyak lagi.',
+                    'content' => 'Dengan pemrograman, kita bisa membuat aplikasi, situs web, sistem otomatisasi, dan masih banyak lagi.',
                 ],
                 'order_index' => 3,
                 'card_id' => 1,
@@ -77,7 +77,7 @@ class BlockSeeder extends Seeder
             [
                 'type' => ContentType::TEXT,
                 'data' => [
-                    'body' => 'Tujuan utama dari belajar pemrograman adalah untuk memecahkan masalah dan menciptakan solusi digital yang efisien.',
+                    'content' => 'Tujuan utama dari belajar pemrograman adalah untuk memecahkan masalah dan menciptakan solusi digital yang efisien.',
                 ],
                 'order_index' => 1,
                 'card_id' => 2,
@@ -98,7 +98,7 @@ class BlockSeeder extends Seeder
             [
                 'type' => ContentType::TEXT,
                 'data' => [
-                    'body' => 'Pemrograman membantu kita membuat otomatisasi tugas, seperti menghitung data atau mengirim pesan secara otomatis.',
+                    'content' => 'Pemrograman membantu kita membuat otomatisasi tugas, seperti menghitung data atau mengirim pesan secara otomatis.',
                 ],
                 'order_index' => 3,
                 'card_id' => 2,

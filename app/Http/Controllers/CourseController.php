@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Course;
 use Illuminate\Http\Request;
 use App\Helpers\FileHelper;
+use App\Enums\CourseStatus;
 
 class CourseController extends Controller
 {
@@ -17,6 +18,16 @@ class CourseController extends Controller
         $courses = Course::all();
 
         return response()->json($courses);
+    }
+
+    public function getCoursesAvailable()
+    {
+        $courses = Course::where('status', CourseStatus::Approved)->get();
+    }
+
+    public function getAllLessonOFACourse(Course $course)
+    {
+        return response()->json($course->lessons()->with('contents')->get());
     }
 
 
@@ -66,20 +77,15 @@ class CourseController extends Controller
             'description' => 'string',
         ]);
         $old_path = FileHelper::getFolderName($course->id);
-        if (file_exists($old_path)) {
-        } else {
-            return response()->json(['message' => 'Ini salah ew old path' . $old_path], 500);
-        }
         $content->title = $validated['title'];
         $content->description = $validated['description'];
-        $content->save();
         $new_path = FileHelper::getFolderName($course->id);
-        $result = rename($old_path, $new_path);
-        if ($result){
-            return response()->json(['message' => 'Resource created successfully' . $old_path . $new_path], 200); // 201 Created
-        }else{
-            return response()->json(['message' => 'Failed to change folder'], 500); // 201 Created
+        $result = FileHelper::changeFolderName($new_path, $old_path);
+        if (!$result){
+            return response()->json("Path doesn't exist", 500);
         }
+        $content->save();
+        return response()->json(null, 204);
     }
 
     /**

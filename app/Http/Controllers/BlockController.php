@@ -63,7 +63,7 @@ class BlockController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Show the form data needed for creating a new resource.
      */
     public function create(Request $request)
     {
@@ -91,7 +91,7 @@ class BlockController extends Controller
                 ['name' => 'data[alt]', 'type' => 'text', 'label' => 'Alternative Name'],
             ],
             'text' => [
-                ['name' => 'data[content]', 'type' => 'text', 'label' => 'Teks'],
+                ['name' => 'data[content]', 'type' => 'textarea', 'label' => 'Teks'],
             ],
             'code' => [
                 ['name' => 'data[language]', 'type' => 'text', 'label' => 'Language'],
@@ -135,11 +135,11 @@ class BlockController extends Controller
         if ($old_index == $new_index){
             return;
         }else if ($old_index > $new_index){
-                Block::where('content_id', $block->content_id)
+                Block::where('card_id', $block->card_id)
                             ->whereBetween('order_index', [$new_index, $old_index-1])
                             ->increment('order_index');
         }else{
-                Block::where('content_id', $block->content_id)
+                Block::where('card_id', $block->card_id)
                             ->whereBetween('order_index', [$old_index+1, $new_index])
                             ->decrement('order_index');
         }
@@ -186,10 +186,18 @@ class BlockController extends Controller
                 'data.answer' => 'required|string|in:A,B,C,D',
                 'data.explanation' => 'required|string',
             ],
-            'image', 'gif', 'video' => [
-                'data.file' => 'required|file|mimes:jpg,jpeg,png,gif,mp4|max:10480',
+            'image'=> [
+                'data.file' => 'required|file|mimes:jpg,jpeg,png|max:5240',
                 'data.alt' => 'nullable|string'
             ],
+            'gif' => [
+                'data.file' => 'required|file|mimes:gif|max:5240',
+                'data.alt' => 'nullable|string'
+            ], 
+            'video' => [
+                'data.file' => 'required|file|mimes:mp4|max:10480',
+                'data.alt' => 'nullable|string'
+            ], 
             'text' => [
                 'data.content' => 'required|string',
             ],
@@ -204,7 +212,7 @@ class BlockController extends Controller
             ...$rules,
             ...$typeRules
         ]);
-        return $validated;
+
         // return $request;
         // $data = $this->expandDotNotation($validated);
         // $validated['data'] = $data['data'];
@@ -222,7 +230,7 @@ class BlockController extends Controller
             'card_id' => $validated['card_id'],
         ];
         $block = Block::create($block_data);
-        Block::where('card_id', $block->content_id)
+        Block::where('card_id', $block->card_id)
             ->where('order_index', '>=', $block->order_index)
             ->increment('order_index');
         match ($type)
@@ -256,7 +264,43 @@ class BlockController extends Controller
      */
     public function edit(Block $block)
     {
-        
+        $type = $block->type;
+
+        // return $card_id;
+        $maxOrder = Block::where('card_id', $block->card_id)
+            ->max('order_index') + 1;
+        $common = [
+            ['name' => 'order_index', 'type' => 'number" '.'value="'.$block->order_index.'" min="1" max="'. $maxOrder .'" step="1', 'label' => 'Urutan'],
+        ];
+
+        $jsonbSchema = match ($type) {
+            ContentType::QUIZ => [
+                ['name' => 'data[question]', 'type' => 'text', 'label' => 'Pertanyaan'],
+                ['name' => 'data[choices][A]', 'type' => 'text', 'label' => 'Pilihan A'],
+                ['name' => 'data[choices][B]', 'type' => 'text', 'label' => 'Pilihan B'],
+                ['name' => 'data[choices][C]', 'type' => 'text', 'label' => 'Pilihan C'],
+                ['name' => 'data[choices][D]', 'type' => 'text', 'label' => 'Pilihan D'],
+                ['name' => 'data[answer]', 'type' => 'text', 'label' => 'Jawaban (A/B/C/D)'],
+                ['name' => 'data[explanation]', 'type' => 'textarea', 'label' => 'Penjelasan'],
+            ],
+            ContentType::IMAGE, ContentType::GIF, ContentType::VIDEO =>[
+                ['name' => 'data[file]', 'type' => 'file', 'label' => 'File'],
+                ['name' => 'data[alt]', 'type' => 'text', 'label' => 'Alternative Name'],
+            ],
+            ContentType::TEXT => [
+                ['name' => 'data[content]', 'type' => 'textarea', 'label' => 'Teks'],
+            ],
+            ContentType::CODE => [
+                ['name' => 'data[language]', 'type' => 'text', 'label' => 'Language'],
+                ['name' => 'data[code]', 'type' => 'text', 'label' => 'Code'],
+            ],
+            default => ['This is default']
+        };
+
+        return response()->json([
+            'schema' => [...$common, ...$jsonbSchema],
+            'value'  => $block, // <--- nilai awal,
+        ]);
     }
 
     /**
@@ -264,7 +308,90 @@ class BlockController extends Controller
      */
     public function update(Request $request, Block $block)
     {
+        $type = $block->type;
         
+        $rules = [
+            // 'type' => 'required|in:text,image,code,quiz,gif,video',
+            'order_index' => 'required|integer|min:0',
+            'card_id' => 'required|exists:cards,id',
+            'course_id' => 'required|integer',// $courseSlug
+            'lesson_id' => 'required|integer', // $lessonSlug 
+            'content_id' => 'required|integer', // $contentSlug
+        ];
+        $typeRules = match ($type) {
+            ContentType::QUIZ => [
+                'data.question' => 'required|string',
+                'data.choices.A' => 'required|string',
+                'data.choices.B' => 'required|string',
+                'data.choices.C' => 'required|string',
+                'data.choices.D' => 'required|string',
+                'data.answer' => 'required|string|in:A,B,C,D',
+                'data.explanation' => 'required|string',
+            ],
+            ContentType::IMAGE=> [
+                'data.file' => 'required|file|mimes:jpg,jpeg,png|max:5240',
+                'data.alt' => 'nullable|string'
+            ],
+            ContentType::GIF => [
+                'data.file' => 'required|file|mimes:gif|max:5240',
+                'data.alt' => 'nullable|string'
+            ], 
+            ContentType::VIDEO => [
+                'data.file' => 'required|file|mimes:mp4|max:10480',
+                'data.alt' => 'nullable|string'
+            ], 
+            ContentType::TEXT => [
+                'data.content' => 'required|string',
+            ],
+            ContentType::CODE => [
+                'data.language' => 'required|string',
+                'data.code' => 'required|string',
+            ],
+            default => []
+        };
+        // return $request;
+        $validated = $request->validate([
+            ...$rules,
+            ...$typeRules
+        ]);
+
+        $maxOrder = Block::where('card_id', $block->card_id)
+            ->max('order_index') + 1;
+
+        if ($validated['order_index'] >$maxOrder){
+            $validated['order_index'] = $maxOrder;
+        }
+
+        if ($block->type == ContentType::IMAGE || $block->type == ContentType::GIF || $block->type == ContentType::VIDEO){
+            $result = FileHelper::deleteBlockFile($validated['course_id'], $validated['lesson_id'], $validated['contnt_id'], $validated['card_id'], $block->id);
+            if (!$result){
+                return response()->json(null, 500);
+            }
+            $validated['data']['filename'] = $validated['data']['file']->getClientOriginalName();
+        }
+
+        match ($type)
+        {
+            ContentType::IMAGE, ContentType::GIF, ContentType::VIDEO => $data = FileHelper::storeBlockFile(
+                                                    $validated['data']['file'],
+                                                    $validated['course_id'],
+                                                    $validated['lesson_id'],
+                                                    $validated['content_id'],
+                                                    $validated['card_id'],
+                                                    $block->id, // block_id
+                                                ),
+            default => $data = NULL,
+        };
+
+        // if ($data === NULL){
+        //     return response()->json(['error' => 'On creating Block Model'], 400);
+        // }
+
+        $block->data = $validated['data'];
+
+        self::reposition_order_index($block, $validated['order_index']);
+        
+        return response()->json(null, 204);
     }
 
     /**
@@ -272,6 +399,9 @@ class BlockController extends Controller
      */
     public function destroy(Block $block)
     {
+        // return response()
+        // return response()->json([$block->card->content->lesson->course->id, $block->card->content->lesson->id, $block->card->content->id, $block->card->id, $block->id], 200);
+        
         $block->delete();
 
         return response()->json(null, 204);

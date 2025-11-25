@@ -242,7 +242,9 @@
                                     </button> --}}
                                     <button
                                         class="bg-blue-600 text-white px-3 py-2 rounded-lg"
-                                        onclick="openPopupBlockType({{ $course->id }},{{ $lesson->id }}, {{ $content->id }}, {{ $card->id }})"
+                                        onclick="openPopupBlockType(
+                                            {{ $course->id }},{{ $lesson->id }}, {{ $content->id }}, {{ $card->id }}
+                                            )"
                                     >
                                         + Tambah Block
                                     </button>
@@ -261,7 +263,7 @@
 
                                             @switch($block->type->value ?? $block->type)
                                                 @case('text')
-                                                    <p class="mt-2">{{ $block->data['body'] ?? '[Teks tidak tersedia]' }}</p>
+                                                    <p class="mt-2">{{ $block->data['body'] ?? $block->data['content'] }}</p>
                                                     @break
 
                                                 @case('image')
@@ -312,6 +314,16 @@
                                                     @break
                                             @endswitch
                                         </div>
+                                        <button
+                                            class="bg-blue-600 text-white px-3 py-2 rounded-lg"
+                                            onclick="openEditPopup(
+                                                '{{ route('blocks.edit', $block->id) }}',
+                                                '{{ route('blocks.update', $block->id) }}',
+                                                {{ $course->id }},{{ $lesson->id }}, {{ $content->id }}, {{ $card->id }}
+                                                )"
+                                        >
+                                            + Edit Block
+                                        </button>
                                     @endforeach
                                 </div>
                             @endforeach
@@ -337,6 +349,26 @@
             </form>
 
             <button class="btn-close-popup" onclick="togglePopup()">
+                Close
+            </button>
+        </div>
+    </div>
+
+    <div id="popUpeditOverlay" class="overlay-container">
+        <div class="popup-box">
+            <h2 id="popupTitle" style="color: green;">Edit Form</h2>
+
+            <form id="EditPopUpForm" class="form-container" method="POST" enctype="multipart/form-data">
+                @csrf
+                @method('PUT')
+
+                <!-- Dynamic fields will be inserted here -->
+                <div id="EditDynamicFields"></div>
+
+                <button class="btn-submit" type="submit">Submit</button>
+            </form>
+
+            <button class="btn-close-popup" onclick="toggleEditPopup()">
                 Close
             </button>
         </div>
@@ -448,17 +480,123 @@
             const wrapper = document.createElement("div");
             wrapper.classList.add("form-group");
             console.log(field.name)
-            wrapper.innerHTML = `
-                <label class="form-label">${field.label}</label>
-                <input 
-                    type="${field.type}" 
-                    name="${field.name}" 
-                    class="form-input" 
-                    required>
-            `;
+            if (field.type=='textarea'){
+                wrapper.innerHTML = `
+                    <label class="form-label">${field.label}</label>
+                    <textarea name="${field.name}" class="form-input" required></textarea>
+                `;
+            }
+            else{
+                wrapper.innerHTML = `
+                    <label class="form-label">${field.label}</label>
+                    <input 
+                        type="${field.type}" 
+                        name="${field.name}" 
+                        class="form-input" 
+                        required>
+                `;
+            }
             console.log(field.type)
             container.appendChild(wrapper);
         });
+    }
+    function toggleEditPopup() {
+        const overlay = document.getElementById('popUpeditOverlay');
+        overlay.classList.toggle('show');
+    }
+    const editForm = document.getElementById("EditPopUpForm");
+    const editContainer = document.getElementById("EditDynamicFields");
+    async function openEditPopup(fetchUrl, submitUrl, courseId, lessonId = null, contentId=null, cardId=null, blockId=null, type=null) {
+        toggleEditPopup();
+
+        editForm.action = submitUrl;
+
+        editContainer.innerHTML = "";
+
+        const response = await fetch(fetchUrl);
+        const { schema, value } = await response.json();
+        console.log("Ini bisa bang\n", schema, value)
+        const getNestedValue = (obj, path) => {
+            if (!obj) return "";
+            const keys = path.replace(/\]/g, "").split("[");
+            return keys.reduce((acc, key) => {
+                if (acc && acc[key] !== undefined) return acc[key];
+                return "";
+            }, obj);
+        };
+        
+        const hidden = document.createElement("input");
+        hidden.type = "hidden";
+        hidden.name = "course_id"; 
+        hidden.value = courseId;
+        editContainer.appendChild(hidden);
+
+        if (lessonId !== null && lessonId !== "null") {
+            const hidden = document.createElement("input");
+            hidden.type = "hidden";
+            hidden.name = "lesson_id"; 
+            hidden.value = lessonId;
+            editContainer.appendChild(hidden);
+            if (contentId !== null && contentId !== "null") {
+                const hidden1 = document.createElement("input");
+                hidden1.type = "hidden";
+                hidden1.name = "content_id"; 
+                hidden1.value = contentId;
+                editContainer.appendChild(hidden1);
+                if (cardId !== null && cardId !== "null") {
+                    const hidden2 = document.createElement("input");
+                    hidden2.type = "hidden";
+                    hidden2.name = "card_id"; 
+                    hidden2.value = cardId;
+                    editContainer.appendChild(hidden2);
+                    if (blockId !== null && blockId !== "null") {
+                        const hidden3 = document.createElement("input");
+                        hidden3.type = "hidden";
+                        hidden3.name = "block_id"; 
+                        hidden3.value = blockId;
+                        editContainer.appendChild(hidden3);
+                    }
+                }
+            }
+        }
+
+        // Generate all schema fields
+        schema.forEach(field => {
+            const wrapper = document.createElement("div");
+            wrapper.classList.add("form-group");
+
+            const val = getNestedValue(value, field.name);
+            console.log(val)
+            // For textarea
+            if (field.type === "textarea") {
+                wrapper.innerHTML = `
+                    <label class="form-label">${field.label}</label>
+                    <textarea name="${field.name}" class="form-input" required>${val}</textarea>
+                `;
+            } 
+            // For file input (file cannot have value)
+            else if (field.type === "file") {
+                wrapper.innerHTML = `
+                    <label class="form-label">${field.label}</label>
+                    <input type="file" name="${field.name}" class="form-input">
+                `;
+            }
+            // For normal <input>
+            else {
+                wrapper.innerHTML = `
+                    <label class="form-label">${field.label}</label>
+                    <input 
+                        type="${field.type}"
+                        name="${field.name}"
+                        value="${val}"
+                        class="form-input"
+                        required
+                    >
+                `;
+            }
+
+            editContainer.appendChild(wrapper);}
+        )
     }
     </script>
 

@@ -79,3 +79,74 @@ Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::get('/register', fn() => view('auth.register'))->name('register');
 Route::post('/register', [AuthController::class, 'register'])->name('register.post');
+
+// Route::middleware(['auth'])->group(function () {
+//     Route::get('/dashboard', [DashboardController::class, 'student'])
+//         ->name('dashboard.index');
+
+//     Route::get('/dashboard/profile', [DashboardController::class, 'profile'])
+//         ->name('dashboard.profile');
+
+//     Route::get('/dashboard/teacher', [DashboardController::class, 'teacher'])
+//         ->name('dashboard.teacher');
+// });
+
+Route::get('/dashboard', [DashboardController::class, 'student'])
+    ->name('dashboard.index');
+
+Route::get('/dashboard/student', [DashboardController::class, 'student'])
+    ->name('dashboard.student');
+    
+Route::post('/logout', function () {
+    return redirect('/');
+})->name('logout');
+Route::middleware('auth')->group(function() { // dont fotget you must have route login
+    Route::get('/debug-session', function () {
+        return session()->all();
+    });
+});
+// Resources
+// Route::resource('fasilitas', MatkulController::class);
+// Route::resource('contents', ContentController::class);
+Route::Resource('contents', ContentController::class);
+// To get all of courses that available use this get
+Route::Resource('courses', CourseController::class);
+Route::Resource('blocks', BlockController::class);
+Route::Resource('lessons', LessonController::class);
+Route::Resource('cards', CardController::class);
+Route::get('get-type', [BlockController::class, 'getType'])->name('get-type');
+// Use this to get the data of all of the lessons in a course
+Route::get('get-lessons/{course}', [CourseController::class, 'getAllLessonOFACourse'])->name('get-lessons');
+// Use this to get the blocks needed for building a card
+Route::get('/get-blocks/{card}', // This is for getting all of blocks data of a card
+    [CardController::class, 'getBlocksOfCard']
+)->name('card.get-blocks');
+
+//testing
+Route::get('/test-websocket', 
+    function (){
+        return view('test_websocket');
+    }
+);
+Route::post('/post-question',
+    [QuizController::class, 'startQuestion']
+);
+Route::get('/post-question',
+    function(){
+        return view('post_question');
+    }
+);
+
+Route::get('/edit-content',
+    function(){
+        $content = Content::findOrFail(1);
+        return view('TESTING.change_content', compact('content'));
+    }
+);
+
+Route::get('/delete-block',
+    function(){
+        return view('TESTING.test_delete');
+    }
+);
+

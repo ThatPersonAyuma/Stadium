@@ -12,25 +12,50 @@ use Illuminate\Support\Str;
 
 class FileHelper
 {
-    public static function getFolderName($courseId, $lessonId=NULL, $contentId=NULL){
+    public static function getFolderName($courseId, $lessonId=NULL, $contentId=NULL, $cardId=NULL){
         $course = Course::findOrFail($courseId);
-    $courseSlug = "{$course->id}-" . Str::slug(Str::limit($course->title, 20));
+        $courseSlug = "{$course->id}-" . Str::slug(Str::limit($course->title, 20));
 
-    $path = "courses/{$courseSlug}";
+        $path = "courses/{$courseSlug}";
 
-    if ($lessonId) {
-        $lesson = Lesson::findOrFail($lessonId);
-        $lessonSlug = "{$lesson->id}-" . Str::slug(Str::limit($lesson->title, 20));
-        $path .= "/{$lessonSlug}";
+        if ($lessonId) {
+            $lesson = Lesson::findOrFail($lessonId);
+            $lessonSlug = "{$lesson->id}-" . Str::slug(Str::limit($lesson->title, 20));
+            $path .= "/{$lessonSlug}";
+        }
+
+        if ($contentId) {
+            $content = Content::findOrFail($contentId);
+            $contentSlug = "{$content->id}-" . Str::slug(Str::limit($content->title, 20));
+            $path .= "/{$contentSlug}";
+        }
+
+        if ($cardId){
+            $path .="/{$cardId}-card";
+        }
+
+        return $path; 
     }
 
-    if ($contentId) {
-        $content = Content::findOrFail($contentId);
-        $contentSlug = "{$content->id}-" . Str::slug(Str::limit($content->title, 20));
-        $path .= "/{$contentSlug}";
+    public static function changeFolderName($new_path, $old_path)
+    {
+        if (file_exists($old_path)) {
+        } else {
+            return response()->json(['message' => 'Ini salah ew old path' . $old_path], 500);
+        }
+        $result = rename($old_path, $new_path);
+        if ($result){
+            return true;
+        }else{
+            return false;
+        }
     }
 
-    return Storage::disk('public')->path($path); 
+    public static function deleteFolder($courseId, $lessonId=NULL, $contentId=NULL, $cardId=NULL)
+    {
+        $path = FileHelper::getFolderName($courseId, $lessonId, $contentId, $cardId);
+        // return $path;
+        return Storage::disk('public')->deleteDirectory($path);
     }
 
     public static function blockPath($courseId, $lessonId, $contentId, $cardId)
@@ -69,6 +94,44 @@ class FileHelper
         $filename = Block::findOrFail($blockId)->data['filename'];
         return 'storage/' . "courses/{$courseSlug}/{$lessonSlug}/{$contentSlug}/{$cardSlug}/{$blockId}-{$filename}";
     }
+
+    public static function deleteBlockFile($courseId, $lessonId, $contentId, $cardId, $blockId)
+    {
+        $block = Block::findOrFail($blockId);
+
+        // filename di DB tanpa prefix blockId
+        $originalFilename = $block->data['filename'] ?? null;
+
+        if (!$originalFilename) {
+            return false; // tidak ada file untuk dihapus
+        }
+
+        // prefix yang dipakai saat upload
+        $prefixed = "{$blockId}-{$originalFilename}";
+
+        // folder path yang sama dipakai di storeBlockFile (tanpa "storage/")
+        $course = Course::findOrFail($courseId);
+        $lesson = Lesson::findOrFail($lessonId);
+        $content = Content::findOrFail($contentId);
+
+        $courseSlug = "{$course->id}-" . Str::slug(Str::limit($course->title, 20));
+        $lessonSlug = "{$lesson->id}-" . Str::slug(Str::limit($lesson->title, 20));
+        $contentSlug = "{$content->id}-" . Str::slug(Str::limit($content->title, 20));
+        $cardSlug = "{$cardId}-card";
+
+        // path relatif di disk('public')
+        $filePath =
+            "courses/{$courseSlug}/{$lessonSlug}/{$contentSlug}/{$cardSlug}/{$prefixed}";
+
+        // Hapus file di storage/app/public/...
+        if (Storage::disk('public')->exists($filePath)) {
+            Storage::disk('public')->delete($filePath);
+            return true;
+        }
+
+        return false;
+    }
+
 
     public static function getBlockUrl($courseId, $lessonId, $contentId, $cardId, $blockId)
     {
