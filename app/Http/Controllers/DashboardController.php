@@ -3,7 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Course;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Schema;
+use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
@@ -94,52 +98,58 @@ class DashboardController extends Controller
 
     public function teacher()
     {
-        $teacher = (object) [
-            'name'            => 'Bu Rani',
-            'totalCourses'    => 3,
-            'totalStudents'   => 74,
-            'completedToday'  => 9,
-        ];
+        $authUser = Auth::user();
+        $teacher = $authUser && $authUser->role === 'teacher'
+            ? $authUser
+            : User::where('role', 'teacher')->first();
 
-        $courses = collect([
-            (object) [
-                'id'               => 11,
-                'title'            => 'Algoritma Lanjut',
-                'status'           => 'published',
-                'color'            => '#2563EB',
-                'total_students'   => 26,
-                'completed_count'  => 18,
-                'recent_completes' => [
-                    ['name' => 'Sari', 'score' => 95, 'time' => '2 jam lalu'],
-                    ['name' => 'Dedi', 'score' => 90, 'time' => 'Hari ini'],
-                    ['name' => 'Rudi', 'score' => 84, 'time' => 'Kemarin'],
-                ],
-            ],
-            (object) [
-                'id'               => 12,
-                'title'            => 'Dasar PBO',
-                'status'           => 'draft',
-                'color'            => '#F97316',
-                'total_students'   => 20,
-                'completed_count'  => 8,
-                'recent_completes' => [
-                    ['name' => 'Tika', 'score' => 87, 'time' => '1 hari lalu'],
-                    ['name' => 'Yuda', 'score' => 81, 'time' => '2 hari lalu'],
-                ],
-            ],
-            (object) [
-                'id'               => 13,
-                'title'            => 'Laravel Web',
-                'status'           => 'published',
-                'color'            => '#10B981',
-                'total_students'   => 28,
-                'completed_count'  => 14,
-                'recent_completes' => [
-                    ['name' => 'Nina', 'score' => 93, 'time' => '30 menit lalu'],
-                    ['name' => 'Andi', 'score' => 89, 'time' => 'Hari ini'],
-                ],
-            ],
-        ]);
+        // Fallback supaya halaman tetap bisa dibuka saat belum ada teacher.
+        if (! $teacher) {
+            $teacher = User::create([
+                'username' => 'teacher_demo',
+                'name'     => 'Demo Teacher',
+                'email'    => 'teacher@example.com',
+                'password' => bcrypt('password'),
+            ]);
+            $teacher->role = 'teacher';
+            $teacher->save();
+        }
+
+        $hasEnrollmentPivot = Schema::hasTable('course_user');
+
+        $courses = Course::query()
+            ->where('teacher_id', $teacher->id)
+            ->when($hasEnrollmentPivot, function ($query) {
+                $query->withCount([
+                    'users as total_students' => fn ($q) => $q->where('role', 'student'),
+                    'users as completed_count' => fn ($q) => $q->where('role', 'student')->wherePivot('progress', '>=', 100),
+                ])->with(['users' => fn ($q) => $q
+                    ->where('role', 'student')
+                    ->orderByPivot('updated_at', 'desc')
+                ]);
+            })
+            ->get()
+            ->map(function ($course) use ($hasEnrollmentPivot) {
+                if (! $hasEnrollmentPivot) {
+                    $course->total_students = 0;
+                    $course->completed_count = 0;
+                    $course->recent_completes = collect();
+                    return $course;
+                }
+
+                $course->recent_completes = $course->users
+                    ->take(5)
+                    ->map(function ($student) {
+                        $updatedAt = $student->pivot?->updated_at;
+                        return [
+                            'name'  => $student->name ?? $student->username,
+                            'score' => $student->pivot?->progress ?? 0,
+                            'time'  => $updatedAt ? Carbon::parse($updatedAt)->diffForHumans() : '-',
+                        ];
+                    });
+
+                return $course;
+            });
 
         $summary = [
             'courses'   => $courses->count(),
@@ -147,6 +157,30 @@ class DashboardController extends Controller
             'completed' => $courses->sum('completed_count'),
         ];
 
-        return view('dashboard.teacher', compact('teacher', 'courses', 'summary'));
+        $completedToday = 0;
+        if ($hasEnrollmentPivot) {
+            $completedToday = $courses->sum(function ($course) {
+                return $course->users
+                    ->filter(function ($student) {
+                        $progress = (int) ($student->pivot?->progress ?? 0);
+                        $updatedAt = $student->pivot?->updated_at;
+                        return $progress >= 100 && $updatedAt && Carbon::parse($updatedAt)->isToday();
+                    })
+                    ->count();
+            });
+        }
+
+        $teacherMeta = (object) [
+            'name'           => $teacher->name ?? 'Teacher',
+            'totalCourses'   => $summary['courses'],
+            'totalStudents'  => $summary['students'],
+            'completedToday' => $completedToday,
+        ];
+
+        return view('dashboard.teacher', [
+            'teacher' => $teacherMeta,
+            'courses' => $courses,
+            'summary' => $summary,
+        ]);
     }
 }

@@ -65,6 +65,15 @@ Route::get('/course/{courseId}/lesson/{lessonId}', [LessonController::class, 'pl
 Route::get('/lesson-by-course', [LessonController::class, 'getRelationWithCourse'])->name('getLessWCourse');
 Route::post('/add-file', [BlockController::class, 'store'])->name('addFile');
 
+Route::prefix('teacher/courses')->name('teacher.courses.')->group(function () {
+    Route::get('/', [CourseController::class, 'teacherIndex'])->name('index');
+    Route::get('/create', [CourseController::class, 'teacherCreate'])->name('create');
+    Route::get('/{course}', [CourseController::class, 'teacherShow'])->name('show');
+    Route::get('/{course}/edit', [CourseController::class, 'teacherEdit'])->name('edit');
+    Route::post('/{course}/lessons', [CourseController::class, 'teacherLessonStore'])->name('lessons.store');
+    Route::delete('/{course}/lessons/{lesson}', [CourseController::class, 'teacherLessonDestroy'])->name('lessons.destroy');
+});
+
 use App\Http\Controllers\UserAvatarController;
 
 
@@ -96,10 +105,10 @@ Route::post('/register', [AuthController::class, 'register'])->name('register.po
 Route::get('/dashboard', [DashboardController::class, 'student'])
     ->name('dashboard.index');
 
-Route::get('/dashboard/student', [DashboardController::class, 'student'])
+Route::get('/student/dashboard', [DashboardController::class, 'student'])
     ->name('dashboard.student');
 
-Route::get('/dashboard/teacher', [DashboardController::class, 'teacher'])
+Route::get('/teacher/dashboard', [DashboardController::class, 'teacher'])
     ->name('dashboard.teacher');
     
 Route::post('/logout', function () {
@@ -155,4 +164,3 @@ Route::get('/delete-block',
         return view('TESTING.test_delete');
     }
 );
-

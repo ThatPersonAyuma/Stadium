@@ -3,9 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Course;
+use App\Models\Lesson;
 use Illuminate\Http\Request;
 use App\Helpers\FileHelper;
 use App\Enums\CourseStatus;
+use Illuminate\Support\Facades\Auth;
+use App\Models\User;
 
 class CourseController extends Controller
 {
@@ -43,6 +46,60 @@ class CourseController extends Controller
         ];
 
         return view('courses.course', compact('courses', 'summary'));
+    }
+
+    public function teacherIndex()
+    {
+        $teacher = Auth::user()?->role === 'teacher'
+            ? Auth::user()
+            : User::where('role', 'teacher')->first();
+
+        $courses = Course::query()
+            ->when($teacher, fn ($q) => $q->where('teacher_id', $teacher->id))
+            ->withCount('lessons')
+            ->latest()
+            ->get();
+
+        $summary = [
+            'total'   => $courses->count(),
+            'draft'   => $courses->where('status', 'draft')->count(),
+            'pending' => $courses->where('status', 'pending')->count(),
+            'approved'=> $courses->where('status', 'approved')->count(),
+        ];
+
+        return view('courses.teacher-index', compact('courses', 'summary', 'teacher'));
+    }
+
+    public function teacherCreate()
+    {
+        return view('courses.teacher-create');
+    }
+
+    public function teacherShow(Course $course)
+    {
+        $course->load([
+            'lessons' => fn ($q) => $q->orderBy('order_index')->with([
+                'contents' => fn ($q) => $q->orderBy('order_index')->with([
+                    'cards' => fn ($q) => $q->orderBy('order_index')->with([
+                        'blocks' => fn ($q) => $q->orderBy('order_index'),
+                    ]),
+                ]),
+            ]),
+        ]);
+
+        $stats = [
+            'lessons'  => $course->lessons->count(),
+            'contents' => $course->lessons->flatMap->contents->count(),
+            'cards'    => $course->lessons->flatMap->contents->flatMap->cards->count(),
+            'blocks'   => $course->lessons->flatMap->contents->flatMap->cards->flatMap->blocks->count(),
+        ];
+
+        return view('courses.teacher-show', compact('course', 'stats'));
+    }
+
+    public function teacherEdit(Course $course)
+    {
+        return view('courses.teacher-edit', compact('course'));
     }
 
     public function detail(int $courseId)
@@ -114,10 +171,7 @@ class CourseController extends Controller
 
     public function create()
     {
-        return response()->json([
-            ['name' => 'title', 'type' => 'text', 'label' => 'Judul'],
-            ['name' => 'description', 'type' => 'text', 'label' => 'Deskripsi'],
-        ]);
+        return view('courses.teacher-create');
     }
 
     /**
@@ -125,16 +179,31 @@ class CourseController extends Controller
      */
     public function store(Request $request)
     {
-        // Validasi input
         $validated = $request->validate([
-            'title' => 'required|string|max:255',
+            'title'       => 'required|string|max:255',
             'description' => 'nullable|string',
+            'status'      => 'nullable|in:draft,pending,approved,revision,rejected,hidden,archived',
+            'teacher_id'  => 'nullable|integer|exists:users,id',
         ]);
 
-        // Simpan course baru
-        $course = Course::create($validated);
+        $teacherId = $validated['teacher_id']
+            ?? (Auth::check() ? Auth::id() : null)
+            ?? User::where('role', 'teacher')->value('id');
 
-        return response()->json($course, 201);
+        $course = Course::create([
+            'title'       => $validated['title'],
+            'description' => $validated['description'] ?? '',
+            'status'      => $validated['status'] ?? 'draft',
+            'teacher_id'  => $teacherId,
+        ]);
+
+        if ($request->wantsJson()) {
+            return response()->json($course, 201);
+        }
+
+        return redirect()
+            ->route('teacher.courses.index')
+            ->with('status', 'Course berhasil dibuat.');
     }
 
     /**
@@ -148,25 +217,68 @@ class CourseController extends Controller
         return response()->json($course);
     }
 
+    public function teacherLessonStore(Request $request, Course $course)
+    {
+        $validated = $request->validate([
+            'title'       => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'order_index' => 'nullable|integer|min:1',
+        ]);
+
+        $nextOrder = $validated['order_index']
+            ?? (($course->lessons()->max('order_index') ?? 0) + 1);
+
+        $lesson = $course->lessons()->create([
+            'title'       => $validated['title'],
+            'description' => $validated['description'] ?? '',
+            'order_index' => $nextOrder,
+        ]);
+
+        return response()->json([
+            'message' => 'Lesson berhasil ditambahkan',
+            'lesson'  => $lesson,
+        ], 201);
+    }
+
+    public function teacherLessonDestroy(Course $course, Lesson $lesson)
+    {
+        abort_if($lesson->course_id !== $course->id, 404);
+        $lesson->delete();
+
+        return response()->json([
+            'message' => 'Lesson berhasil dihapus',
+        ]);
+    }
+
     /**
      * Update the specified resource in storage.
      */
     public function update(Request $request, Course $course)
     {
         $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'string',
+            'title'       => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'status'      => 'nullable|in:draft,pending,approved,revision,rejected,hidden,archived',
+            'teacher_id'  => 'nullable|integer|exists:users,id',
         ]);
-        $old_path = FileHelper::getFolderName($course->id);
-        $content->title = $validated['title'];
-        $content->description = $validated['description'];
-        $new_path = FileHelper::getFolderName($course->id);
-        $result = FileHelper::changeFolderName($new_path, $old_path);
-        if (!$result){
-            return response()->json("Path doesn't exist", 500);
+
+        $course->title = $validated['title'];
+        $course->description = $validated['description'] ?? $course->description;
+        $course->status = $validated['status'] ?? $course->status;
+
+        if (! empty($validated['teacher_id'])) {
+            $course->teacher_id = $validated['teacher_id'];
         }
-        $content->save();
-        return response()->json(null, 204);
+
+        $course->save();
+
+        if ($request->wantsJson()) {
+            return response()->json($course);
+        }
+
+        return redirect()
+            ->route('teacher.courses.index')
+            ->with('status', 'Course berhasil diperbarui.');
     }
 
     /**
