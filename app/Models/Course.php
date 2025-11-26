@@ -5,7 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use App\Helpers\FileHelper;
+
 
 class Course extends Model
 {
@@ -37,5 +39,14 @@ class Course extends Model
         return $this->belongsToMany(User::class)
             ->withPivot(['progress', 'last_lesson_id'])
             ->withTimestamps();
+    }
+    public function teacher():BelongsTo
+    {
+        return $this->belongsTo(Teacher::class);
+    }
+
+    public function contents():HasManyThrough
+    {
+        return $this->hasManyThrough(Content::class, Lesson::class);
     }
 }

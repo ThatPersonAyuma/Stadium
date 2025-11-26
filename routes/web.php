@@ -127,6 +127,11 @@ Route::get('get-lessons/{course}', [CourseController::class, 'getAllLessonOFACou
 Route::get('/get-blocks/{card}', // This is for getting all of blocks data of a card
     [CardController::class, 'getBlocksOfCard']
 )->name('card.get-blocks');
+Route::get('get-progress/{course}/{student}', [CourseController::class, 'getStudentCourseProgress'])->name('get-progress');
+Route::get('/get-cards/{content}', // This is for getting all of card datas of a content
+    [ContentController::class, 'getCards']
+)->name('card.get-cards');
+
 
 //testing
 Route::get('/test-websocket', 
@@ -155,4 +160,10 @@ Route::get('/delete-block',
         return view('TESTING.test_delete');
     }
 );
-
+Route::get('/get-a-card',
+    function(){
+        $cards = ContentController::getCards(Content::findOrFail(1));
+        $blocks = Content::findOrFail(1)->load('cards.blocks');
+        return view('TESTING.card', compact('cards', 'blocks'));
+    }
+);

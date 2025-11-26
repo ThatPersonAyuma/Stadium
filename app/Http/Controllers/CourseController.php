@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Course;
+use App\Models\Student;
 use Illuminate\Http\Request;
 use App\Helpers\FileHelper;
 use App\Enums\CourseStatus;
+use App\Models\StudentContentProgress;
 
 class CourseController extends Controller
 {
@@ -178,4 +180,36 @@ class CourseController extends Controller
 
         return response()->json(null, 204);
     }
+
+    public function getStudentCourseProgress(Course $course, Student $student)
+    {
+        $totalContents = $course->contents()->count();
+
+        $completedCount = StudentContentProgress::where('student_id', $student->id)
+            ->whereIn('content_id', $course->contents()->pluck('contents.id'));
+            // ->where('is_completed', true)
+            // ->count();
+        $contentCounted = $completedCount->count();
+        $contentCountedCompleted = $completedCount->where('is_completed', true)->count();
+        if ($totalContents>0){
+            $percentage = round(($contentCountedCompleted / $totalContents) * 100, 2);
+        }else{
+            $percentage = 0;
+        }
+        // $percentage = $totalContents > 0
+        //     ? round(($completedCount / $totalContents) * 100, 2)
+        //     : 0;
+        $condition = $contentCounted > 0
+            ? 'registered'
+            : 'unregistered';
+
+        return response()->json([
+            'course_id' => $course->id,
+            'total_contents' => $totalContents,
+            'completed' => $contentCountedCompleted,
+            'condition' => $condition,
+            'progress_percentage' => $percentage,
+        ]);
+    }
+
 }

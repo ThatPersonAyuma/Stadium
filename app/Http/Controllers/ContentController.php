@@ -18,6 +18,11 @@ class ContentController extends Controller
         return response()->json($contents);
     }
     
+    public static function getCards(Content $content)
+    {
+        return $content->cards;
+    }
+
     public function getById(int $contentId)
     {   
         return Content::find($contentId);
