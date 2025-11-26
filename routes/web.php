@@ -160,10 +160,11 @@ Route::get('/delete-block',
         return view('TESTING.test_delete');
     }
 );
-Route::get('/get-a-card',
-    function(){
-        $cards = ContentController::getCards(Content::findOrFail(1));
-        $blocks = Content::findOrFail(1)->load('cards.blocks');
-        return view('TESTING.card', compact('cards', 'blocks'));
-    }
-);
+// Route::get('/get-a-card/{content}',
+//     // function(){
+//         [ContentController::class, 'getCards']
+//         // $cards = ContentController::getCards(Content::findOrFail(1));
+//         // $blocks = Content::findOrFail(1)->load('cards.blocks');
+//         // return view('TESTING.card', compact('cards', 'blocks'));
+//     // }
+// );

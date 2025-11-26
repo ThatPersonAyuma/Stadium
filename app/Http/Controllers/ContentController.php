@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Content;
 use Illuminate\Http\Request;
 use App\Helpers\FileHelper;
+use App\Enums\ContentType;
 
 class ContentController extends Controller
 {
@@ -18,10 +19,50 @@ class ContentController extends Controller
         return response()->json($contents);
     }
     
+    // public static function getCards(Content $content)
+    // {
+    //     $content->load('lesson.course');
+    //     $data = $content->cards()->blocks;
+    //     return $data;
+    // }
+
     public static function getCards(Content $content)
     {
-        return $content->cards;
+        $content->load('lesson.course');
+
+        // Ambil cards beserta blocks-nya
+        $cards = $content->cards()->with('blocks')->get();
+
+        // Mapping cards untuk memodifikasi filename -> url
+        $cards = $cards->map(function ($card) use ($content) {
+            $card->blocks->transform(function ($block) use ($content, $card) {
+
+                if (in_array($block->type, [ContentType::IMAGE, ContentType::GIF, ContentType::VIDEO])) {
+
+                    // generate URL
+                    $url = asset(FileHelper::getBlockUrl(
+                        $content->lesson->course_id,
+                        $content->lesson_id,
+                        $content->id,
+                        $card->id,
+                        $block->id
+                    ));
+
+                    // fix: indirect modification error
+                    $data = $block->data;
+                    $data['url'] = $url;
+                    $block->data = $data;
+                }
+
+                return $block;
+            });
+
+            return $card;
+        });
+
+        return view('TESTING.card', compact('cards'));
     }
+
 
     public function getById(int $contentId)
     {   

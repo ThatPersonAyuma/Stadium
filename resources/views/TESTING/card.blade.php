@@ -25,13 +25,13 @@
         box-shadow: 0 5px 15px rgba(0,0,0,0.1);
     }
 
-    .block {
+    /* .block {
         margin-bottom: 16px;
         padding: 14px;
         background: #f7f8ff;
         border-radius: 12px;
         border: 2px solid #e1e4ff;
-    }
+    }*/
 
     .block img {
         max-width: 100%;
@@ -90,9 +90,8 @@
 // ======================================================
 // Dummy data (simulasi fetch dari server)
 // ======================================================
-const cards_meta_data = @json($cards);
-const blocks = @json($blocks);
-const cards = blocks.cards;
+
+const cards = @json($cards);
 let currentCardIndex = 0;
 
 // ======================================================
@@ -112,14 +111,14 @@ function createBlockElement(block) {
         // ========== IMAGE ==========
         case "image":
             blockEl.innerHTML = `
-                <img src="${block.data.filename}" alt="${block.data.alt}">
+                <img src="${block.data.url}" alt="${block.data.alt}">
             `;
             break;
 
         // ========== GIF ==========
         case "gif":
             blockEl.innerHTML = `
-                <img src="${block.data.filename}" alt="${block.data.alt}">
+                <img src="${block.data.url}" alt="${block.data.alt}">
             `;
             break;
 
@@ -127,13 +126,13 @@ function createBlockElement(block) {
         case "video":
             blockEl.innerHTML = `
                 <video controls width="100%" preload="auto" style="border-radius: 12px">
-                    <source src="${block.data.filename}" type="video/mp4">
+                    <source src="${block.data.url}" type="video/mp4">
                     Browser tidak mendukung video.
                 </video>
             `;
 
             if (block.data.duration > 30) {
-                console.warn("⚠ Video lebih dari 30 detik:", block.data.filename);
+                console.warn("⚠ Video lebih dari 30 detik:", block.data.url);
             }
             break;
 
