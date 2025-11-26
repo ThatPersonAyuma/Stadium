@@ -28,7 +28,7 @@ class Lesson extends Model
             {
                 Log::error("Gagal menghapus folder untuk lesson ID: {$lesson->id}");
             }else{
-                Lesson::where('course_id', $lesson->course->card_id)
+                Lesson::where('course_id', $lesson->course->id)
                     ->where('order_index', '>', $lesson->order_index)
                     ->decrement('order_index');
             }

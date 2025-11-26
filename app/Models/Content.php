@@ -29,7 +29,7 @@ class Content extends Model
             {
                 Log::error("Gagal menghapus folder untuk content ID: {$content->id}");
             }else{
-                Content::where('lesson_id', $content->lesson->card_id)
+                Content::where('lesson_id', $content->lesson->id)
                     ->where('order_index', '>', $content->order_index)
                     ->decrement('order_index');
             }
@@ -43,5 +43,9 @@ class Content extends Model
     public function cards():HasMany
     {
         return $this->hasMany(Card::class)->orderBy('order_index');
+    }
+    public function student_content_progress():HasMany
+    {
+        return $this->hasMany(StudentContentProgress::class);
     }
 }
