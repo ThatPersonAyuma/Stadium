@@ -2,11 +2,11 @@
 @section('title', 'Course')
 
 @section('content')
-<div class="relative min-h-[calc(100vh-120px)] px-8 pt-6 pb-8 md:pt-8 md:pb-10 lg:px-16 xl:px-20 text-white">
-    <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(120%_80%_at_18%_10%,rgba(0,64,168,0.25),transparent_55%)]"></div>
-    <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(110%_70%_at_82%_0%,rgba(0,46,135,0.35),transparent_60%)]"></div>
+<div class="relative min-h-[calc(100vh-120px)] px-6 pt-10 pb-14 md:px-10 lg:px-16 xl:px-20 text-white">
+    <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(110%_70%_at_12%_10%,rgba(0,46,135,0.35),transparent_55%)]"></div>
+    <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(130%_80%_at_88%_0%,rgba(0,153,255,0.25),transparent_60%)]"></div>
 
-    <div class="relative space-y-6">
+    <div class="relative z-10 mx-auto max-w-6xl space-y-6">
         <x-dashboard-header title="Course" />
 
         <div class="flex flex-wrap gap-3">
