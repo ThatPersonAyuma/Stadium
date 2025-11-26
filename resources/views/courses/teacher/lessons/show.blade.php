@@ -131,6 +131,9 @@
     </div>
 </div>
 
+@endsection
+
+@push('scripts')
 <script>
     const initLessonPage = ($) => {
         if (!$) return;
@@ -178,18 +181,20 @@
         };
 
         const buildContentNode = (payload = {}) => {
-            const cardCount = payload.card_count ?? payload.cards_count ?? 0;
-            const order = payload.order_index ?? 1;
-            const courseId = payload.meta?.course_id ?? {{ $course->id }};
-            const lessonId = payload.meta?.lesson_id ?? {{ $lesson->id }};
-            const updateUrl = payload.urls?.update ?? '';
-            const deleteUrl = payload.urls?.delete ?? '';
+            const cardCount = payload.card_count != null
+                ? payload.card_count
+                : (payload.cards_count != null ? payload.cards_count : 0);
+            const order = payload.order_index != null ? payload.order_index : 1;
+            const courseId = payload.meta && payload.meta.course_id != null ? payload.meta.course_id : {{ $course->id }};
+            const lessonId = payload.meta && payload.meta.lesson_id != null ? payload.meta.lesson_id : {{ $lesson->id }};
+            const updateUrl = payload.urls && payload.urls.update ? payload.urls.update : '';
+            const deleteUrl = payload.urls && payload.urls.delete ? payload.urls.delete : '';
             return $(
                 `<div class="rounded-2xl border border-white/12 bg-white/5 p-5 shadow-lg space-y-4" data-content-id="${payload.id}" data-order="${order}">
                     <div class="flex flex-wrap items-center justify-between gap-3">
                         <div>
                             <p class="m-0 text-xs uppercase tracking-[0.2em] text-white/70" data-content-order-label>Content ${order}</p>
-                            <h3 class="m-0 text-xl font-black leading-tight" data-content-title>${payload.title ?? 'Content'}</h3>
+                            <h3 class="m-0 text-xl font-black leading-tight" data-content-title>${payload.title || 'Content'}</h3>
                         </div>
                         <div class="flex items-center gap-2 text-xs uppercase tracking-wide opacity-75">
                             <span class="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 border border-white/15">
@@ -216,7 +221,7 @@
                         <input type="hidden" name="lesson_id" value="${lessonId}">
                         <div class="md:col-span-2 space-y-2">
                             <label class="text-xs uppercase tracking-wide opacity-70">Judul Content</label>
-                            <input type="text" name="title" value="${payload.title ?? ''}" required
+                            <input type="text" name="title" value="${payload.title || ''}" required
                                    class="w-full rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-white placeholder-white/60 focus:border-white/60 focus:outline-none">
                         </div>
                         <div class="space-y-2">
@@ -356,7 +361,11 @@
                     return false;
                 }
             });
-            if (!placed) list.append(node);
+            if (!placed) {
+                list.append(node);
+                placed = true;
+            }
+            return placed;
         };
 
         $('[data-content-create]').on('submit', function(e) {
@@ -382,7 +391,8 @@
                     form.find('input[name="order_index"]').val(nextContentOrder());
                 },
                 error: (xhr) => {
-                    const msg = xhr.responseJSON?.message || xhr.responseJSON?.errors?.title?.[0] || 'Gagal menambah content';
+                    const resp = xhr.responseJSON || {};
+                    const msg = resp.message || (resp.errors && resp.errors.title && resp.errors.title[0]) || 'Gagal menambah content';
                     toast(msg, false);
                 },
             });
@@ -409,7 +419,8 @@
                     toast(res.message || 'Content diperbarui');
                 },
                 error: (xhr) => {
-                    const msg = xhr.responseJSON?.message || 'Gagal memperbarui content';
+                    const resp = xhr.responseJSON || {};
+                    const msg = resp.message || 'Gagal memperbarui content';
                     toast(msg, false);
                 },
             });
@@ -420,7 +431,8 @@
             if (!target) return;
             target.classList.toggle('hidden');
             if (!target.classList.contains('hidden')) {
-                target.querySelector('input[name="title"]')?.focus();
+                const input = target.querySelector('input[name="title"]');
+                if (input) input.focus();
             }
         });
 
@@ -444,7 +456,8 @@
                         toast(res.message || 'Content dihapus');
                     },
                     error: (xhr) => {
-                        const msg = xhr.responseJSON?.message || 'Gagal menghapus content';
+                        const resp = xhr.responseJSON || {};
+                        const msg = resp.message || 'Gagal menghapus content';
                         toast(msg, false);
                     }
                 });
@@ -490,10 +503,16 @@
                 contentType: false,
                 headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': token },
                 success: (data) => {
-                    const card = data.card;
+                    const card = data.card ? {
+                        ...data.card,
+                        order_index: parseInt(data.card.order_index, 10) || data.card.order_index || 1,
+                    } : {};
                     cardList.find('[data-empty-card]').remove();
                     const node = buildCardNode(card, contentWrap.data('content-id'), data.detail_url, data.delete_url, data.update_url);
                     insertSorted(cardList, node);
+                    if (!cardList.children(`[data-card-id="${card.id}"]`).length) {
+                        cardList.append(node);
+                    }
                     relabelCards(cardList);
                     const badge = contentWrap.find('[data-card-count]');
                     if (badge.length) {
@@ -508,7 +527,8 @@
                     toast(data.message || 'Card ditambahkan');
                 },
                 error: (xhr) => {
-                    const msg = xhr.responseJSON?.message || 'Gagal menambah card';
+                    const resp = xhr.responseJSON || {};
+                    const msg = resp.message || 'Gagal menambah card';
                     toast(msg, false);
                 }
             });
@@ -540,7 +560,8 @@
                         toast('Card dihapus');
                     },
                     error: (xhr) => {
-                        const msg = xhr.responseJSON?.message || 'Gagal menghapus card';
+                        const resp = xhr.responseJSON || {};
+                        const msg = resp.message || 'Gagal menghapus card';
                         toast(msg, false);
                     }
                 });
@@ -566,7 +587,8 @@
             if (!target) return;
             target.classList.toggle('hidden');
             if (!target.classList.contains('hidden')) {
-                target.querySelector('input[name="order_index"]')?.focus();
+                const input = target.querySelector('input[name="order_index"]');
+                if (input) input.focus();
             }
         });
 
@@ -582,13 +604,16 @@
                 data: form.serialize(),
                 headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': token },
                 success: (res) => {
-                    const newOrder = res.card?.order_index ?? parseInt(form.find('input[name="order_index"]').val(), 10) || 1;
+                    const newOrder = (res.card && res.card.order_index) != null
+                        ? res.card.order_index
+                        : (parseInt(form.find('input[name="order_index"]').val(), 10) || 1);
                     rebalanceCardOrders(cardList, cardWrap, oldOrder, newOrder);
                     form.addClass('hidden');
                     toast(res.message || 'Card diperbarui');
                 },
                 error: (xhr) => {
-                    const msg = xhr.responseJSON?.message || 'Gagal memperbarui card';
+                    const resp = xhr.responseJSON || {};
+                    const msg = resp.message || 'Gagal memperbarui card';
                     toast(msg, false);
                 }
             });
@@ -608,4 +633,4 @@
         document.head.appendChild(script);
     });
 </script>
-@endsection
+@endpush

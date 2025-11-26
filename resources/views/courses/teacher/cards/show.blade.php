@@ -92,7 +92,7 @@
                         <div class="md:col-span-3 space-y-2">
                             <label class="text-xs uppercase tracking-wide opacity-70">Tipe Block</label>
                             <select name="type" data-block-type
-                                    class="w-full rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-white focus:border-white/60 focus:outline-none">
+                                    class="w-full rounded-xl border border-white/50 bg-white px-3 py-2 text-slate-900 shadow-sm focus:border-blue-300 focus:ring-2 focus:ring-blue-200">
                                 <option value="text">Text</option>
                                 <option value="image">Image</option>
                                 <option value="gif">GIF</option>
@@ -126,7 +126,7 @@
                             <div class="space-y-1">
                                 <label class="text-xs uppercase tracking-wide opacity-70">Jawaban</label>
                                 <select name="data[answer]" data-require-for="quiz"
-                                        class="w-full rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-white focus:border-white/60 focus:outline-none">
+                                        class="w-full rounded-xl border border-white/50 bg-white px-3 py-2 text-slate-900 shadow-sm focus:border-blue-300 focus:ring-2 focus:ring-blue-200">
                                     <option value="" disabled selected>Pilih jawaban</option>
                                     @foreach (['A','B','C','D'] as $opt)
                                         <option value="{{ $opt }}">{{ $opt }}</option>
