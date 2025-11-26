@@ -4,7 +4,7 @@
         <img src="/assets/icons/sidebar-icons/home.png" class="icon">
     </a>
     <a href="{{ route('course.index') }}"
-       class="sidebar-item {{ request()->routeIs('course.*') || request()->routeIs('lesson.*') ? 'active' : '' }}">
+       class="sidebar-item {{ request()->routeIs('course.*') || request()->routeIs('lesson.*') || request()->routeIs('teacher.courses.*') ? 'active' : '' }}">
         <img src="/assets/icons/sidebar-icons/course.png" class="icon" alt="Courses">
     </a>
     <a href="#" class="sidebar-item">

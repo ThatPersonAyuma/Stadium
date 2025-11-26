@@ -51,7 +51,7 @@ class LessonController extends Controller
     {
         $lesson = $this->sampleLessonContent($lessonId);
 
-        return view('courses.lesson', [
+        return view('courses.student.lesson', [
             'courseId' => $courseId,
             'lessonId' => $lessonId,
             'lesson'   => $lesson,
