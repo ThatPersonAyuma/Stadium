@@ -29,15 +29,43 @@ class CourseController extends Controller
      */
     public function index()
     {
-        $courses = $this->defaultCourses()->map(function ($course) {
-            $cta = match ($course['status']) {
-                'completed' => 'Review Course',
-                'activity'  => 'Continue Learning',
-                default     => 'Start Learning',
-            };
+        $user = Auth::user();
+        $student = $user && $user->role === 'student'
+            ? $user
+            : User::where('role', 'student')->first();
 
-            return (object) array_merge($course, ['cta' => $cta]);
-        });
+        $hasPivot = \Illuminate\Support\Facades\Schema::hasTable('course_user');
+
+        if ($student && $hasPivot) {
+            $courses = $student->courses()
+                ->select('courses.*')
+                ->withPivot('progress')
+                ->get()
+                ->map(function ($course) {
+                    $status = $course->status ?? 'new';
+                    $progress = $course->pivot->progress ?? 0;
+                    $cta = match ($status) {
+                        'completed' => 'Review Course',
+                        'activity'  => 'Continue Learning',
+                        default     => 'Start Learning',
+                    };
+                    $course->progress = $progress;
+                    $course->cta = $cta;
+                    $course->color = $course->color ?? '#1D4ED8';
+                    $course->title = $course->title ?? $course->name ?? 'Course';
+                    return $course;
+                });
+        } else {
+            $courses = $this->defaultCourses()->map(function ($course) {
+                $cta = match ($course['status']) {
+                    'completed' => 'Review Course',
+                    'activity'  => 'Continue Learning',
+                    default     => 'Start Learning',
+                };
+
+                return (object) array_merge($course, ['cta' => $cta]);
+            });
+        }
 
         $summary = [
             'all'       => $courses->count(),
@@ -45,7 +73,7 @@ class CourseController extends Controller
             'completed' => $courses->where('status', 'completed')->count(),
         ];
 
-        return view('courses.course', compact('courses', 'summary'));
+        return view('courses.student.index', compact('courses', 'summary'));
     }
 
     public function teacherIndex()
@@ -67,12 +95,12 @@ class CourseController extends Controller
             'approved'=> $courses->where('status', 'approved')->count(),
         ];
 
-        return view('courses.teacher-index', compact('courses', 'summary', 'teacher'));
+        return view('courses.teacher.index', compact('courses', 'summary', 'teacher'));
     }
 
     public function teacherCreate()
     {
-        return view('courses.teacher-create');
+        return view('courses.teacher.create');
     }
 
     public function teacherShow(Course $course)
@@ -94,12 +122,94 @@ class CourseController extends Controller
             'blocks'   => $course->lessons->flatMap->contents->flatMap->cards->flatMap->blocks->count(),
         ];
 
-        return view('courses.teacher-show', compact('course', 'stats'));
+        return view('courses.teacher.show', compact('course', 'stats'));
     }
 
     public function teacherEdit(Course $course)
     {
-        return view('courses.teacher-edit', compact('course'));
+        return view('courses.teacher.edit', compact('course'));
+    }
+
+    public function teacherLessonShow(Course $course, Lesson $lesson)
+    {
+        abort_if($lesson->course_id !== $course->id, 404);
+
+        $lesson->load([
+            'contents' => fn ($q) => $q->orderBy('order_index')->with([
+                'cards' => fn ($q) => $q->orderBy('order_index')->with([
+                    'blocks' => fn ($q) => $q->orderBy('order_index'),
+                ]),
+            ]),
+        ]);
+
+        $stats = [
+            'contents' => $lesson->contents->count(),
+            'cards'    => $lesson->contents->flatMap->cards->count(),
+            'blocks'   => $lesson->contents->flatMap->cards->flatMap->blocks->count(),
+        ];
+
+        return view('courses.teacher.lessons.show', compact('course', 'lesson', 'stats'));
+    }
+
+    public function teacherLessonUpdate(Request $request, Course $course, Lesson $lesson)
+    {
+        abort_if($lesson->course_id !== $course->id, 404);
+
+        $validated = $request->validate([
+            'title'       => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'order_index' => 'nullable|integer|min:1',
+        ]);
+
+        if (isset($validated['order_index']) && $validated['order_index'] !== $lesson->order_index) {
+            $exists = $course->lessons()
+                ->where('order_index', $validated['order_index'])
+                ->where('id', '!=', $lesson->id)
+                ->exists();
+            if ($exists) {
+                if ($request->wantsJson()) {
+                    return response()->json(['message' => 'Urutan lesson sudah digunakan.'], 422);
+                }
+                return back()
+                    ->withErrors(['order_index' => 'Urutan lesson sudah digunakan.'])
+                    ->withInput();
+            }
+            $lesson->order_index = $validated['order_index'];
+        }
+
+        $lesson->title = $validated['title'];
+        $lesson->description = $validated['description'] ?? $lesson->description;
+        $lesson->save();
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'message' => 'Lesson berhasil diperbarui',
+                'lesson'  => $lesson,
+            ]);
+        }
+
+        return redirect()
+            ->route('teacher.courses.lessons.show', [$course, $lesson])
+            ->with('status', 'Lesson berhasil diperbarui.');
+    }
+
+    public function teacherDestroy(Request $request, Course $course)
+    {
+        // Pastikan hanya guru pemilik yang dapat menghapus (jika ada relasi teacher_id)
+        $user = Auth::user();
+        if ($user && $user->role === 'teacher' && $course->teacher_id && $course->teacher_id !== $user->id) {
+            abort(403, 'Anda tidak memiliki akses untuk menghapus course ini.');
+        }
+
+        $course->delete();
+
+        if ($request->wantsJson()) {
+            return response()->json(['message' => 'Course berhasil dihapus']);
+        }
+
+        return redirect()
+            ->route('teacher.courses.index')
+            ->with('status', 'Course berhasil dihapus.');
     }
 
     public function detail(int $courseId)
@@ -151,7 +261,7 @@ class CourseController extends Controller
         });
         $progress = $totalLessons > 0 ? round(($doneLessons / $totalLessons) * 100) : 0;
 
-        return view('courses.course-detail', [
+        return view('courses.student.detail', [
             'course'   => $course,
             'modules'  => $modules,
             'progress' => $progress,
@@ -171,7 +281,7 @@ class CourseController extends Controller
 
     public function create()
     {
-        return view('courses.teacher-create');
+        return view('courses.teacher.create');
     }
 
     /**
@@ -225,8 +335,19 @@ class CourseController extends Controller
             'order_index' => 'nullable|integer|min:1',
         ]);
 
-        $nextOrder = $validated['order_index']
-            ?? (($course->lessons()->max('order_index') ?? 0) + 1);
+        if (isset($validated['order_index'])) {
+            $exists = $course->lessons()
+                ->where('order_index', $validated['order_index'])
+                ->exists();
+            if ($exists) {
+                return response()->json([
+                    'message' => 'Urutan lesson sudah digunakan.',
+                ], 422);
+            }
+            $nextOrder = $validated['order_index'];
+        } else {
+            $nextOrder = ($course->lessons()->max('order_index') ?? 0) + 1;
+        }
 
         $lesson = $course->lessons()->create([
             'title'       => $validated['title'],
@@ -234,10 +355,16 @@ class CourseController extends Controller
             'order_index' => $nextOrder,
         ]);
 
-        return response()->json([
-            'message' => 'Lesson berhasil ditambahkan',
-            'lesson'  => $lesson,
-        ], 201);
+        if ($request->wantsJson()) {
+            return response()->json([
+                'message' => 'Lesson berhasil ditambahkan',
+                'lesson'  => $lesson,
+            ], 201);
+        }
+
+        return redirect()
+            ->back()
+            ->with('status', 'Lesson berhasil ditambahkan.');
     }
 
     public function teacherLessonDestroy(Course $course, Lesson $lesson)
@@ -245,9 +372,15 @@ class CourseController extends Controller
         abort_if($lesson->course_id !== $course->id, 404);
         $lesson->delete();
 
-        return response()->json([
-            'message' => 'Lesson berhasil dihapus',
-        ]);
+        if (request()->wantsJson()) {
+            return response()->json([
+                'message' => 'Lesson berhasil dihapus',
+            ]);
+        }
+
+        return redirect()
+            ->back()
+            ->with('status', 'Lesson berhasil dihapus.');
     }
 
     /**

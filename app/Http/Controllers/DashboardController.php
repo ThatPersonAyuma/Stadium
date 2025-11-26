@@ -14,78 +14,81 @@ class DashboardController extends Controller
     
     public function student()
     {
-        $user = User::first();
-
-        if (!$user) {
+        $user = Auth::user();
+        if (! $user || $user->role !== 'student') {
+            $user = User::where('role', 'student')->first();
+        }
+        // Fallback demo user
+        if (! $user) {
             $user = User::create([
-                'username'  => 'student',
-                'name'      => 'Student',
+                'username'  => 'student_demo',
+                'name'      => 'Student Demo',
                 'email'     => 'student@example.com',
                 'password'  => bcrypt('password'),
+                'role'      => 'student',
                 'xp'        => 10,
                 'energy'    => 0,
             ]);
         }
 
+        $hasPivot = Schema::hasTable('course_user');
+        $courses = $hasPivot
+            ? $user->courses()
+                ->select('courses.*')
+                ->withPivot('progress')
+                ->get()
+            : collect();
 
-        $courses = collect([
-            (object)[
-                'id' => 1,
-                'name' => 'Algoritma',
-                'topic' => 'Binary Search',
-                'color' => '#FF3B3B',
-                'pivot' => (object)['progress' => 90]
-            ],
-            (object)[
-                'id' => 2,
-                'name' => 'PBO',
-                'topic' => 'CRUD',
-                'color' => '#0047FF',
-                'pivot' => (object)['progress' => 50]
-            ],
-            (object)[
-                'id' => 3,
-                'name' => 'PWEB',
-                'topic' => 'Laravel',
-                'color' => '#B000F7',
-                'pivot' => (object)['progress' => 10]
-            ]
-        ]);
+        if ($courses->isEmpty()) {
+            // Demo data if belum ada relasi
+            $courses = collect([
+                (object)[
+                    'id' => 1,
+                    'name' => 'Algoritma',
+                    'topic' => 'Binary Search',
+                    'color' => '#FF3B3B',
+                    'pivot' => (object)['progress' => 90]
+                ],
+                (object)[
+                    'id' => 2,
+                    'name' => 'PBO',
+                    'topic' => 'CRUD',
+                    'color' => '#0047FF',
+                    'pivot' => (object)['progress' => 50]
+                ],
+                (object)[
+                    'id' => 3,
+                    'name' => 'PWEB',
+                    'topic' => 'Laravel',
+                    'color' => '#B000F7',
+                    'pivot' => (object)['progress' => 10]
+                ]
+            ]);
+        }
 
-        $leaderboard = collect([
-            (object)[
-                'name'   => 'Damrowr',
-                'score'  => 2001,
-                'avatar' => '/assets/icons/mascotss.png',
-                'pos'    => 1
-            ],
-            (object)[
-                'name'   => 'Denmit',
-                'score'  => 2000,
-                'avatar' => '/assets/icons/mascotss.png',
-                'pos'    => 2
-            ],
-            (object)[
-                'name'   => 'Darma',
-                'score'  => 1999,
-                'avatar' => '/assets/icons/mascotss.png',
-                'pos'    => 3
-            ],
-        ]);
+        $leaderboard = $hasPivot
+            ? User::where('role', 'student')
+                ->select('name', 'xp', 'avatar')
+                ->orderByDesc('xp')
+                ->take(5)
+                ->get()
+                ->map(function ($u) {
+                    return (object)[
+                        'name'   => $u->name ?? $u->username,
+                        'score'  => $u->xp ?? 0,
+                        'avatar' => $u->avatar ?? '/assets/icons/mascotss.png',
+                    ];
+                })
+            : collect([
+                (object)[ 'name' => 'Damrowr', 'score' => 2001, 'avatar' => '/assets/icons/mascotss.png' ],
+                (object)[ 'name' => 'Denmit',  'score' => 2000, 'avatar' => '/assets/icons/mascotss.png' ],
+                (object)[ 'name' => 'Darma',   'score' => 1999, 'avatar' => '/assets/icons/mascotss.png' ],
+            ]);
 
         $recentActivity = [
-            [
-                'title' => 'Completed Quiz: Binary Search',
-                'time'  => '2 hours ago',
-            ],
-            [
-                'title' => 'Unlocked Badge: Fast Learner',
-                'time'  => 'Yesterday',
-            ],
-            [
-                'title' => 'Finished Module: Laravel Basics',
-                'time'  => '3 days ago',
-            ],
+            ['title' => 'Completed Quiz: Binary Search',     'time' => '2 hours ago'],
+            ['title' => 'Unlocked Badge: Fast Learner',      'time' => 'Yesterday'],
+            ['title' => 'Finished Module: Laravel Basics',   'time' => '3 days ago'],
         ];
 
         return view('dashboard.student', [

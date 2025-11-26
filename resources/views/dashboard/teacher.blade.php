@@ -18,8 +18,8 @@
                 <p class="m-0 text-xs uppercase tracking-wide opacity-70">Selesai Hari Ini</p>
                 <p class="m-0 text-2xl font-black">{{ $teacher->completedToday ?? 0 }}</p>
             </div>
-            <a href="#"
-               class="inline-flex w-full md:w-auto items-center justify-center gap-2 rounded-xl bg-white text-slate-900 px-4 py-3 font-semibold shadow-lg transition hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-white">
+            <a href="{{ route('teacher.courses.create') }}"
+               class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-white text-slate-900 px-4 py-3 font-semibold shadow-lg transition hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-white">
                 <i class="fa-solid fa-circle-plus text-base"></i>
                 Tambah Course
             </a>
@@ -63,10 +63,11 @@
                 @endphp
                 <div class="space-y-4">
                     <div class="flex flex-wrap items-center gap-3">
-                        <button type="button" class="inline-flex items-center gap-2 rounded-lg bg-white text-slate-900 px-4 py-2.5 text-sm font-semibold shadow-md transition hover:-translate-y-0.5">
-                            <i class="fa-solid fa-folder-plus text-base"></i>
+                        <a href="{{ route('teacher.courses.edit', $course) }}"
+                           class="inline-flex items-center gap-2 rounded-lg bg-white text-slate-900 px-4 py-2.5 text-sm font-semibold shadow-md transition hover:-translate-y-0.5">
+                            <i class="fa-solid fa-pen-to-square text-base"></i>
                             Edit Course
-                        </button>
+                        </a>
                         <button type="button" class="inline-flex items-center gap-2 rounded-lg border border-white/30 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white transition hover:-translate-y-0.5">
                             <i class="fa-solid fa-comments text-base"></i>
                             Forum Course
@@ -99,12 +100,14 @@
                         </div>
 
                         <div class="mt-5 flex flex-wrap items-center gap-3">
-                            <a href="#"
+                            <a href="{{ route('teacher.courses.show', $course) }}"
                                class="inline-flex items-center gap-2 rounded-lg bg-white text-slate-900 px-3 py-2 text-sm font-semibold shadow-md transition hover:-translate-y-0.5">
+                                <i class="fa-solid fa-eye text-base"></i>
                                 Lihat Detail
                             </a>
-                            <a href="#"
+                            <a href="{{ route('teacher.courses.lessons.show', [$course, $course->lessons->first()?->id ?? 0]) }}"
                                class="inline-flex items-center gap-2 rounded-lg border border-white/30 bg-white/10 px-3 py-2 text-sm font-semibold text-white transition hover:-translate-y-0.5">
+                                <i class="fa-solid fa-layer-group text-base"></i>
                                 Kelola Materi
                             </a>
                         </div>

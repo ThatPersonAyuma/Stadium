@@ -46,8 +46,27 @@ class CardController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            
+            'order_index' => 'nullable|integer|min:1',
+            'content_id'  => 'required|exists:contents,id',
         ]);
+
+        $content = \App\Models\Content::findOrFail($validated['content_id']);
+        $nextOrder = $validated['order_index'] ?? (($content->cards()->max('order_index') ?? 0) + 1);
+
+        // prevent duplicate order_index
+        if ($content->cards()->where('order_index', $nextOrder)->exists()) {
+            return back()->withErrors(['order_index' => 'Urutan card sudah digunakan.'])->withInput();
+        }
+
+        $card = $content->cards()->create([
+            'order_index' => $nextOrder,
+        ]);
+
+        if ($request->wantsJson()) {
+            return response()->json(['message' => 'Card berhasil dibuat', 'card' => $card], 201);
+        }
+
+        return back()->with('status', 'Card berhasil dibuat.');
     }
 
     /**
@@ -55,7 +74,12 @@ class CardController extends Controller
      */
     public function show(Card $card)
     {
-        //
+        $card->load([
+            'content.lesson.course',
+            'blocks' => fn ($q) => $q->orderBy('order_index'),
+        ]);
+
+        return view('courses.teacher.cards.show', compact('card'));
     }
 
     /**
@@ -93,7 +117,7 @@ class CardController extends Controller
         $validated = $request->validate([
             'order_index' => 'required|integer',
         ]);
-        reposition_order_index($card, $validated['order_index']);
+        $this->reposition_order_index($card, $validated['order_index']);
     }
 
     /**

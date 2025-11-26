@@ -10,14 +10,12 @@
     <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(130%_80%_at_88%_0%,rgba(0,153,255,0.25),transparent_60%)]"></div>
 
     <div class="relative z-10 mx-auto max-w-6xl space-y-6">
-        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <x-dashboard-header title="Course Teacher" subtitle="Kelola semua course Anda" />
-            <a href="{{ route('teacher.courses.create') }}"
-               class="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-white text-slate-900 px-4 py-3 font-semibold shadow-lg transition hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-white">
+        <x-dashboard-header title="Course Teacher" subtitle="Kelola semua course Anda" />
+         <a href="{{ route('teacher.courses.create') }}"
+               class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-white text-slate-900 px-4 py-3 font-semibold shadow-lg transition hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-white">
                 <i class="fa-solid fa-circle-plus text-base"></i>
                 Tambah Course
             </a>
-        </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div class="rounded-2xl bg-white/10 border border-white/15 p-4 shadow-lg">
@@ -34,7 +32,7 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 gap-6">
             @forelse ($courses as $course)
                 @php
                     $status = strtolower($course->status ?? 'draft');
@@ -79,12 +77,23 @@
                     <div class="mt-auto flex flex-wrap gap-2">
                         <a href="{{ route('teacher.courses.show', $course) }}"
                            class="inline-flex items-center justify-center gap-2 rounded-lg bg-white text-slate-900 px-3 py-2 text-sm font-semibold shadow-md transition hover:-translate-y-0.5">
+                            <i class="fa-solid fa-eye"></i>
                             Detail Course
                         </a>
                         <a href="{{ route('teacher.courses.edit', $course) }}"
                            class="inline-flex items-center justify-center gap-2 rounded-lg border border-white/30 bg-white/10 px-3 py-2 text-sm font-semibold text-white transition hover:-translate-y-0.5">
+                            <i class="fa-solid fa-pen-to-square"></i>
                             Edit Course
                         </a>
+                        <form action="{{ route('teacher.courses.destroy', $course) }}" method="POST" class="inline-flex" data-course-delete-form>
+                            @csrf
+                            @method('DELETE')
+                            <button type="button" data-delete-course
+                                    class="inline-flex items-center justify-center gap-2 rounded-lg border border-rose-200/40 bg-rose-500/20 px-3 py-2 text-sm font-semibold text-rose-50 shadow-md transition hover:-translate-y-0.5 hover:bg-rose-500/30">
+                                <i class="fa-solid fa-trash"></i>
+                                Hapus
+                            </button>
+                        </form>
                     </div>
                 </div>
             @empty
@@ -95,4 +104,34 @@
         </div>
     </div>
 </div>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const forms = document.querySelectorAll('[data-course-delete-form]');
+        forms.forEach((form) => {
+            const btn = form.querySelector('[data-delete-course]');
+            if (!btn) return;
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (typeof Swal === 'undefined') {
+                    form.submit();
+                    return;
+                }
+                Swal.fire({
+                    title: 'Hapus course?',
+                    text: 'Aksi ini tidak dapat dibatalkan.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya, hapus',
+                    cancelButtonText: 'Batal',
+                    confirmButtonColor: '#ef4444',
+                    reverseButtons: true,
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            });
+        });
+    });
+</script>
 @endsection
