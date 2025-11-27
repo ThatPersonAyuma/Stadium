@@ -351,18 +351,19 @@
         };
 
         const insertSorted = (list, node) => {
-            const newOrder = parseInt(node.data('order'), 10);
+            const newOrder = parseInt(node.data('order'), 10) || 0;
+            const item = node.detach();
             let placed = false;
             list.children('[data-order]').each(function() {
-                const existing = parseInt($(this).data('order'), 10);
+                const existing = parseInt($(this).data('order'), 10) || 0;
                 if (newOrder < existing) {
-                    $(this).before(node);
+                    $(this).before(item);
                     placed = true;
                     return false;
                 }
             });
             if (!placed) {
-                list.append(node);
+                list.append(item);
                 placed = true;
             }
             return placed;
@@ -510,9 +511,6 @@
                     cardList.find('[data-empty-card]').remove();
                     const node = buildCardNode(card, contentWrap.data('content-id'), data.detail_url, data.delete_url, data.update_url);
                     insertSorted(cardList, node);
-                    if (!cardList.children(`[data-card-id="${card.id}"]`).length) {
-                        cardList.append(node);
-                    }
                     relabelCards(cardList);
                     const badge = contentWrap.find('[data-card-count]');
                     if (badge.length) {

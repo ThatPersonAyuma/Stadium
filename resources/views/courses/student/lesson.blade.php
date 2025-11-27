@@ -19,28 +19,51 @@
             </div>
         </div>
 
-        <div class="relative overflow-hidden rounded-3xl bg-[#002f87] border border-white/15 shadow-2xl p-6 md:p-8">
+        <div class="relative overflow-hidden rounded-3xl bg-[#002f87] border border-white/15 shadow-2xl p-6 md:p-8 space-y-6">
             <div class="pointer-events-none absolute -right-20 -top-24 h-64 w-64 rounded-full bg-blue-900/40 blur-3xl"></div>
             <div class="pointer-events-none absolute -left-24 bottom-0 h-80 w-80 rounded-full bg-indigo-900/35 blur-3xl"></div>
 
-            <div class="relative space-y-6">
-                <div class="space-y-2">
-                    <p class="text-xs md:text-sm uppercase tracking-[0.25em] font-extrabold text-white/70">
-                        {{ $lesson['subtitle'] }}
-                    </p>
-                    <h2 class="text-3xl md:text-4xl font-black leading-tight drop-shadow-sm">
-                        {{ $lesson['question'] }}
-                    </h2>
-                </div>
+            <div class="relative space-y-2">
+                <p class="text-xs md:text-sm uppercase tracking-[0.25em] font-extrabold text-white/70">
+                    Modul {{ $lesson->order_index ?? '-' }}
+                </p>
+                <h2 class="text-3xl md:text-4xl font-black leading-tight drop-shadow-sm">
+                    {{ $lesson->title }}
+                </h2>
+                <p class="text-sm opacity-80 m-0">{{ $lesson->description }}</p>
+            </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
-                    @foreach ($lesson['options'] as $option)
-                        <button
-                            class="w-full rounded-3xl bg-[#99ca5c] text-white text-2xl md:text-3xl font-black py-5 md:py-6 shadow-[0_14px_30px_rgba(0,0,0,0.25)] transition transform hover:-translate-y-1 hover:shadow-[0_18px_36px_rgba(0,0,0,0.28)] focus:outline-none focus:ring-4 focus:ring-white/30">
-                            {{ $option }}
-                        </button>
-                    @endforeach
-                </div>
+            <div class="relative grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
+                @forelse ($lesson->contents as $content)
+                    <div class="rounded-2xl border border-white/15 bg-white/5 p-4 shadow-xl space-y-3">
+                        <div class="flex items-center justify-between gap-3">
+                            <div>
+                                <p class="text-xs uppercase tracking-[0.25em] font-semibold text-white/60 m-0">Content {{ $content->order_index }}</p>
+                                <h3 class="text-xl font-black leading-tight m-0">{{ $content->title }}</h3>
+                            </div>
+                            <span class="rounded-full bg-white/15 border border-white/25 px-3 py-1 text-xs font-semibold">
+                                {{ $content->cards->count() }} Card
+                            </span>
+                        </div>
+
+                        <div class="space-y-2">
+                            @forelse ($content->cards as $card)
+                                <div class="rounded-xl border border-white/15 bg-white/5 px-3 py-2 flex items-center justify-between text-sm">
+                                    <div class="flex items-center gap-2">
+                                        <span class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-white/10 text-xs font-bold">#{{ $card->order_index }}</span>
+                                        <span class="font-semibold">Card {{ $card->id }}</span>
+                                    </div>
+                                    <a href="{{ route('lesson.show', ['courseId' => $lesson->course_id, 'lessonId' => $lesson->id]) }}#card-{{ $card->id }}"
+                                       class="text-indigo-200 hover:text-white text-xs font-semibold">Lihat</a>
+                                </div>
+                            @empty
+                                <p class="text-sm opacity-70 m-0">Belum ada card.</p>
+                            @endforelse
+                        </div>
+                    </div>
+                @empty
+                    <p class="text-sm opacity-75 col-span-full">Belum ada konten untuk lesson ini.</p>
+                @endforelse
             </div>
         </div>
     </div>

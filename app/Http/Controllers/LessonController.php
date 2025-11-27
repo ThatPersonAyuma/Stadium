@@ -49,13 +49,23 @@ class LessonController extends Controller
 
     public function play(int $courseId, int $lessonId)
     {
-        $lesson = $this->sampleLessonContent($lessonId);
+        $lesson = Lesson::with([
+            'contents' => fn ($q) => $q->orderBy('order_index')->with([
+                'cards' => fn ($q) => $q->orderBy('order_index'),
+            ]),
+            'course',
+        ])->findOrFail($lessonId);
+
+        if ($lesson->course_id != $courseId) {
+            abort(404);
+        }
+
+        $progress = 0;
 
         return view('courses.student.lesson', [
             'courseId' => $courseId,
-            'lessonId' => $lessonId,
             'lesson'   => $lesson,
-            'progress' => $lesson['progress'] ?? 0,
+            'progress' => $progress,
         ]);
     }
 

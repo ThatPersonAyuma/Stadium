@@ -9,6 +9,7 @@ use App\Helpers\FileHelper;
 use App\Enums\CourseStatus;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
+use Illuminate\Support\Facades\Schema;
 
 class CourseController extends Controller
 {
@@ -34,44 +35,40 @@ class CourseController extends Controller
             ? $user
             : User::where('role', 'student')->first();
 
-        $hasPivot = \Illuminate\Support\Facades\Schema::hasTable('course_user');
+        $hasPivot = Schema::hasTable('course_user');
+        $palette = ['#E53935', '#1D4ED8', '#A21CAF', '#65A30D', '#06B6D4', '#F97316', '#0EA5E9', '#9333EA'];
 
-        if ($student && $hasPivot) {
-            $courses = $student->courses()
-                ->select('courses.*')
-                ->withPivot('progress')
-                ->get()
-                ->map(function ($course) {
-                    $status = $course->status ?? 'new';
-                    $progress = $course->pivot->progress ?? 0;
-                    $cta = match ($status) {
-                        'completed' => 'Review Course',
-                        'activity'  => 'Continue Learning',
-                        default     => 'Start Learning',
-                    };
-                    $course->progress = $progress;
-                    $course->cta = $cta;
-                    $course->color = $course->color ?? '#1D4ED8';
-                    $course->title = $course->title ?? $course->name ?? 'Course';
-                    return $course;
-                });
-        } else {
-            $courses = $this->defaultCourses()->map(function ($course) {
-                $cta = match ($course['status']) {
+        $courses = Course::query()
+            ->when($student && $hasPivot, function ($query) use ($student) {
+                $query->with(['users' => fn ($q) => $q->where('users.id', $student->id)]);
+            })
+            ->get()
+            ->values()
+            ->map(function ($course, $idx) use ($palette, $student, $hasPivot) {
+                $progress = 0;
+                if ($student && $hasPivot && $course->users?->first()?->pivot) {
+                    $progress = (int) ($course->users->first()->pivot->progress ?? 0);
+                }
+                $status = $progress >= 100 ? 'completed' : ($progress > 0 ? 'activity' : 'new');
+                $cta = match ($status) {
                     'completed' => 'Review Course',
                     'activity'  => 'Continue Learning',
                     default     => 'Start Learning',
                 };
-
-                return (object) array_merge($course, ['cta' => $cta]);
+                $course->status = $status;
+                $course->progress = $progress;
+                $course->cta = $cta;
+                $course->color = $course->color ?? $palette[$idx % count($palette)];
+                $course->title = $course->title ?? $course->name ?? 'Course';
+                return $course;
             });
-        }
 
         $summary = [
             'all'       => $courses->count(),
             'activity'  => $courses->where('status', 'activity')->count(),
             'completed' => $courses->where('status', 'completed')->count(),
         ];
+
 
         return view('courses.student.index', compact('courses', 'summary'));
     }
@@ -214,58 +211,38 @@ class CourseController extends Controller
 
     public function detail(int $courseId)
     {
-        $courses = $this->defaultCourses()->map(function ($course) {
-            $cta = match ($course['status']) {
-                'completed' => 'Review Course',
-                'activity'  => 'Continue Learning',
-                default     => 'Start Learning',
-            };
+        $course = Course::with([
+            'lessons' => fn ($q) => $q->orderBy('order_index')->with([
+                'contents' => fn ($q) => $q->orderBy('order_index')->with([
+                    'cards' => fn ($q) => $q->orderBy('order_index'),
+                ]),
+            ]),
+        ])->findOrFail($courseId);
 
-            return (object) array_merge($course, ['cta' => $cta]);
+        $modules = $course->lessons->map(function ($lesson) {
+            $cards = $lesson->contents->flatMap(function ($content) {
+                return $content->cards->map(function ($card) use ($content) {
+                    return [
+                        'id'            => $card->id,
+                        'order_index'   => $card->order_index,
+                        'content_title' => $content->title,
+                    ];
+                });
+            })->values();
+
+            return [
+                'lesson_id'   => $lesson->id,
+                'title'       => $lesson->title,
+                'desc'        => $lesson->description ?? 'Siap belajar materi ini.',
+                'order_index' => $lesson->order_index,
+                'cards'       => $cards,
+            ];
         });
 
-        $course = $courses->firstWhere('id', $courseId) ?? $courses->first();
+        $totalLessons = max(1, $modules->count());
+        $progress = 0;
 
-        $modules = collect([
-            [
-                'title'   => 'Pertemuan 1',
-                'desc'    => 'Bilangan dan Operasi Hitung',
-                'lessons' => [
-                    ['id' => 11, 'status' => 'done'],
-                    ['id' => 12, 'status' => 'locked'],
-                    ['id' => 13, 'status' => 'locked'],
-                    ['id' => 14, 'status' => 'locked'],
-                    ['id' => 15, 'status' => 'locked'],
-                    ['id' => 16, 'status' => 'locked'],
-                ],
-            ],
-            [
-                'title'   => 'Pertemuan 2',
-                'desc'    => 'Perhitungan Linear',
-                'lessons' => [
-                    ['id' => 21, 'status' => 'current'],
-                    ['id' => 22, 'status' => 'locked'],
-                    ['id' => 23, 'status' => 'locked'],
-                    ['id' => 24, 'status' => 'locked'],
-                    ['id' => 25, 'status' => 'locked'],
-                    ['id' => 26, 'status' => 'locked'],
-                ],
-            ],
-        ]);
-
-        $totalLessons = $modules->sum(function ($m) {
-            return count($m['lessons']);
-        });
-        $doneLessons = $modules->sum(function ($m) {
-            return collect($m['lessons'])->where('status', 'done')->count();
-        });
-        $progress = $totalLessons > 0 ? round(($doneLessons / $totalLessons) * 100) : 0;
-
-        return view('courses.student.detail', [
-            'course'   => $course,
-            'modules'  => $modules,
-            'progress' => $progress,
-        ]);
+        return view('courses.student.detail', compact('course', 'modules', 'progress'));
     }
 
     public function getCoursesAvailable()
