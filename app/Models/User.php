@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Enums\UserRole;
 
 class User extends Authenticatable
 {
@@ -26,6 +27,10 @@ class User extends Authenticatable
         'rank_id',
         'password',
         'avatar_filename',
+        'role',
+    ];
+    protected $casts = [
+        'role' => UserRole::class,
     ];
     /**
      * The attributes that should be hidden for serialization.

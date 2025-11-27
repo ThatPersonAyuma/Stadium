@@ -20,11 +20,15 @@ class DatabaseSeeder extends Seeder
         $this->call([
             RankSeeder::class,
             UserSeeder::class,
+            AdminSeeder::class,
+            StudentSeeder::class,
+            TeacherSeeder::class,
             CourseSeeder::class,
             LessonSeeder::class,
             ContentSeeder::class,
             CardSeeder::class,
             BlockSeeder::class,
+            QuizSeeder::class,
         ]);
     }
 }
