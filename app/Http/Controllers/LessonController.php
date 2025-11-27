@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Lesson;
+use App\Models\Block;
 use App\Models\Course;
 use Illuminate\Http\Request;
 use App\Helpers\FileHelper;
+use App\Enums\ContentType;
 
 class LessonController extends Controller
 {
@@ -48,16 +50,66 @@ class LessonController extends Controller
         ];
     }
 
-    public function play(Course $course, Lesson $lesson)
+    public function play(Request $request, int $courseId, int $lessonId)
     {
-        $lesson = $this->sampleLessonContent($lessonId);
+        $lesson = Lesson::with([
+            'contents' => fn ($q) => $q->orderBy('order_index')->with([
+                'cards' => fn ($q) => $q->orderBy('order_index')->with([
+                    'blocks' => fn ($b) => $b->orderBy('order_index'),
+                ]),
+            ]),
+            'course',
+        ])->findOrFail($lessonId);
+
+        if ($lesson->course_id != $courseId) {
+            abort(404);
+        }
+
+        $progress = 0;
+
+        $allCards = $lesson->contents->flatMap->cards->values();
+        $activeCardId = $request->integer('card');
+        $activeCard = $allCards->firstWhere('id', $activeCardId) ?? $allCards->first();
+
+        $blocks = $activeCard?->blocks ?? collect();
+        $blocksPayload = $blocks->map(function (Block $block) use ($lesson, $activeCard) {
+            return [
+                'id'         => $block->id,
+                'order'      => $block->order_index,
+                'type'       => $block->type->value,
+                'data'       => $block->data,
+                'asset_url'  => $this->resolveBlockAsset($block, $lesson, $activeCard),
+            ];
+        })->values();
 
         return view('courses.student.lesson', [
             'courseId' => $courseId,
-            'lessonId' => $lessonId,
             'lesson'   => $lesson,
-            'progress' => $lesson['progress'] ?? 0,
+            'progress' => $progress,
+            'activeCard' => $activeCard,
+            'blocksPayload' => $blocksPayload,
         ]);
+    }
+
+    protected function resolveBlockAsset(Block $block, Lesson $lesson, $card): ?string
+    {
+        $type = $block->type;
+        if (! in_array($type, [ContentType::IMAGE, ContentType::GIF, ContentType::VIDEO])) {
+            return null;
+        }
+
+        $contentId = $card->content_id ?? $card->content?->id;
+        if (! $contentId) {
+            return null;
+        }
+
+        return FileHelper::getBlockUrl(
+            $lesson->course_id,
+            $lesson->id,
+            $contentId,
+            $card->id,
+            $block->id
+        );
     }
 
     public function getById(int $lessonId)

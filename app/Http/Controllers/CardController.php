@@ -26,8 +26,7 @@ class CardController extends Controller
 
         public function getBlocksOfCard(Card $card)
     {
-        return $card->blocks;
-        // return response()->json($result, 204);
+        return $card->blocks()->orderBy('order_index')->get();
     }
 
     /**
@@ -55,6 +54,9 @@ class CardController extends Controller
 
         // prevent duplicate order_index
         if ($content->cards()->where('order_index', $nextOrder)->exists()) {
+            if ($request->wantsJson()) {
+                return response()->json(['message' => 'Urutan card sudah digunakan.'], 422);
+            }
             return back()->withErrors(['order_index' => 'Urutan card sudah digunakan.'])->withInput();
         }
 
@@ -63,7 +65,13 @@ class CardController extends Controller
         ]);
 
         if ($request->wantsJson()) {
-            return response()->json(['message' => 'Card berhasil dibuat', 'card' => $card], 201);
+            return response()->json([
+                'message'     => 'Card berhasil dibuat',
+                'card'        => $card,
+                'detail_url'  => route('cards.show', $card),
+                'delete_url'  => route('cards.destroy', $card),
+                'update_url'  => route('cards.update', $card),
+            ], 201);
         }
 
         return back()->with('status', 'Card berhasil dibuat.');
@@ -115,9 +123,18 @@ class CardController extends Controller
     public function update(Request $request, Card $card)
     {
         $validated = $request->validate([
-            'order_index' => 'required|integer',
+            'order_index' => 'required|integer|min:1',
         ]);
-        $this->reposition_order_index($card, $validated['order_index']);
+        $maxOrder = ($card->content?->cards()->max('order_index') ?? 0);
+        $newOrder = min($validated['order_index'], max(1, $maxOrder));
+        $this->reposition_order_index($card, $newOrder);
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'message' => 'Card diperbarui',
+                'card' => $card->fresh(),
+            ]);
+        }
     }
 
     /**
@@ -132,6 +149,6 @@ class CardController extends Controller
         // }
         $card->delete();
 
-        return response()->json(null, 204);
+        return response()->json(['message' => 'Card dihapus']);
     }
 }

@@ -10,6 +10,7 @@ use App\Enums\CourseStatus;
 use App\Enums\UserRole;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
+use Illuminate\Support\Facades\Schema;
 use App\Models\StudentContentProgress;
 use App\Models\Student;
 use App\Models\Content;
@@ -104,7 +105,7 @@ class CourseController extends Controller
             'activity'  => $courses->where('status', 'activity')->count(),
             'completed' => $courses->where('status', 'completed')->count(),
         ];
-        // return [$courses, $summary];
+
 
         return view('courses.student.index', compact('courses', 'summary'));
     }
@@ -306,11 +307,7 @@ class CourseController extends Controller
         $result = $this->getStudentCourseProgress($course, $user->student);
         $progress = $result['progress_percentage'];
 
-        return view('courses.student.detail', [
-            'course'   => $course,
-            'modules'  => $modules,
-            'progress' => $progress,
-        ]);
+        return view('courses.student.detail', compact('course', 'modules', 'progress'));
     }
         // $courses = $this->defaultCourses()->map(function ($course) {
         //     $cta = match ($course['status']) {
