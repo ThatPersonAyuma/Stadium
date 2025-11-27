@@ -59,7 +59,7 @@
                                 <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                                     @foreach ($cardsGroup as $card)
                                         <a
-                                            href="{{ route('lesson.show', ['courseId' => $course->id, 'lessonId' => $module['lesson_id']]) }}#card-{{ $card['id'] }}"
+                                            href="{{ route('lesson.show', ['courseId' => $course->id, 'lessonId' => $module['lesson_id']]) }}?card={{ $card['id'] }}"
                                             class="group relative w-full aspect-square rounded-3xl overflow-hidden transition {{ $cardClass }}">
                                             <div class="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-white/10 opacity-70"></div>
                                             <div class="relative flex h-full w-full items-center justify-center text-white">
