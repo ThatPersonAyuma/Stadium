@@ -139,7 +139,19 @@ function createBlockElement(block) {
         // ========== CODE (Syntax Highlight) ==========
         case "code":
             blockEl.innerHTML = `
-                <pre class="code-block"><code>${escapeHtml(block.data.code)}</code></pre>
+                <div class="bg-gray-900 text-white rounded-xl overflow-hidden border border-gray-700">
+                    <!-- Header: language -->
+                    <div class="flex items-center justify-between px-3 py-2 bg-gray-800 border-b border-gray-700">
+                        <span class="text-xs font-semibold uppercase tracking-wide text-indigo-300">
+                            ${escapeHtml(block.data.language || "text")}
+                        </span>
+                    </div>
+
+                    <!-- Code section -->
+                    <pre class="p-4 overflow-x-auto text-sm leading-6">
+                        <code>${escapeHtml(block.data.code)}</code>
+                    </pre>
+                </div>
             `;
             break;
 

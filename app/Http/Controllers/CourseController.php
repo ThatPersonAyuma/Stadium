@@ -7,10 +7,12 @@ use App\Models\Lesson;
 use Illuminate\Http\Request;
 use App\Helpers\FileHelper;
 use App\Enums\CourseStatus;
+use App\Enums\UserRole;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use App\Models\StudentContentProgress;
 use App\Models\Student;
+use App\Models\Content;
 
 class CourseController extends Controller
 {
@@ -32,20 +34,20 @@ class CourseController extends Controller
     public function index()
     {
         $user = Auth::user();
-        $student = $user && $user->role === 'student'
-            ? $user
-            : User::where('role', 'student')->first();
-
-        $hasPivot = \Illuminate\Support\Facades\Schema::hasTable('course_user');
-
-        if ($student && $hasPivot) {
-            $courses = $student->courses()
-                ->select('courses.*')
-                ->withPivot('progress')
-                ->get()
-                ->map(function ($course) {
-                    $status = $course->status ?? 'new';
-                    $progress = $course->pivot->progress ?? 0;
+        if ($user===NULL){
+            return redirect()->route('login');;
+        }
+        if ($user->role !== UserRole::STUDENT){
+            return respone()->json("Bukan akun student",403);
+        }
+        // $student = $user && $user->role === 'student'
+            // ? $user
+            // : User::where('role', 'student')->first();
+        $student = $user->student;
+        $courses = Course::all()->map(function ($course) use ($student) {
+                    $result = $this->getStudentCourseProgress($course, $student);
+                    $status = $result['status'] ?? 'new';
+                    $progress = $result['progress_percentage'] ?? 0;
                     $cta = match ($status) {
                         'completed' => 'Review Course',
                         'activity'  => 'Continue Learning',
@@ -54,36 +56,69 @@ class CourseController extends Controller
                     $course->progress = $progress;
                     $course->cta = $cta;
                     $course->color = $course->color ?? '#1D4ED8';
-                    $course->title = $course->title ?? $course->name ?? 'Course';
+                    $course->title = $course->title ?? 'Course';
+                    $course->user_status = $status;
                     return $course;
                 });
-        } else {
-            $courses = $this->defaultCourses()->map(function ($course) {
-                $cta = match ($course['status']) {
-                    'completed' => 'Review Course',
-                    'activity'  => 'Continue Learning',
-                    default     => 'Start Learning',
-                };
+        // foreach ($courses as $course){
+        //     $result = $this->getStudentCourseProgress($course, $student);
 
-                return (object) array_merge($course, ['cta' => $cta]);
-            });
-        }
+        // }
+        // $this->getStudentCourseProgress();
+
+        // $hasPivot = \Illuminate\Support\Facades\Schema::hasTable('course_user');
+
+        // if ($student && $hasPivot) {
+        //     $courses = $student->courses()
+        //         ->select('courses.*')
+        //         ->withPivot('progress')
+        //         ->get()
+        //         ->map(function ($course) {
+        //             $status = $course->status ?? 'new';
+        //             $progress = $course->pivot->progress ?? 0;
+        //             $cta = match ($status) {
+        //                 'completed' => 'Review Course',
+        //                 'activity'  => 'Continue Learning',
+        //                 default     => 'Start Learning',
+        //             };
+        //             $course->progress = $progress;
+        //             $course->cta = $cta;
+        //             $course->color = $course->color ?? '#1D4ED8';
+        //             $course->title = $course->title ?? $course->name ?? 'Course';
+        //             return $course;
+        //         });
+        // } else {
+        //     $courses = $this->defaultCourses()->map(function ($course) {
+        //         $cta = match ($course['status']) {
+        //             'completed' => 'Review Course',
+        //             'activity'  => 'Continue Learning',
+        //             default     => 'Start Learning',
+        //         };
+
+        //         return (object) array_merge($course, ['cta' => $cta]);
+        //     });
+        // }
 
         $summary = [
             'all'       => $courses->count(),
             'activity'  => $courses->where('status', 'activity')->count(),
             'completed' => $courses->where('status', 'completed')->count(),
         ];
+        // return [$courses, $summary];
 
         return view('courses.student.index', compact('courses', 'summary'));
     }
 
     public function teacherIndex()
     {
-        $teacher = Auth::user()?->role === 'teacher'
-            ? Auth::user()
-            : User::where('role', 'teacher')->first();
-
+        // $teacher = Auth::user()?->role === 'teacher'
+        //     ? Auth::user()
+        //     : User::where('role', 'teacher')->first();
+        $user = Auth::user();
+        if ($user==NULL){
+            return;
+        }
+        $teacher = $user->teacher;
         $courses = Course::query()
             ->when($teacher, fn ($q) => $q->where('teacher_id', $teacher->id))
             ->withCount('lessons')
@@ -92,9 +127,9 @@ class CourseController extends Controller
 
         $summary = [
             'total'   => $courses->count(),
-            'draft'   => $courses->where('status', 'draft')->count(),
-            'pending' => $courses->where('status', 'pending')->count(),
-            'approved'=> $courses->where('status', 'approved')->count(),
+            'draft'   => $courses->where('status', CourseStatus::DRAFT)->count(),
+            'pending' => $courses->where('status', CourseStatus::PENDING)->count(),
+            'approved'=> $courses->where('status', CourseStatus::APPROVED)->count(),
         ];
 
         return view('courses.teacher.index', compact('courses', 'summary', 'teacher'));
@@ -214,54 +249,62 @@ class CourseController extends Controller
             ->with('status', 'Course berhasil dihapus.');
     }
 
-    public function detail(int $courseId)
+    public function detail(Course $course)
     {
-        $courses = $this->defaultCourses()->map(function ($course) {
-            $cta = match ($course['status']) {
-                'completed' => 'Review Course',
-                'activity'  => 'Continue Learning',
-                default     => 'Start Learning',
-            };
+        $user = Auth::user();
+        if ($user===NULL){
+            return redirect()->route('login');;
+        }
+        if ($user->role !== UserRole::STUDENT){
+            return respone()->json("Bukan akun student",403);
+        }
 
-            return (object) array_merge($course, ['cta' => $cta]);
+        $modules = $course->lessons;
+        $lessonIds = $modules->pluck('id');
+        $allContents = Content::whereIn('lesson_id', $lessonIds)->get();
+
+        $progressIds = StudentContentProgress::where('student_id', $user->student->id)
+            ->pluck('content_id')
+            ->toArray();
+
+        $progressContents = $allContents->whereIn('id', $progressIds);
+
+        $highestOrderPerLesson = $progressContents
+            ->groupBy('lesson_id')
+            ->map(fn($items) => $items->max('order_index'));
+
+        $modules = $course->lessons->map(function ($lesson) use ($highestOrderPerLesson, $user) {
+
+            $highest = $highestOrderPerLesson[$lesson->id] ?? 1;
+
+            $lastContent = $lesson->contents->firstWhere('order_index', $highest);
+
+            if ($lastContent) {
+                $progress = $lastContent->student_content_progress
+                    ->where('student_id', $user->student->id)
+                    ->where('is_completed', true)
+                    ->first();
+
+                if ($progress) {
+                    $highest += 1; // unlock next, if highest are completed
+                }
+            }
+
+            $lesson->contents->each(function ($content) use ($highest) {
+                if ($content->order_index < $highest) {
+                    $content->status = 'done';
+                } elseif ($content->order_index == $highest) {
+                    $content->status = 'current';
+                } else {
+                    $content->status = 'locked';
+                }
+            });
+
+            return $lesson;
         });
 
-        $course = $courses->firstWhere('id', $courseId) ?? $courses->first();
-
-        $modules = collect([
-            [
-                'title'   => 'Pertemuan 1',
-                'desc'    => 'Bilangan dan Operasi Hitung',
-                'lessons' => [
-                    ['id' => 11, 'status' => 'done'],
-                    ['id' => 12, 'status' => 'locked'],
-                    ['id' => 13, 'status' => 'locked'],
-                    ['id' => 14, 'status' => 'locked'],
-                    ['id' => 15, 'status' => 'locked'],
-                    ['id' => 16, 'status' => 'locked'],
-                ],
-            ],
-            [
-                'title'   => 'Pertemuan 2',
-                'desc'    => 'Perhitungan Linear',
-                'lessons' => [
-                    ['id' => 21, 'status' => 'current'],
-                    ['id' => 22, 'status' => 'locked'],
-                    ['id' => 23, 'status' => 'locked'],
-                    ['id' => 24, 'status' => 'locked'],
-                    ['id' => 25, 'status' => 'locked'],
-                    ['id' => 26, 'status' => 'locked'],
-                ],
-            ],
-        ]);
-
-        $totalLessons = $modules->sum(function ($m) {
-            return count($m['lessons']);
-        });
-        $doneLessons = $modules->sum(function ($m) {
-            return collect($m['lessons'])->where('status', 'done')->count();
-        });
-        $progress = $totalLessons > 0 ? round(($doneLessons / $totalLessons) * 100) : 0;
+        $result = $this->getStudentCourseProgress($course, $user->student);
+        $progress = $result['progress_percentage'];
 
         return view('courses.student.detail', [
             'course'   => $course,
@@ -269,6 +312,44 @@ class CourseController extends Controller
             'progress' => $progress,
         ]);
     }
+        // $courses = $this->defaultCourses()->map(function ($course) {
+        //     $cta = match ($course['status']) {
+        //         'completed' => 'Review Course',
+        //         'activity'  => 'Continue Learning',
+        //         default     => 'Start Learning',
+        //     };
+
+        //     return (object) array_merge($course, ['cta' => $cta]);
+        // });
+
+        // $course = Course::findOrFail();
+
+        // $modules = collect([
+        //     [
+        //         'title'   => 'Pertemuan 1',
+        //         'desc'    => 'Bilangan dan Operasi Hitung',
+        //         'lessons' => [
+        //             ['id' => 11, 'status' => 'done'],
+        //             ['id' => 12, 'status' => 'locked'],
+        //             ['id' => 13, 'status' => 'locked'],
+        //             ['id' => 14, 'status' => 'locked'],
+        //             ['id' => 15, 'status' => 'locked'],
+        //             ['id' => 16, 'status' => 'locked'],
+        //         ],
+        //     ],
+        //     [
+        //         'title'   => 'Pertemuan 2',
+        //         'desc'    => 'Perhitungan Linear',
+        //         'lessons' => [
+        //             ['id' => 21, 'status' => 'current'],
+        //             ['id' => 22, 'status' => 'locked'],
+        //             ['id' => 23, 'status' => 'locked'],
+        //             ['id' => 24, 'status' => 'locked'],
+        //             ['id' => 25, 'status' => 'locked'],
+        //             ['id' => 26, 'status' => 'locked'],
+        //         ],
+        //     ],
+        // ]);
 
     public function getCoursesAvailable()
     {
@@ -444,9 +525,25 @@ class CourseController extends Controller
         // $percentage = $totalContents > 0
         //     ? round(($completedCount / $totalContents) * 100, 2)
         //     : 0;
-        $condition = $contentCounted > 0
-            ? 'registered'
-            : 'unregistered';
+        if ($contentCountedCompleted > 0){
+            if ($percentage==100){
+                $status = 'completed';
+            }else{
+                $status = 'activity';
+            }
+        }else{
+            $status = 'new';
+        }
+        // $status = $contentCounted > 0
+        //     ? 'new'
+        //     : ( ? '':'new');
+        return [
+            'course_id' => $course->id,
+            'total_contents' => $totalContents,
+            'completed' => $contentCountedCompleted,
+            'status' => $status,
+            'progress_percentage' => $percentage,
+        ];
 
         return response()->json([
             'course_id' => $course->id,

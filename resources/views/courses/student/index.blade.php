@@ -64,13 +64,13 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             @foreach ($courses as $course)
                 @php
-                    $statusLabel = $course->status === 'completed'
+                    $statusLabel = $course->user_status === 'completed'
                         ? 'Completed'
-                        : ($course->status === 'activity' ? 'Activity' : 'New');
+                        : ($course->user_status === 'activity' ? 'Activity' : 'New');
                 @endphp
 
-                <div data-course-card data-status="{{ $course->status }}"
-                    @if ($course->status === 'activity') data-href="{{ route('course.detail', $course->id) }}" @endif
+                <div data-course-card data-status="{{ $course->user_status }}"
+                    @if ($course->user_status === 'activity') data-href="{{ route('course.detail', $course->id) }}" @endif
                     class="group relative flex h-full flex-col overflow-hidden rounded-2xl "
                     style="background: linear-gradient(150deg, {{ $course->color }}, #0b1f53);">
                     <div class="h-28 bg-slate-100/90 mix-blend-screen"></div>
@@ -83,14 +83,14 @@
                             </span>
                         </div>
 
-                        @if ($course->status !== 'new')
+                        @if ($course->user_status !== 'new')
                             <div class="h-2 w-full overflow-hidden rounded-full bg-white/25 shadow-inner">
                                 <div class="h-full bg-gradient-to-r from-amber-300 to-orange-500"
                                     style="width: {{ $course->progress }}%"></div>
                             </div>
                             <div class="flex items-center justify-between text-sm font-semibold opacity-90">
                                 <span>{{ $course->progress }}%</span>
-                                <span>{{ $course->status === 'completed' ? 'Finished' : 'In progress' }}</span>
+                                <span>{{ $course->user_status === 'completed' ? 'Finished' : 'In progress' }}</span>
                             </div>
                         @else
                             <p class="m-0 text-sm font-semibold opacity-90">Ready to start this course.</p>

@@ -60,22 +60,12 @@ Route::get('/users', function () {
 //     return view('view_course');
 // });
 Route::get('/course', [CourseController::class, 'index'])->name('course.index');
-Route::get('/course/{courseId}', [CourseController::class, 'detail'])->name('course.detail');
-Route::get('/course/{courseId}/lesson/{lessonId}', [LessonController::class, 'play'])->name('lesson.show');
+Route::get('/course/{course}', [CourseController::class, 'detail'])->name('course.detail');
+Route::get('/course/{course}/lesson/{lesson}', [LessonController::class, 'play'])->name('lesson.show');
 Route::get('/lesson-by-course', [LessonController::class, 'getRelationWithCourse'])->name('getLessWCourse');
 Route::post('/add-file', [BlockController::class, 'store'])->name('addFile');
 
-Route::prefix('teacher/courses')->name('teacher.courses.')->group(function () {
-    Route::get('/', [CourseController::class, 'teacherIndex'])->name('index');
-    Route::get('/create', [CourseController::class, 'teacherCreate'])->name('create');
-    Route::get('/{course}/edit', [CourseController::class, 'teacherEdit'])->name('edit');
-    Route::get('/{course}/lessons/{lesson}', [CourseController::class, 'teacherLessonShow'])->name('lessons.show');
-    Route::post('/{course}/lessons', [CourseController::class, 'teacherLessonStore'])->name('lessons.store');
-    Route::patch('/{course}/lessons/{lesson}', [CourseController::class, 'teacherLessonUpdate'])->name('lessons.update');
-    Route::delete('/{course}/lessons/{lesson}', [CourseController::class, 'teacherLessonDestroy'])->name('lessons.destroy');
-    Route::delete('/{course}', [CourseController::class, 'teacherDestroy'])->name('destroy');
-    Route::get('/{course}', [CourseController::class, 'teacherShow'])->name('show');
-});
+
 
 use App\Http\Controllers\UserAvatarController;
 
@@ -111,8 +101,7 @@ Route::get('/dashboard', [DashboardController::class, 'student'])
 Route::get('/student/dashboard', [DashboardController::class, 'student'])
     ->name('dashboard.student');
 
-Route::get('/teacher/dashboard', [DashboardController::class, 'teacher'])
-    ->name('dashboard.teacher');
+
     
 Route::post('/logout', function () {
     return redirect('/');
@@ -121,6 +110,21 @@ Route::post('/logout', function () {
 Route::middleware('auth')->group(function() { // dont fotget you must have route login
     Route::get('/debug-session', function () {
         return session()->all();
+    });
+});
+Route::middleware(['auth', 'role:teacher'])->group(function() { 
+    Route::get('/teacher/dashboard', [DashboardController::class, 'teacher'])
+        ->name('dashboard.teacher');
+    Route::prefix('teacher/courses')->name('teacher.courses.')->group(function () {
+        Route::get('/', [CourseController::class, 'teacherIndex'])->name('index');
+        Route::get('/create', [CourseController::class, 'teacherCreate'])->name('create');
+        Route::get('/{course}/edit', [CourseController::class, 'teacherEdit'])->name('edit');
+        Route::get('/{course}/lessons/{lesson}', [CourseController::class, 'teacherLessonShow'])->name('lessons.show');
+        Route::post('/{course}/lessons', [CourseController::class, 'teacherLessonStore'])->name('lessons.store');
+        Route::patch('/{course}/lessons/{lesson}', [CourseController::class, 'teacherLessonUpdate'])->name('lessons.update');
+        Route::delete('/{course}/lessons/{lesson}', [CourseController::class, 'teacherLessonDestroy'])->name('lessons.destroy');
+        Route::delete('/{course}', [CourseController::class, 'teacherDestroy'])->name('destroy');
+        Route::get('/{course}', [CourseController::class, 'teacherShow'])->name('show');
     });
 });
 // Resources

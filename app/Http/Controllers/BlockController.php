@@ -45,6 +45,14 @@ class BlockController extends Controller
     *           ],
     *           'order_index' => 4,
     *           'card_id' => 1,
+
+    *'type' => ContentType::CODE,
+    *   'data' => [
+    *    'code' => 
+    *    'language' =>
+    *  ]
+    *  'order_index'
+    *  'card_id' => 1
      */
 
     /**

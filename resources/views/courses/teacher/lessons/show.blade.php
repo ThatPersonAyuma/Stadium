@@ -72,7 +72,7 @@
                 </div>
                 <div class="space-y-2">
                     <label class="text-xs uppercase tracking-wide opacity-70">Urutan</label>
-                    <input type="number" name="order_index" min="1" value="{{ $lesson->order_index }}"
+                    <input type="number" name="order_index" min="1" value="{{ $lesson->order_index }}" max="{{ \App\Models\Lesson::where('course_id', $lesson->course_id)->max('order_index') }}"
                            class="w-full rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-white placeholder-white/60 focus:border-white/60 focus:outline-none">
                 </div>
                 <div class="md:col-span-3 space-y-2">
@@ -309,7 +309,7 @@
                                         <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
                                             <div class="space-y-2">
                                                 <label class="text-xs uppercase tracking-wide opacity-70">Urutan Block</label>
-                                                <input type="number" name="order_index" min="1" value="{{ ($card->blocks->max('order_index') ?? 0) + 1 }}"
+                                                <input type="number" name="order_index" min="1" value="{{ ($card->blocks->max('order_index') ?? 0) + 1 }}"  max="{{ \App\Models\Block::where('card_id', $card->id)->max('order_index') + 1}}"
                                                        class="w-full rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-white focus:border-white/60 focus:outline-none">
                                             </div>
                                             <div class="md:col-span-3 space-y-2">
@@ -415,7 +415,7 @@
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 <div class="space-y-1">
                                     <label class="text-xs uppercase tracking-wide opacity-70">Urutan Card</label>
-                                    <input type="number" name="order_index" min="1" value="{{ ($content->cards->max('order_index') ?? 0) + 1 }}"
+                                    <input type="number" name="order_index" min="1" value="{{ ($content->cards->max('order_index') ?? 0) + 1 }}"  max="{{ \App\Models\Card::where('content_id', $content->id)->max('order_index') + 1}}"
                                            class="w-full rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-white focus:border-white/60 focus:outline-none" required>
                                 </div>
                                 <div class="flex items-end justify-end">

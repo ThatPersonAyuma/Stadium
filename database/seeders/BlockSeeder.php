@@ -68,6 +68,15 @@ class BlockSeeder extends Seeder
                 'order_index' => 4,
                 'card_id' => 1,
             ],
+            [
+                'type' => ContentType::CODE,
+                'data' => [
+                    'language' => 'php',
+                    'code' => "<?php\necho 'Hello from PHP!';"
+                ],
+                'order_index' => 5,
+                'card_id' => 1,
+            ],
 
             // ============================
             // Content 2: "Tujuan dan Manfaat Pemrograman"

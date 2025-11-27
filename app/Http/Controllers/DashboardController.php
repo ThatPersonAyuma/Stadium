@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Course;
+use App\Enums\UserRole;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
@@ -15,8 +16,9 @@ class DashboardController extends Controller
     public function student()
     {
         $user = Auth::user();
-        if (! $user || $user->role !== 'student') {
-            $user = User::where('role', 'student')->first();
+        if (!$user && $user->role !== UserRole::STUDENT) {
+            return respone()->json("SIlakan login dengan aku student",403);
+            // $user = User::where('role', 'student')->first();
         }
         // Fallback demo user
         if (! $user) {
@@ -102,10 +104,10 @@ class DashboardController extends Controller
     public function teacher()
     {
         $authUser = Auth::user();
-        $teacher = $authUser && $authUser->role === 'teacher'
-            ? $authUser
+        $teacher = $authUser && $authUser->role === UserRole::TEACHER
+            ? $authUser->teacher
             : User::where('role', 'teacher')->first();
-
+        // return $teacher;
         // Fallback supaya halaman tetap bisa dibuka saat belum ada teacher.
         if (! $teacher) {
             $teacher = User::create([

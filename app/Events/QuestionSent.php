@@ -36,12 +36,12 @@ class QuestionSent implements ShouldBroadcast
     {
         return [
             // $this->quizId;
-            new Channel('quiz.1'),
+            new PrivateChannel('quiz.' . $this->quizId),
         ];
     }
     public function broadcastAs(): string
     {
-        return 'question.sent';
+        return 'quiz.question.sent';
     }
     public function broadcastWith(): array
     {

@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+
 use App\Enums\UserRole;
 
 class User extends Authenticatable
@@ -64,4 +66,17 @@ class User extends Authenticatable
                     ->withPivot(['progress', 'last_lesson_id'])
                     ->withTimestamps();
     }
+    public function student():HasOne
+    {
+        return $this->hasOne(Student::class);
+    }
+    public function teacher():HasOne
+    {
+        return $this->hasOne(Teacher::class);
+    }
+    public function admin():HasOne
+    {
+        return $this->hasOne(Admin::class);
+    }
+
 }

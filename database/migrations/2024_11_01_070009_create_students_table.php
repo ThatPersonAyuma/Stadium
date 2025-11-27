@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('students', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained('users')->onUpdate('cascade')->onDelete('cascade');
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade')->unique();
             $table->smallInteger('heart', false, true)->default(5);
             $table->smallInteger('key', false, true)->default(0);
             $table->integer('experience')->default(0); // default 0 agar tidak null

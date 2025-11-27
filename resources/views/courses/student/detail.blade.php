@@ -23,14 +23,14 @@
             @foreach ($modules as $module)
                 <div class="space-y-4">
                     <div class="rounded-2xl bg-gradient-to-r from-lime-500 to-emerald-500 text-white p-4 md:p-6 shadow-xl">
-                        <p class="text-lg font-extrabold m-0">{{ $module['title'] }}</p>
-                        <h3 class="text-2xl md:text-3xl font-black leading-tight m-0">{{ $module['desc'] }}</h3>
+                        <p class="text-lg font-extrabold m-0">{{ $module->title }}</p>
+                        <h3 class="text-2xl md:text-3xl font-black leading-tight m-0">{{ $module->description }}</h3>
                     </div>
 
                     <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                        @foreach ($module['lessons'] as $lesson)
+                        @foreach ($module->contents as $content)
                             @php
-                                $status = $lesson['status'];
+                                $status = $content->status;
                                 $isLocked = $status === 'locked';
                                 $colors = [
                                     'done'    => 'from-emerald-500 to-lime-500 text-white',
@@ -53,7 +53,7 @@
                                 </div>
                             @else
                                 <a
-                                    href="{{ route('lesson.show', ['courseId' => $course->id, 'lessonId' => $lesson['id']]) }}"
+                                    href="{{ route('lesson.show', ['courseId' => $course->id, 'lessonId' => $content->id]) }}"
                                     class="group relative aspect-square w-full rounded-2xl bg-gradient-to-br {{ $colors[$status] }} shadow-lg transition hover:-translate-y-1 hover:shadow-xl">
                                     <div class="absolute inset-0 rounded-2xl border border-white/25"></div>
                                     <div class="flex h-full w-full items-center justify-center">

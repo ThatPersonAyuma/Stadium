@@ -11,9 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('teachers', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained('users')->onDelete('cascade')->unique();
+        Schema::table('quiz_participants', function (Blueprint $table) {
+            $table->integer('experience_got')->default(0);
         });
     }
 
@@ -22,6 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('teachers');
+        Schema::table('quiz_participants', function (Blueprint $table) {
+            $table->dropColumn(['experience_got']);
+        });
     }
 };

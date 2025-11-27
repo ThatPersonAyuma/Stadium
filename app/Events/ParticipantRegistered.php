@@ -10,16 +10,21 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class ParticipantRegistered
+class ParticipantRegistered implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
-
+    
+    public $quizId;
+    public $question;
+    public $options;
     /**
      * Create a new event instance.
      */
-    public function __construct()
+    public function __construct($quizId, $question, $options)
     {
-        //
+        $this->quizId = $quizId;
+        $this->question = $question;
+        $this->options = $options;
     }
 
     /**
@@ -30,7 +35,19 @@ class ParticipantRegistered
     public function broadcastOn(): array
     {
         return [
-            new PrivateChannel('channel-name'),
+            // $this->quizId;
+            new PrivateChannel('quiz.' . $this->quizId),
+        ];
+    }
+    public function broadcastAs(): string
+    {
+        return 'quiz.participant.registered';
+    }
+    public function broadcastWith(): array
+    {
+        return [
+            'question' => $this->question,
+            'options' => $this->options,
         ];
     }
 }

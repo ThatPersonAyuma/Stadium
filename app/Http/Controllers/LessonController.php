@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Lesson;
+use App\Models\Course;
 use Illuminate\Http\Request;
 use App\Helpers\FileHelper;
 
@@ -47,7 +48,7 @@ class LessonController extends Controller
         ];
     }
 
-    public function play(int $courseId, int $lessonId)
+    public function play(Course $course, Lesson $lesson)
     {
         $lesson = $this->sampleLessonContent($lessonId);
 
