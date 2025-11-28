@@ -1059,13 +1059,13 @@ h1, h2, h3, .heading {
             width: 90px;
         }
         
-        .hello-title {
+        /* .hello-title {
             font-size: 1.6rem;
         }
         
         .hello-name {
         font-size: 2rem;
-        }
+        } */
         .recent-title-inside {
             margin-left: 0;
             font-size: 1.2rem;
@@ -1153,13 +1153,13 @@ h1, h2, h3, .heading {
             margin-top: 1.25rem;
         }
 
-        .hello-title {
+        /* .hello-title {
             font-size: 18px;
         }
 
         .hello-name {
             font-size: 22px;
-        }
+        } */
 
         .recent-activity-container {
             flex-direction: column;

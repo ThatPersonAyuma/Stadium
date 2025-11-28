@@ -72,7 +72,7 @@ class AuthController extends Controller
         ];
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate(); // Buat session baru biar aman
-            return redirect()->route('student.dashboard')->with('success', 'Login berhasil!');
+            return redirect()->route('dashboard.student')->with('success', 'Login berhasil!');
         }
         return response()->json([
             'message' => 'Register success, But Cant Auto Login',

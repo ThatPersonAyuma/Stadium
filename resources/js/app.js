@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
     sections.forEach(sec => observer.observe(sec));
 });
 
-console.log('Echo test:', window.Echo);
+// console.log('Echo test:', window.Echo);
 
 // window.Echo.connector.socket.onopen = function () {
 //     console.log('✅ WebSocket connected to Reverb');
