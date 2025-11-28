@@ -32,12 +32,6 @@
                         <p class="text-sm font-semibold opacity-80 m-0">Cards pada lesson ini:</p>
                         @php
                             $contents = $module->contents;
-                            // mapWithKeys(function($content) {
-                            //     return [$content->id => [
-                            //         'content' => $content,
-                            //         'cards'   => $content->cards,
-                            //     ]];
-                            // });
                             $headerThemes = [
                                 'bg-gradient-to-r from-sky-500 to-indigo-600',
                                 'bg-gradient-to-r from-amber-400 to-orange-600',
@@ -51,13 +45,8 @@
                                 'bg-gradient-to-br from-rose-500/80 to-pink-600/80 border border-white/15 hover:border-white/30',
                             ];
                         @endphp
-                        {{-- @forelse ($groupedCards as $num => $group)--}}
-                        
                             
                             <div class="space-y-3">
-                                {{-- <div class="rounded-2xl {{ $headerClass }} text-white p-4 shadow-md border border-white/10">
-                                    <p class="text-lg md:text-xl font-black leading-tight m-0">{{ $content->title ?? 'Content' }}</p>
-                                </div> --}}
                                 <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                                         @foreach ($contents as $content)
                                             @php
@@ -118,16 +107,6 @@
                                         @endforeach
                                 </div>
                             </div>
-                        {{-- @empty --}}
-                            {{-- <div class="col-span-full rounded-3xl border border-dashed border-white/20 bg-white/5 p-6 md:p-8 text-center shadow-inner">
-                                <div class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 text-amber-300">
-                                    <svg viewBox="0 0 24 24" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                                        <path d="M12 3v3M12 18v3M4.22 5.22 6.34 7.34M17.66 16.66l2.12 2.12M3 12h3m12 0h3M6.34 16.66 4.22 18.78M19.78 5.22 17.66 7.34"/>
-                                    </svg>
-                                </div>
-                                <p class="text-base font-semibold text-white">Belum ada card pada lesson ini.</p>
-                            </div> --}}
-                        {{-- @endforelse --}}
                     </div>
                 </div>
             @endforeach

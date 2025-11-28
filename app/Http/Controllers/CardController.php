@@ -24,7 +24,7 @@ class CardController extends Controller
         return Card::find($cardId);
     }
 
-        public function getBlocksOfCard(Card $card)
+    public function getBlocksOfCard(Card $card)
     {
         return $card->blocks()->orderBy('order_index')->get();
     }

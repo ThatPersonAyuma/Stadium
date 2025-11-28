@@ -145,7 +145,7 @@ class FileHelper
         $filename = Block::findOrFail($blockId)->data['filename'];
         return Storage::Url("courses/{$courseSlug}/{$lessonSlug}/{$contentSlug}/{$cardSlug}/{$blockId}-{$filename}");
     }
-    public static function getBlockUrlPath($courseId, $lessonId, $contentId, $cardId)
+    public static function getBlockUrlPath($courseId, $lessonId, $contentId, $cardId = NULL)
     {
         $course = Course::findOrFail($courseId);
         $lesson = Lesson::findOrFail($lessonId);
@@ -153,6 +153,9 @@ class FileHelper
         $courseSlug = "{$course->id}-" . Str::slug(Str::limit($course->title, 20));
         $lessonSlug = "{$lesson->id}-" . Str::slug(Str::limit($lesson->title, 20));
         $contentSlug = "{$content->id}-" . Str::slug(Str::limit($content->title, 20));
+        if ($cardId === NULL){
+            return  Storage::Url("courses/{$courseSlug}/{$lessonSlug}/{$contentSlug}");
+        }
         $cardSlug = "{$cardId}-card";
         return Storage::Url("courses/{$courseSlug}/{$lessonSlug}/{$contentSlug}/{$cardSlug}");
     }
