@@ -30,12 +30,71 @@
             @case('text')
                 <p class="m-0 opacity-85">{{ \Illuminate\Support\Str::limit($block->data['content'] ?? '', 180) }}</p>
                 @break
-            @case('image')
+            {{-- @case('image')
             @case('gif')
             @case('video')
                 <p class="m-0 opacity-85">File: {{ $block->data['filename'] ?? 'Tidak ada file' }}</p>
                 <p class="m-0 text-xs opacity-70">Alt: {{ $block->data['alt'] ?? '-' }}</p>
-                @break
+                @break --}}
+            @case('image')
+            @case('gif')
+            @case('video')
+
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+
+                {{-- File Name --}}
+                <p style="margin:0; opacity:0.85;">
+                    File: {{ $block->data['filename'] ?? 'Tidak ada file' }}
+                </p>
+
+                {{-- Alt Text --}}
+                <p style="margin:0; font-size: 12px; opacity:0.70;">
+                    Alt: {{ $block->data['alt'] ?? '-' }}
+                </p>
+
+                {{-- Preview Container --}}
+                <div 
+                    style="
+                        width: 100%; 
+                        max-height: 280px; 
+                        overflow: hidden; 
+                        border-radius: 6px;
+                        background: rgba(0,0,0,0.05);
+                        display: flex; 
+                        justify-content: center; 
+                        align-items: center;
+                    "
+                >
+                    @if ($blockType === 'video')
+                        <video 
+                            src="{{ asset(App\Helpers\FileHelper::getBlockUrl($course->id, $lesson->id, $content->id, $card->id, $block->id)) }}"
+                            controls
+                            style="
+                                width: 100%;
+                                height: 100%;
+                                object-fit: contain;
+                                border-radius: 6px;
+                            "
+                        ></video>
+                    @else
+                        <img 
+                            src="{{ asset(App\Helpers\FileHelper::getBlockUrl($course->id, $lesson->id, $content->id, $card->id, $block->id)) }}"
+                            alt="{{ $block->data['alt'] ?? '' }}"
+                            style="
+                                width: 100%;
+                                height: 100%;
+                                object-fit: contain;
+                                border-radius: 6px;
+                            "
+                        >
+                    @endif
+                </div>
+
+            </div>
+
+            @break
+
+
             @case('quiz')
                 <p class="m-0 font-semibold">{{ $block->data['question'] ?? 'Pertanyaan' }}</p>
                 <ul class="m-0 list-disc list-inside text-xs opacity-80 space-y-1">
@@ -63,6 +122,7 @@
         <input type="hidden" name="lesson_id" value="{{ $lesson->id }}">
         <input type="hidden" name="course_id" value="{{ $course->id }}">
         <input type="hidden" name="content_id" value="{{ $content->id }}">
+        <input type="hidden" name="type" value="{{ $block->type->value }}">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div class="space-y-2">
                 <label class="text-xs uppercase tracking-wide opacity-70">Urutan Block</label>

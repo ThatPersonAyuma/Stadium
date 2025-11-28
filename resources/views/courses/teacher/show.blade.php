@@ -59,7 +59,7 @@
                     <input type="text" name="description" placeholder="Deskripsi (opsional)"
                            class="w-full rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-white placeholder-white/60 focus:border-white/60 focus:outline-none">
                     <div class="flex gap-2">
-                        <input type="number" name="order_index" min="1" placeholder="Urutan"
+                        <input type="number" name="order_index" min="1" placeholder="Urutan" value="{{ (\App\Models\Lesson::where('course_id', $course->id)->max('order_index') ?? 0) + 1 }}" max="{{ (\App\Models\Lesson::where('course_id', $course->id)->max('order_index') ?? 0) + 1 }}"
                                class="w-full rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-white placeholder-white/60 focus:border-white/60 focus:outline-none">
                         <button type="submit"
                                 class="inline-flex items-center justify-center gap-2 rounded-xl bg-white text-slate-900 px-4 py-3 font-semibold shadow-lg transition hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-white">

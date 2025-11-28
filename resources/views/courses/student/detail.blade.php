@@ -23,15 +23,21 @@
             @foreach ($modules as $module)
                 <div class="space-y-4">
                     <div class="rounded-3xl bg-gradient-to-r from-lime-500 to-emerald-500 text-white p-5 md:p-7 shadow-xl">
-                        <p class="text-sm md:text-base font-extrabold m-0 uppercase tracking-wide">Lesson {{ $module['order_index'] ?? '' }}</p>
-                        <h3 class="text-2xl md:text-3xl font-black leading-tight m-0">{{ $module['title'] }}</h3>
-                        <p class="text-sm md:text-base opacity-90 m-0 mt-1">{{ $module['desc'] }}</p>
+                        <p class="text-sm md:text-base font-extrabold m-0 uppercase tracking-wide">Lesson {{ $module->order_index ?? '' }}</p>
+                        <h3 class="text-2xl md:text-3xl font-black leading-tight m-0">{{ $module->title }}</h3>
+                        <p class="text-sm md:text-base opacity-90 m-0 mt-1">{{ $module->description }}</p>
                     </div>
 
                     <div class="space-y-2">
                         <p class="text-sm font-semibold opacity-80 m-0">Cards pada lesson ini:</p>
                         @php
-                            $groupedCards = collect($module['cards'])->groupBy('content_title');
+                            $contents = $module->contents;
+                            // mapWithKeys(function($content) {
+                            //     return [$content->id => [
+                            //         'content' => $content,
+                            //         'cards'   => $content->cards,
+                            //     ]];
+                            // });
                             $headerThemes = [
                                 'bg-gradient-to-r from-sky-500 to-indigo-600',
                                 'bg-gradient-to-r from-amber-400 to-orange-600',
@@ -45,45 +51,83 @@
                                 'bg-gradient-to-br from-rose-500/80 to-pink-600/80 border border-white/15 hover:border-white/30',
                             ];
                         @endphp
-
-                        @forelse ($groupedCards as $contentTitle => $cardsGroup)
-                            @php
-                                $themeIndex = $loop->index % count($headerThemes);
-                                $headerClass = $headerThemes[$themeIndex];
-                                $cardClass = $cardThemes[$themeIndex];
-                            @endphp
+                        {{-- @forelse ($groupedCards as $num => $group)--}}
+                        
+                            
                             <div class="space-y-3">
-                                <div class="rounded-2xl {{ $headerClass }} text-white p-4 shadow-md border border-white/10">
-                                    <p class="text-lg md:text-xl font-black leading-tight m-0">{{ $contentTitle ?? 'Content' }}</p>
-                                </div>
+                                {{-- <div class="rounded-2xl {{ $headerClass }} text-white p-4 shadow-md border border-white/10">
+                                    <p class="text-lg md:text-xl font-black leading-tight m-0">{{ $content->title ?? 'Content' }}</p>
+                                </div> --}}
                                 <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-                                    @foreach ($cardsGroup as $card)
-                                        <a
-                                            href="{{ route('lesson.show', ['courseId' => $course->id, 'lessonId' => $module['lesson_id']]) }}?card={{ $card['id'] }}"
-                                            class="group relative w-full aspect-square rounded-3xl overflow-hidden transition {{ $cardClass }}">
-                                            <div class="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-white/10 opacity-70"></div>
-                                            <div class="relative flex h-full w-full items-center justify-center text-white">
-                                                <svg viewBox="0 0 64 64" class="w-14 h-14 drop-shadow-sm">
-                                                    <path d="M20 10 L32 4 L44 10 L52 6 L60 18 L60 38 C60 52 46 60 32 60 18 60 4 52 4 38 L4 18 L12 6 Z" fill="currentColor"/>
-                                                    <circle cx="26" cy="32" r="4" fill="#0f172a"/>
-                                                    <circle cx="38" cy="32" r="4" fill="#0f172a"/>
-                                                    <rect x="28" y="40" width="8" height="3" rx="1.5" fill="#0f172a"/>
-                                                </svg>
+                                        @foreach ($contents as $content)
+                                            @php
+
+                                            // $cards   = $group['cards'];   
+                                            $themeIndex = $loop->index % count($headerThemes);
+                                            $headerClass = $headerThemes[$themeIndex];
+                                            $cardClass = $cardThemes[$themeIndex];
+            
+                                            $status= $content->status;
+                                            // Warna status
+                                            $statusClasses = [
+                                                'current' => 'ring-4 ring-green-400 shadow-lg shadow-green-500/30',
+                                                'done'    => 'ring-4 ring-blue-400 shadow-lg shadow-blue-500/30',
+                                                'locked'    => 'opacity-50 cursor-not-allowed'
+                                            ];
+                                            $statusClass = $statusClasses[$status];
+
+                                            // Href
+                                            $href = $status === 'locked'
+                                                ? null
+                                                : route('lesson.show', [
+                                                    'course'  => $course->id,
+                                                    'lesson'  => $module->id,
+                                                    'content' => $content->id
+                                                ]) . '?card=' . $content->id;
+                                        @endphp
+
+
+                                        @if ($href)
+                                            {{-- clickable card --}}
+                                            <a href="{{ $href }}"
+                                            class="group relative w-full aspect-square rounded-3xl overflow-hidden transition {{ $cardClass }} {{ $statusClass }}">
+                                                <div class="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-white/10 opacity-70"></div>
+                                                <div class="relative flex h-full w-full items-center justify-center text-white">
+                                                    <svg viewBox="0 0 64 64" class="w-14 h-14 drop-shadow-sm">
+                                                        <path d="M20 10 L32 4 L44 10 L52 6 L60 18 L60 38 C60 52 46 60 32 60 18 60 4 52 4 38 L4 18 L12 6 Z" fill="currentColor"/>
+                                                        <circle cx="26" cy="32" r="4" fill="#0f172a"/>
+                                                        <circle cx="38" cy="32" r="4" fill="#0f172a"/>
+                                                        <rect x="28" y="40" width="8" height="3" rx="1.5" fill="#0f172a"/>
+                                                    </svg>
+                                                </div>
+                                            </a>
+                                        @else
+                                            {{-- locked card (tidak bisa diklik) --}}
+                                            <div class="group relative w-full aspect-square rounded-3xl overflow-hidden transition {{ $cardClass }} {{ $statusClass }}">
+                                                <div class="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-white/10 opacity-70"></div>
+                                                <div class="relative flex h-full w-full items-center justify-center text-white">
+                                                    <svg viewBox="0 0 64 64" class="w-14 h-14 drop-shadow-sm">
+                                                        <path d="M20 10 L32 4 L44 10 L52 6 L60 18 L60 38 C60 52 46 60 32 60 18 60 4 52 4 38 L4 18 L12 6 Z" fill="currentColor"/>
+                                                        <circle cx="26" cy="32" r="4" fill="#0f172a"/>
+                                                        <circle cx="38" cy="32" r="4" fill="#0f172a"/>
+                                                        <rect x="28" y="40" width="8" height="3" rx="1.5" fill="#0f172a"/>
+                                                    </svg>
+                                                </div>
                                             </div>
-                                        </a>
-                                    @endforeach
+                                        @endif
+                                        @endforeach
                                 </div>
                             </div>
-                        @empty
-                            <div class="col-span-full rounded-3xl border border-dashed border-white/20 bg-white/5 p-6 md:p-8 text-center shadow-inner">
+                        {{-- @empty --}}
+                            {{-- <div class="col-span-full rounded-3xl border border-dashed border-white/20 bg-white/5 p-6 md:p-8 text-center shadow-inner">
                                 <div class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 text-amber-300">
                                     <svg viewBox="0 0 24 24" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                                         <path d="M12 3v3M12 18v3M4.22 5.22 6.34 7.34M17.66 16.66l2.12 2.12M3 12h3m12 0h3M6.34 16.66 4.22 18.78M19.78 5.22 17.66 7.34"/>
                                     </svg>
                                 </div>
                                 <p class="text-base font-semibold text-white">Belum ada card pada lesson ini.</p>
-                            </div>
-                        @endforelse
+                            </div> --}}
+                        {{-- @endforelse --}}
                     </div>
                 </div>
             @endforeach

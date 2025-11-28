@@ -25,7 +25,12 @@ class AuthController extends Controller
         // Logic login sederhana
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate(); // Buat session baru biar aman
-            return redirect()->route('welcome')->with('success', 'Login berhasil!');
+            if (Auth::user()->role==UserRole::STUDENT){
+                return redirect()->route('dashboard.student');
+            }else{
+                return redirect()->route('dashboard.teacher');
+            }
+            
         }
 
         return back()->withErrors('Email atau password salah');

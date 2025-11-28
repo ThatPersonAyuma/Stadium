@@ -61,7 +61,7 @@ Route::get('/users', function () {
 // });
 Route::get('/course', [CourseController::class, 'index'])->name('course.index');
 Route::get('/course/{course}', [CourseController::class, 'detail'])->name('course.detail');
-Route::get('/course/{course}/lesson/{lesson}', [LessonController::class, 'play'])->name('lesson.show');
+Route::get('/course/{course}/lesson/{lesson}/content/{content}', [LessonController::class, 'play'])->name('lesson.show');
 Route::get('/lesson-by-course', [LessonController::class, 'getRelationWithCourse'])->name('getLessWCourse');
 Route::post('/add-file', [BlockController::class, 'store'])->name('addFile');
 

@@ -103,7 +103,7 @@
                     </div>
                     <div class="space-y-2">
                         <label class="text-xs uppercase tracking-wide opacity-70">Urutan</label>
-                        <input type="number" name="order_index" min="1" value="{{ $nextContentOrder }}"
+                        <input type="number" name="order_index" min="1" value="{{ $nextContentOrder }}" max="{{ $nextContentOrder }}"
                                class="w-full rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-white placeholder-white/60 focus:border-white/60 focus:outline-none" required>
                     </div>
                     <div class="md:col-span-3 flex flex-wrap gap-2 justify-end">

@@ -241,7 +241,13 @@
         };
 
         const escapeHtml = (value = '') => $('<div>').text(value ?? '').html();
-
+        const urlPrefix = 
+            "{{asset(\App\Helpers\FileHelper::getBlockUrlPath(
+                $course->id,
+                $lesson->id,
+                $content->id,
+                $card->id
+            ))}}";
         const renderPreview = (block) => {
             const type = typeValue(block.type);
             const data = block.data || {};
@@ -251,9 +257,23 @@
                 case 'image':
                 case 'gif':
                 case 'video':
+                    const fileUrl = `${urlPrefix}/${block.id}-${data.filename}`;
+
                     return [
                         `<p class="m-0 opacity-85">File: ${escapeHtml(data.filename || 'Tidak ada file')}</p>`,
-                        `<p class="m-0 text-xs opacity-70">Alt: ${escapeHtml(data.alt || '-')}</p>`
+                        `<p class="m-0 text-xs opacity-70">Alt: ${escapeHtml(data.alt || '-')}</p>`,
+                        data.filename ? `
+                            <img 
+                                src="${escapeHtml(fileUrl)}"
+                                alt="${escapeHtml(data.alt || '')}"
+                                style="
+                                    width: 100%;
+                                    height: 100%;
+                                    object-fit: contain;
+                                    border-radius: 6px;
+                                "
+                            >
+                        ` : ''
                     ].join('');
                 case 'quiz': {
                     const choices = data.choices || {};
@@ -486,7 +506,50 @@
         $('[data-block-create]').on('submit', function (e) {
             e.preventDefault();
             const form = $(this);
-            const formData = new FormData(this);
+            const formData = new FormData();
+            const type = form.find('[name="type"]').val();
+    
+            // Ambil semua input file & alt berdasarkan DOM
+            const imageFile = form.find('[data-fields-for="image"] input[type="file"]')[0];
+            const gifFile   = form.find('[data-fields-for="gif"] input[type="file"]')[0];
+            const videoFile = form.find('[data-fields-for="video"] input[type="file"]')[0];
+
+            const imageAlt = form.find('[data-fields-for="image"] input[name="data[alt]"]').val();
+            const gifAlt   = form.find('[data-fields-for="gif"] input[name="data[alt]"]').val();
+            const videoAlt = form.find('[data-fields-for="video"] input[name="data[alt]"]').val();
+
+            // Buat FormData baru (bersih)
+            // const fd = new FormData();
+
+            // Masukkan semua input selain file/alt dulu
+            form.serializeArray().forEach(item => {
+                // skip alt karena kita isi manual
+                if (!item.name.startsWith('data[alt]') && !item.name.startsWith('data[file]')) {
+                    formData.append(item.name, item.value);
+                }
+            });
+
+            // Tambahkan input file + alt sesuai tipe
+            if (type === 'image') {
+                formData.append('data[file]', imageFile.files[0] ?? '');
+                formData.append('data[alt]', imageAlt ?? '');
+            }
+
+            if (type === 'gif') {
+                formData.append('data[file]', gifFile.files[0] ?? '');
+                formData.append('data[alt]', gifAlt ?? '');
+            }
+
+            if (type === 'video') {
+                formData.append('data[file]', videoFile.files[0] ?? '');
+                formData.append('data[alt]', videoAlt ?? '');
+            }
+
+            // DEBUG
+            console.log("=== CLEAN FORMDATA ===");
+            for (const pair of formData.entries()) {
+                console.log(pair[0], pair[1]);
+            }
             $.ajax({
                 url: storeUrl,
                 method: 'POST',

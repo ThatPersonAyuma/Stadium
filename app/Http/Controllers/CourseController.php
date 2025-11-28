@@ -39,7 +39,7 @@ class CourseController extends Controller
             return redirect()->route('login');;
         }
         if ($user->role !== UserRole::STUDENT){
-            return respone()->json("Bukan akun student",403);
+            return response()->json("Bukan akun student",403);
         }
         // $student = $user && $user->role === 'student'
             // ? $user
@@ -253,62 +253,49 @@ class CourseController extends Controller
     public function detail(Course $course)
     {
         $user = Auth::user();
-        if ($user===NULL){
-            return redirect()->route('login');;
-        }
-        if ($user->role !== UserRole::STUDENT){
-            return respone()->json("Bukan akun student",403);
-        }
 
-        $modules = $course->lessons;
-        $lessonIds = $modules->pluck('id');
-        $allContents = Content::whereIn('lesson_id', $lessonIds)->get();
+        if (!$user) return redirect()->route('login');
+        if ($user->role !== UserRole::STUDENT) abort(403);
 
-        $progressIds = StudentContentProgress::where('student_id', $user->student->id)
-            ->pluck('content_id')
-            ->toArray();
+        // Load everything in one query
+        $lessons = $course->lessons()
+            ->with([
+                'contents' => fn($q) => $q->orderBy('order_index'),
+                'contents.student_content_progress'
+            ])
+            ->get();
 
-        $progressContents = $allContents->whereIn('id', $progressIds);
+        foreach ($lessons as $lesson) {
+            $completed = $lesson->contents->filter(fn($c) =>
+                $c->student_content_progress
+                ->where('student_id', $user->student->id)
+                ->where('is_completed', true)
+                ->count() > 0
+            );
 
-        $highestOrderPerLesson = $progressContents
-            ->groupBy('lesson_id')
-            ->map(fn($items) => $items->max('order_index'));
+            $highest = $completed->max('order_index') ?? 0;
+            $unlockIndex = $highest + 1;
 
-        $modules = $course->lessons->map(function ($lesson) use ($highestOrderPerLesson, $user) {
-
-            $highest = $highestOrderPerLesson[$lesson->id] ?? 1;
-
-            $lastContent = $lesson->contents->firstWhere('order_index', $highest);
-
-            if ($lastContent) {
-                $progress = $lastContent->student_content_progress
-                    ->where('student_id', $user->student->id)
-                    ->where('is_completed', true)
-                    ->first();
-
-                if ($progress) {
-                    $highest += 1; // unlock next, if highest are completed
-                }
-            }
-
-            $lesson->contents->each(function ($content) use ($highest) {
-                if ($content->order_index < $highest) {
+            foreach ($lesson->contents as $content) {
+                if ($content->order_index <= $highest) {
                     $content->status = 'done';
-                } elseif ($content->order_index == $highest) {
+                } elseif ($content->order_index == $unlockIndex) {
                     $content->status = 'current';
                 } else {
                     $content->status = 'locked';
                 }
-            });
+            }
+        }
 
-            return $lesson;
-        });
+        $progress = $this->getStudentCourseProgress($course, $user->student)['progress_percentage'];
 
-        $result = $this->getStudentCourseProgress($course, $user->student);
-        $progress = $result['progress_percentage'];
-
-        return view('courses.student.detail', compact('course', 'modules', 'progress'));
+        return view('courses.student.detail', [
+            'course' => $course,
+            'modules' => $lessons,
+            'progress' => $progress
+        ]);
     }
+
         // $courses = $this->defaultCourses()->map(function ($course) {
         //     $cta = match ($course['status']) {
         //         'completed' => 'Review Course',
@@ -373,18 +360,22 @@ class CourseController extends Controller
             'title'       => 'required|string|max:255',
             'description' => 'nullable|string',
             'status'      => 'nullable|in:draft,pending,approved,revision,rejected,hidden,archived',
-            'teacher_id'  => 'nullable|integer|exists:users,id',
+            // 'teacher_id'  => 'nullable|integer|exists:users,id',
         ]);
 
-        $teacherId = $validated['teacher_id']
-            ?? (Auth::check() ? Auth::id() : null)
-            ?? User::where('role', 'teacher')->value('id');
+        // $teacherId = $validated['teacher_id']
+        //     ?? (Auth::check() ? Auth::id() : null)
+        //     ?? User::where('role', UserRole::TEACHER)->value('id');
+        $user = Auth::user();
+        if ($user===NULL){
+            return redirect()->route('login');;
+        }
 
         $course = Course::create([
             'title'       => $validated['title'],
             'description' => $validated['description'] ?? '',
             'status'      => $validated['status'] ?? 'draft',
-            'teacher_id'  => $teacherId,
+            'teacher_id'  => $user->teacher->id,
         ]);
 
         if ($request->wantsJson()) {

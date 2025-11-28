@@ -145,6 +145,19 @@ class FileHelper
         $filename = Block::findOrFail($blockId)->data['filename'];
         return Storage::Url("courses/{$courseSlug}/{$lessonSlug}/{$contentSlug}/{$cardSlug}/{$blockId}-{$filename}");
     }
+    public static function getBlockUrlPath($courseId, $lessonId, $contentId, $cardId)
+    {
+        $course = Course::findOrFail($courseId);
+        $lesson = Lesson::findOrFail($lessonId);
+        $content = Content::findOrFail($contentId);
+        $courseSlug = "{$course->id}-" . Str::slug(Str::limit($course->title, 20));
+        $lessonSlug = "{$lesson->id}-" . Str::slug(Str::limit($lesson->title, 20));
+        $contentSlug = "{$content->id}-" . Str::slug(Str::limit($content->title, 20));
+        $cardSlug = "{$cardId}-card";
+        return Storage::Url("courses/{$courseSlug}/{$lessonSlug}/{$contentSlug}/{$cardSlug}");
+    }
+        // $cardSlug = "{$cardId}-card";
+        // $filename = Block::findOrFail($blockId)->data['filename'];
 
     public static function storeAvatarFile($file, $userId)
     {

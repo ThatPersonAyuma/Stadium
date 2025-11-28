@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Helpers\FileHelper;
 use App\Enums\ContentType;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class BlockController extends Controller
 {
@@ -162,8 +163,12 @@ class BlockController extends Controller
      */
     public function store(Request $request)
     {
-        $type = $request->input('type', 'text');
-
+        // $type = $request->input('type', 'text');
+        
+        $type = $request['type'];
+        // Log::info('POST Request received:', $request->all());
+        // Log::info('Has file? ' . ($request->hasFile('data.file') ? 'YES' : 'NO'));
+        // Log::info('File:', [$request->file('data.file')]);
         $rules = [
             'type' => 'required|in:text,image,code,quiz,gif,video',
             'order_index' => 'required|integer|min:1',
@@ -208,7 +213,7 @@ class BlockController extends Controller
             ...$rules,
             ...$typeRules
         ]);
-
+        // return ;
         $type = $validated['type'];
         $file = null;
         if (in_array($type, ['image', 'gif', 'video'], true) && isset($validated['data']['file'])) {

@@ -50,7 +50,7 @@ class LessonController extends Controller
         ];
     }
 
-    public function play(Request $request, int $courseId, int $lessonId)
+    public function play(Request $request, int $courseId, int $lessonId, int $contentId)
     {
         $lesson = Lesson::with([
             'contents' => fn ($q) => $q->orderBy('order_index')->with([
