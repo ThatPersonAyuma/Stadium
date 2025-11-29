@@ -14,6 +14,10 @@ class Teacher extends Model
 
     public $timestamps = false;
 
+    protected $fillable = [
+        'user_id',
+    ];
+
     public function courses():HasMany
     {
         return $this->hasMany(Course::class);

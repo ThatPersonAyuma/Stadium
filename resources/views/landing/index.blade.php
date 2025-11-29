@@ -25,7 +25,7 @@
     </p>
     <div class="hero-pill">
         <span>What do you want to learn today?</span>
-        <button class="btn-primary">Get Started</button>
+        <a href="{{ route('register') }}" class="btn-primary">Get Started</a>
     </div>
 </section>
 

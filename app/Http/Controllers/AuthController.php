@@ -9,11 +9,11 @@ use App\Models\Student;
 use App\Models\Teacher;
 use App\Enums\UserRole;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 	
 
 class AuthController extends Controller
 {
-    // Login buat autentikasi
     public function login(Request $request) 
     {
         // Validasi request email sama password
@@ -24,7 +24,7 @@ class AuthController extends Controller
 
         // Logic login sederhana
         if (Auth::attempt($credentials)) {
-            $request->session()->regenerate(); // Buat session baru biar aman
+            $request->session()->regenerate();
             if (Auth::user()->role==UserRole::STUDENT){
                 return redirect()->route('dashboard.student');
             }else{
@@ -38,9 +38,9 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
-        Auth::logout(); // Hapus autentikasi user
-        $request->session()->invalidate(); // Hapus semua session
-        $request->session()->regenerateToken(); // Regenerasi CSRF token biar aman
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken(); 
 
         return redirect('/')->with('success', 'Anda berhasil logout.');
     }
@@ -51,33 +51,46 @@ class AuthController extends Controller
             'fullname' => 'required|string',
             'username' => 'required|string|max:255|unique:users,username',
             'email'    => 'required|email|max:255|unique:users,email',
-            'password' => 'required',
+            'password' => 'required|confirmed',
+            'role' => ['required', Rule::in([UserRole::STUDENT->value, UserRole::TEACHER->value])],
         ]);
+
         $user = User::create([
             'username' => $validated['username'],
             'name' => $validated['fullname'],
             'email'    => $validated['email'],
             'password' => Hash::make($validated['password']),
-            'role' => UserRole::STUDENT,
+            'role' => $validated['role'],
         ]);
 
-        // 2. Create student (ambil user_id dari $user->id)
-        $student = Student::create([
-            'user_id' => $user->id,
-            
-        ]);
+        $student = null;
+        $teacher = null;
+        $redirectRoute = 'dashboard.student';
+
+        if ($user->role === UserRole::TEACHER) {
+            $teacher = Teacher::create([
+                'user_id' => $user->id,
+            ]);
+            $redirectRoute = 'dashboard.teacher';
+        } else {
+            $student = Student::create([
+                'user_id' => $user->id,
+            ]);
+        }
+
         $credentials = [
             'email' => $validated['email'],
             'password' => $validated['password'],
         ];
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate(); // Buat session baru biar aman
-            return redirect()->route('dashboard.student')->with('success', 'Login berhasil!');
+            return redirect()->route($redirectRoute)->with('success', 'Login berhasil!');
         }
         return response()->json([
             'message' => 'Register success, But Cant Auto Login',
             'user' => $user,
             'student' => $student,
+            'teacher' => $teacher,
         ], 201);
     }
 }
