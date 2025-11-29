@@ -5,7 +5,7 @@
   </div>
 
   <div class="navbar-actions">
-    <a href="/login" class="btn-login">Login</a>
-    <a href="/register" class="btn-signup">Sign Up</a>
+    <a href="{{ route('login') }}" class="btn-login">Login</a>
+    <a href="{{ route('register') }}" class="btn-signup">Sign Up</a>
   </div>
 </nav>

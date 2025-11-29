@@ -1,1 +1,0 @@
-<!-- card.blade.php -->

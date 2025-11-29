@@ -15,11 +15,11 @@
                 </div>
             @endif
             <h3 class="form-label">Email</h3>
-            <input type="text" name="email" placeholder="USERNAME" required>
+            <input type="text" name="email" placeholder="EMAIL" class="text-black" required>
             <h3 class="form-label">Password</h3>
-            <input type="password" name="password" placeholder="PASSWORD" required>
+            <input type="password" name="password" placeholder="PASSWORD" class="text-black" required>
             <a href="#" class="auth-link">Forgot Password?</a>
-
+ 
             <button type="submit" class="btn-auth">LOGIN</button>
 
             <p class="auth-switch">
