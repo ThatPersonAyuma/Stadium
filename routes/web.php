@@ -81,7 +81,10 @@ Route::get('/', function () {
 Route::get('/login', fn() => view('auth.login'))->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-Route::get('/register', fn() => view('auth.register'))->name('register');
+
+Route::get('/register', fn() => view('auth.choose-role'))->name('register');
+Route::get('/register/student', fn() => view('auth.register'))->name('register.student');
+Route::get('/register/teacher', fn() => view('auth.register-teacher'))->name('register.teacher');
 Route::post('/register', [AuthController::class, 'register'])->name('register.post');
 
 // Route::middleware(['auth'])->group(function () {
@@ -201,3 +204,9 @@ Route::get('/delete-block',
         return view('TESTING.test_delete');
     }
 );
+
+
+// Testing Error Pages
+// Route::get('/test-403', fn() => abort(403));
+// Route::get('/test-500', fn() => abort(500));
+// Route::get('/test-404', fn() => abort(404));
