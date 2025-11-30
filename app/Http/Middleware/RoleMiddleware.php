@@ -29,7 +29,7 @@ class RoleMiddleware
 
         // Check apakah user.role ada dalam allowed role
         if (!in_array($user->role, $allowedRoles)) {
-            return response()->json(['message' => 'Forbidden'], 403);
+            return abort(403, 'You do not have permission to access this resource.');
         }
 
         return $next($request);

@@ -111,6 +111,8 @@ Route::middleware('auth')->group(function() { // dont fotget you must have route
     Route::get('/debug-session', function () {
         return session()->all();
     });
+    Route::get('/quiz', [QuizController::class, 'ShowIndex'])->name('quiz.index');
+    
 });
 Route::middleware(['auth', 'role:teacher'])->group(function() { 
     Route::get('/teacher/dashboard', [DashboardController::class, 'teacher'])
@@ -126,6 +128,29 @@ Route::middleware(['auth', 'role:teacher'])->group(function() {
         Route::delete('/{course}', [CourseController::class, 'teacherDestroy'])->name('destroy');
         Route::get('/{course}', [CourseController::class, 'teacherShow'])->name('show');
     });
+    Route::prefix('quiz')->name('quiz.')->group(function (){
+        Route::get('/monitoring/{quiz}', [QuizController::class, 'TeacherMonitoring'])->name('monitoring');
+        Route::post('/open-quiz/{quiz}', [QuizController::class, 'OpenQuiz'])->name('open');
+        Route::post('/start', [QuizController::class, 'startQuestion'])->name('start');
+        Route::post('/send-question', [QuizController::class, 'sendQuestion'])->name('send');
+        Route::post('/end-question', [QuizController::class, 'EndQuestion'])->name('end-question');
+        Route::post('/post-scoreboard', [QuizController::class, 'BroadcastScoreboard'])->name('scoreboard');
+        Route::post('/end-quiz', [QuizController::class, 'EndQuiz'])->name('end-quiz');
+    }); 
+    
+});
+
+Route::middleware(['auth', 'role:student'])->group(function() { 
+    Route::prefix('quiz')->name('quiz.')->group(function (){
+        Route::get('/test', fn() => 'OK STUDENT');
+        Route::get('/register', [QuizController::class, 'ShowIndex'])->name('register');
+        // Route::get('/register', [QuizController::class, 'ShowRegister'])->name('running');
+        Route::post('/register', [QuizController::class, 'studentJoin'])->name('post-register');
+        Route::post('/post-answer', [QuizController::class, 'HandleAnswer'])->name('answer');
+        Route::get('/running-quiz/{quiz_id}', function($quiz_id){
+            return view('quiz.quiz_running',['quiz_id' => $quiz_id]);
+        } )->name('play');
+    }); 
 });
 // Resources
 // Route::resource('fasilitas', MatkulController::class);
@@ -176,11 +201,3 @@ Route::get('/delete-block',
         return view('TESTING.test_delete');
     }
 );
-// Route::get('/get-a-card/{content}',
-//     // function(){
-//         [ContentController::class, 'getCards']
-//         // $cards = ContentController::getCards(Content::findOrFail(1));
-//         // $blocks = Content::findOrFail(1)->load('cards.blocks');
-//         // return view('TESTING.card', compact('cards', 'blocks'));
-//     // }
-// );

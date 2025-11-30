@@ -9,6 +9,7 @@ use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
+use App\Models\QuizParticipant;
 
 class AnswerSubmitted implements ShouldBroadcast
 {
@@ -17,14 +18,12 @@ class AnswerSubmitted implements ShouldBroadcast
     /**
      * Create a new event instance.
      */
-    public $userId;
-    public $answer;
+    public $participants;
     public $quizId;
 
-    public function __construct($userId, $answer, $quizId)
+    public function __construct($quizId, $participants,)
     {
-        $this->userId = $userId;
-        $this->answer = $answer;
+        $this->participants = $participants;
         $this->quizId = $quizId;
     }
 
@@ -41,13 +40,21 @@ class AnswerSubmitted implements ShouldBroadcast
     }
     public function broadcastAs(): string
     {
-        return 'quiz.answer.submintted';
+        return 'quiz.answer.submitted';
     }
     public function broadcastWith(): array
     {
         return [
-            'question' => $this->question,
-            'options' => $this->options,
+            'scoreboard' => QuizParticipant::where('quiz_id', $this->quizId)
+                ->with('student.user')
+                ->orderByDesc('score')
+                ->get()
+                ->map(function ($p) {
+                    return [
+                        'username' => $p->student->user->username, 
+                        'score' => $p->score,
+                    ];
+                }),
         ];
     }
 }

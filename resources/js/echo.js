@@ -33,8 +33,8 @@ pusher.connection.bind('disconnected', () => console.log('❌ WebSocket disconne
 pusher.connection.bind('error', (err) => console.error('⚠️ WebSocket error:', err));
 
 // Listen channel
-window.Echo.channel('quiz.1')
-    .listen('.question.sent', e => console.log('📩 Event diterima:', e));
+// window.Echo.channel('quiz.1')
+//     .listen('.question.sent', e => console.log('📩 Event diterima:', e));
 
 
 

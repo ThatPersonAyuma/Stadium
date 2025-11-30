@@ -14,6 +14,8 @@ class Quiz extends Model
         'creator_id',
         'running_index',
         'is_finished',
+        'code',
+        'interval',
     ];
 
     public function creator()

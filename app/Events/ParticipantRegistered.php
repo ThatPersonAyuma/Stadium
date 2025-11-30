@@ -15,16 +15,15 @@ class ParticipantRegistered implements ShouldBroadcast
     use Dispatchable, InteractsWithSockets, SerializesModels;
     
     public $quizId;
-    public $question;
-    public $options;
+    public $names;
+
     /**
      * Create a new event instance.
      */
-    public function __construct($quizId, $question, $options)
+    public function __construct($quizId, $names)
     {
         $this->quizId = $quizId;
-        $this->question = $question;
-        $this->options = $options;
+        $this->names = $names;
     }
 
     /**
@@ -46,8 +45,7 @@ class ParticipantRegistered implements ShouldBroadcast
     public function broadcastWith(): array
     {
         return [
-            'question' => $this->question,
-            'options' => $this->options,
+            'participants' => $this->names,
         ];
     }
 }

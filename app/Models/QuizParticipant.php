@@ -10,7 +10,7 @@ class QuizParticipant extends Model
 {
     protected $fillable = [
         'quiz_id',
-        'participants_id',
+        'participant_id',
         'score',
     ];
 
@@ -21,6 +21,6 @@ class QuizParticipant extends Model
 
     public function student()
     {
-        return $this->belongsTo(Student::class, 'participants_id');
+        return $this->belongsTo(Student::class, 'participant_id');
     }
 }
