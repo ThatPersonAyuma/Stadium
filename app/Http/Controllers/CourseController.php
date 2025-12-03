@@ -61,49 +61,11 @@ class CourseController extends Controller
                     $course->user_status = $status;
                     return $course;
                 });
-        // foreach ($courses as $course){
-        //     $result = $this->getStudentCourseProgress($course, $student);
-
-        // }
-        // $this->getStudentCourseProgress();
-
-        // $hasPivot = \Illuminate\Support\Facades\Schema::hasTable('course_user');
-
-        // if ($student && $hasPivot) {
-        //     $courses = $student->courses()
-        //         ->select('courses.*')
-        //         ->withPivot('progress')
-        //         ->get()
-        //         ->map(function ($course) {
-        //             $status = $course->status ?? 'new';
-        //             $progress = $course->pivot->progress ?? 0;
-        //             $cta = match ($status) {
-        //                 'completed' => 'Review Course',
-        //                 'activity'  => 'Continue Learning',
-        //                 default     => 'Start Learning',
-        //             };
-        //             $course->progress = $progress;
-        //             $course->cta = $cta;
-        //             $course->color = $course->color ?? '#1D4ED8';
-        //             $course->title = $course->title ?? $course->name ?? 'Course';
-        //             return $course;
-        //         });
-        // } else {
-        //     $courses = $this->defaultCourses()->map(function ($course) {
-        //         $cta = match ($course['status']) {
-        //             'completed' => 'Review Course',
-        //             'activity'  => 'Continue Learning',
-        //             default     => 'Start Learning',
-        //         };
-
-        //         return (object) array_merge($course, ['cta' => $cta]);
-        //     });
-        // }
 
         $summary = [
             'all'       => $courses->count(),
-            'activity'  => $courses->where('status', 'activity')->count(),
-            'completed' => $courses->where('status', 'completed')->count(),
+            'activity'  => $courses->where('user_status', 'activity')->count(),
+            'completed' => $courses->where('user_status', 'completed')->count(),
         ];
 
 

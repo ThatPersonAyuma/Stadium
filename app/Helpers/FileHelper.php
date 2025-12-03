@@ -177,6 +177,6 @@ class FileHelper
     public static function getAvatarPath($userId)
     {
         $user = User::findOrFail($userId);
-        return 'storage/avatar/' . "{$user->id}-{$user->avatar_filename}";
+        return Storage::Url('avatar/' . "{$user->id}-{$user->avatar_filename}");
     }
 }

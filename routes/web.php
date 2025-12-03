@@ -12,6 +12,7 @@ use App\Http\Controllers\QuizController;
 use App\Models\User;
 use App\Models\Content;
 use App\Models\Rank;
+use App\Http\Controllers\UserAvatarController;
 
 // Debug Session
 Route::get('/welcome', function () {
@@ -63,11 +64,11 @@ Route::get('/course', [CourseController::class, 'index'])->name('course.index');
 Route::get('/course/{course}', [CourseController::class, 'detail'])->name('course.detail');
 Route::get('/course/{course}/lesson/{lesson}/content/{content}', [LessonController::class, 'play'])->name('lesson.show');
 Route::get('/lesson-by-course', [LessonController::class, 'getRelationWithCourse'])->name('getLessWCourse');
+Route::post('/content/finish', [BlockController::class, 'finish_content'])->name('finish-content');
 Route::post('/add-file', [BlockController::class, 'store'])->name('addFile');
 
 
 
-use App\Http\Controllers\UserAvatarController;
 
 
 Route::get('/user/avatar', [UserAvatarController::class, 'showForm'])->name('avatar.form');
@@ -87,16 +88,7 @@ Route::get('/register/student', fn() => view('auth.register'))->name('register.s
 Route::get('/register/teacher', fn() => view('auth.register-teacher'))->name('register.teacher');
 Route::post('/register', [AuthController::class, 'register'])->name('register.post');
 
-// Route::middleware(['auth'])->group(function () {
-//     Route::get('/dashboard', [DashboardController::class, 'student'])
-//         ->name('dashboard.index');
 
-//     Route::get('/dashboard/profile', [DashboardController::class, 'profile'])
-//         ->name('dashboard.profile');
-
-//     Route::get('/dashboard/teacher', [DashboardController::class, 'teacher'])
-//         ->name('dashboard.teacher');
-// });
 
 Route::get('/dashboard', [DashboardController::class, 'student'])
     ->name('dashboard.index');
@@ -154,56 +146,18 @@ Route::middleware(['auth', 'role:student'])->group(function() {
             return view('quiz.quiz_running',['quiz_id' => $quiz_id]);
         } )->name('play');
     }); 
+    Route::post('/lesson/answer', [BlockController::class, 'check_answer'])->name('lesson-answer');
 });
-// Resources
-// Route::resource('fasilitas', MatkulController::class);
-// Route::resource('contents', ContentController::class);
-Route::Resource('contents', ContentController::class);
-// To get all of courses that available use this get
-Route::Resource('courses', CourseController::class);
-Route::Resource('blocks', BlockController::class);
-Route::Resource('lessons', LessonController::class);
-Route::Resource('cards', CardController::class);
-Route::get('get-type', [BlockController::class, 'getType'])->name('get-type');
-// Use this to get the data of all of the lessons in a course
-Route::get('get-lessons/{course}', [CourseController::class, 'getAllLessonOFACourse'])->name('get-lessons');
-// Use this to get the blocks needed for building a card
-Route::get('/get-blocks/{card}', // This is for getting all of blocks data of a card
-    [CardController::class, 'getBlocksOfCard']
-)->name('card.get-blocks');
-Route::get('get-progress/{course}/{student}', [CourseController::class, 'getStudentCourseProgress'])->name('get-progress');
-Route::get('/get-cards/{content}', // This is for getting all of card datas of a content
-    [ContentController::class, 'getCards']
-)->name('card.get-cards');
 
 
-//testing
-Route::get('/test-websocket', 
-    function (){
-        return view('test_websocket');
-    }
-);
-Route::post('/post-question',
-    [QuizController::class, 'startQuestion']
-);
-Route::get('/post-question',
-    function(){
-        return view('post_question');
-    }
-);
+// Quiz CRUD
+Route::get('/quiz', [QuizController::class, 'index'])->name('quiz.index');
+Route::get('/quiz/create', [QuizController::class, 'create'])->name('quiz.create');
+Route::post('/quiz/store', [QuizController::class, 'store'])->name('quiz.store');
 
-Route::get('/edit-content',
-    function(){
-        $content = Content::findOrFail(1);
-        return view('TESTING.change_content', compact('content'));
-    }
-);
+// Manajemen pertanyaan
+Route::get('/quiz/{quiz}/manage', [QuizController::class, 'manage'])->name('quiz.manage');
 
-Route::get('/delete-block',
-    function(){
-        return view('TESTING.test_delete');
-    }
-);
 
 
 // Testing Error Pages

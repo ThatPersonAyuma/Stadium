@@ -47,7 +47,7 @@
                     $rate = ($course->total_students ?? 0) > 0
                         ? round(($course->completed_count / $course->total_students) * 100)
                         : 0;
-                    $status = strtolower($course->status ?? 'draft');
+                    $status = strtolower($course->status->value ?? 'draft');
                     $statusMeta = [
                         'new'       => ['label' => 'New', 'bg' => '#38bdf8'],
                         'pending'   => ['label' => 'Pending', 'bg' => '#f59e0b'],

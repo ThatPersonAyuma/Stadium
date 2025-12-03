@@ -9,7 +9,7 @@
             <span class="hp-number">5</span>
         </div>
         <div class="icon-circle">
-            <img src="/assets/icons/mascotss.png" alt="Profile">
+            <img src="{{ asset(App\Helpers\FileHelper::getAvatarPath(Illuminate\Support\Facades\Auth::user()->id)) }}" alt="Profile">
         </div>
 
     </div>

@@ -14,6 +14,8 @@ class QuizParticipant extends Model
         'score',
     ];
 
+   
+
     public function quiz()
     {
         return $this->belongsTo(Quiz::class);

@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Enums\CourseStatus;
 
 class Quiz extends Model
 {
@@ -16,6 +17,11 @@ class Quiz extends Model
         'is_finished',
         'code',
         'interval',
+        'status',
+    ];
+
+    protected $casts = [
+        'status' => CourseStatus::class,
     ];
 
     public function creator()
