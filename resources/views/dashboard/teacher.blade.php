@@ -63,15 +63,10 @@
                 @endphp
                 <div class="space-y-4">
                     <div class="flex flex-wrap items-center gap-3">
-                        <a href="{{ route('teacher.courses.edit', $course) }}"
-                           class="inline-flex items-center gap-2 rounded-lg bg-white text-slate-900 px-4 py-2.5 text-sm font-semibold shadow-md transition hover:-translate-y-0.5">
-                            <i class="fa-solid fa-pen-to-square text-base"></i>
-                            Edit Course
-                        </a>
-                        <button type="button" class="inline-flex items-center gap-2 rounded-lg border border-white/30 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white transition hover:-translate-y-0.5">
+                        {{-- <button type="button" class="inline-flex items-center gap-2 rounded-lg border border-white/30 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white transition hover:-translate-y-0.5">
                             <i class="fa-solid fa-comments text-base"></i>
                             Forum Course
-                        </button>
+                        </button> --}}
                     </div>
                     <div class="rounded-2xl border border-white/15 bg-white/10 p-6 shadow-2xl">
                         <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -140,6 +135,11 @@
                         </div>
                     </div>
                 </div>
+            <a href="{{ route('teacher.courses.edit', $course) }}"
+                class="inline-flex items-center gap-2 rounded-lg bg-white text-slate-900 px-4 py-2.5 text-sm font-semibold shadow-md transition hover:-translate-y-0.5">
+                <i class="fa-solid fa-pen-to-square text-base"></i>
+                Edit Course
+            </a>
             @empty
                 <div class="rounded-2xl border border-white/15 bg-white/5 p-6 text-sm opacity-80">
                     Belum ada course yang Anda kelola.

@@ -96,6 +96,8 @@ Route::get('/dashboard', [DashboardController::class, 'student'])
 Route::get('/student/dashboard', [DashboardController::class, 'student'])
     ->name('dashboard.student');
 
+Route::resource('courses', CourseController::class);
+// Route::resource('quiz', QuizController::class);
 
     
 Route::post('/logout', function () {
@@ -107,7 +109,6 @@ Route::middleware('auth')->group(function() { // dont fotget you must have route
         return session()->all();
     });
     Route::get('/quiz', [QuizController::class, 'ShowIndex'])->name('quiz.index');
-    
 });
 Route::middleware(['auth', 'role:teacher'])->group(function() { 
     Route::get('/teacher/dashboard', [DashboardController::class, 'teacher'])
@@ -124,21 +125,30 @@ Route::middleware(['auth', 'role:teacher'])->group(function() {
         Route::get('/{course}', [CourseController::class, 'teacherShow'])->name('show');
     });
     Route::prefix('quiz')->name('quiz.')->group(function (){
-        Route::get('/monitoring/{quiz}', [QuizController::class, 'TeacherMonitoring'])->name('monitoring');
+        Route::get('/quiz', [QuizController::class, 'index'])->name('index');
+        Route::get('/quiz/create', [QuizController::class, 'create'])->name('create');
+        Route::put('/quiz/update/{quiz}', [QuizController::class, 'update'])->name('update');
+        Route::delete('/{quiz}/delete', [QuizController::class, 'delete'])->name('delete');
+        
         Route::post('/open-quiz/{quiz}', [QuizController::class, 'OpenQuiz'])->name('open');
         Route::post('/start', [QuizController::class, 'startQuestion'])->name('start');
         Route::post('/send-question', [QuizController::class, 'sendQuestion'])->name('send');
         Route::post('/end-question', [QuizController::class, 'EndQuestion'])->name('end-question');
         Route::post('/post-scoreboard', [QuizController::class, 'BroadcastScoreboard'])->name('scoreboard');
         Route::post('/end-quiz', [QuizController::class, 'EndQuiz'])->name('end-quiz');
+        Route::get('/{quiz}/manage', [QuizController::class, 'manage'])->name('manage');
+        Route::get('/{quiz}/question/create', [QuizController::class, 'CreateQuestion'])->name('question.create');
+        Route::get('/{quiz}/question/edit/{question}', [QuizController::class, 'EditQuestion'])->name('question.edit');
+        Route::delete('/{quiz}/question/delete/{question}', [QuizController::class, 'DeleteQuestion'])->name('question.delete');
+        Route::post('/{quiz}/question/store', [QuizController::class, 'StoreQuestion'])->name('question.store');
+        Route::put('/question/update/{question}', [QuizController::class, 'UpdateQuestion'])->name('question.update');
     }); 
     
 });
-
+Route::get('quiz/monitoring/{quiz}', [QuizController::class, 'TeacherMonitoring'])->name('quiz.monitoring');
 Route::middleware(['auth', 'role:student'])->group(function() { 
     Route::prefix('quiz')->name('quiz.')->group(function (){
         Route::get('/test', fn() => 'OK STUDENT');
-        Route::get('/register', [QuizController::class, 'ShowIndex'])->name('register');
         // Route::get('/register', [QuizController::class, 'ShowRegister'])->name('running');
         Route::post('/register', [QuizController::class, 'studentJoin'])->name('post-register');
         Route::post('/post-answer', [QuizController::class, 'HandleAnswer'])->name('answer');
@@ -151,14 +161,10 @@ Route::middleware(['auth', 'role:student'])->group(function() {
 
 
 // Quiz CRUD
-Route::get('/quiz', [QuizController::class, 'index'])->name('quiz.index');
-Route::get('/quiz/create', [QuizController::class, 'create'])->name('quiz.create');
-Route::post('/quiz/store', [QuizController::class, 'store'])->name('quiz.store');
+
+
 
 // Manajemen pertanyaan
-Route::get('/quiz/{quiz}/manage', [QuizController::class, 'manage'])->name('quiz.manage');
-
-
 
 // Testing Error Pages
 // Route::get('/test-403', fn() => abort(403));

@@ -38,8 +38,8 @@ class CourseController extends Controller
         if ($user===NULL){
             return redirect()->route('login');;
         }
-        if ($user->role !== UserRole::STUDENT){
-            return response()->json("Bukan akun student",403);
+        if ($user->role == UserRole::TEACHER){
+            return redirect()->route('teacher.courses.index');
         }
         // $student = $user && $user->role === 'student'
             // ? $user

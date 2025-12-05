@@ -22,7 +22,7 @@
         <div id="open-section"
             class="bg-white/10 rounded-2xl p-8 shadow-lg text-center space-y-6">
 
-            <h3 class="text-xl font-bold">Open Quiz</h3>
+            <h3 class="text-xl font-bold">Open Quiz for {{$quiz->title}}</h3>
             <p class="text-white/70">Klik tombol di bawah untuk membuka quiz.</p>
 
             <button id="openQuizBtn"
@@ -121,7 +121,6 @@
 =========================================================== --}}
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-
     // ================================
     // DOM ELEMENTS
     // ================================
@@ -360,6 +359,9 @@ document.addEventListener('DOMContentLoaded', () => {
             .then(res => res.json())
             .then(res => {console.log(res)});
     }
+    @if ($quiz->is_finished)
+        switchState("end")
+    @endif
 });
 </script>
 

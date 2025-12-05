@@ -17,8 +17,8 @@
 
         <div>
             <label class="font-semibold">Urutan Pertanyaan</label>
-            <input type="number" name="order_index" class="w-full mt-2 p-3 bg-white/5 rounded-lg"
-                   value="{{ $nextNumber }}" required>
+            <input type="number" name="order_index" class="w-full mt-2 p-3 bg-white/5 rounded-lg" min = "1" max="{{ $nextOrder}}"
+                   value="{{ $nextOrder }}" required>
         </div>
 
         <div class="space-y-4">

@@ -16,9 +16,51 @@ use App\Models\QuizParticipant;
 use App\Models\QuizQuestion;
 use App\Models\QuizQuestionChoice;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class QuizController extends Controller
 {
+    public function index()
+    {
+        $teacher = Auth::user()->teacher;
+        $quizzes = Quiz::all()->where('creator_id', $teacher->id);
+        return view('quiz.index', compact('quizzes'));
+    }
+
+ public function create()
+    {
+        return view('quiz.create_quiz');
+    }
+
+    /**
+     * Update quiz
+     */
+    public function update(Request $request, Quiz $quiz)
+    {
+        $validated = $request->validate([
+            'title'       => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'status'      => 'nullable|string',
+        ]);
+
+        $quiz->update($validated);
+
+        return redirect()->route('quiz.manage', $quiz->id)
+                         ->with('success', 'Quiz berhasil diperbarui.');
+    }
+
+    /**
+     * Hapus quiz
+     */
+    public function destroy($id)
+    {
+        $quiz = Quiz::findOrFail($id);
+        $quiz->delete();
+
+        return redirect()->route('quiz.index')
+                         ->with('success', 'Quiz berhasil dihapus.');
+    }
+
     public function sendQuestion(Request $request)
     {
         $validated = $request->validate([
@@ -214,9 +256,11 @@ class QuizController extends Controller
         $validated = $request->validate([
             'quiz_id' => 'required|integer'
         ]);
-        $quiz = Quiz::findOrFail($validated['quiz_id']);
-        $quiz->is_finished = true;
-        $quiz->save();
+        if (!($quiz->is_finished)){
+            $quiz = Quiz::findOrFail($validated['quiz_id']);
+            $quiz->is_finished = true;
+            $quiz->save();
+        }
         broadcast(new QuizEnd($validated['quiz_id']));
         return response()->json(['status'=>'Ok'], 200);
     }
@@ -328,12 +372,16 @@ class QuizController extends Controller
     public function ShowIndex()
     {
         $user = Auth::user();
-        $destination = match ($user->role){
-            UserRole::STUDENT => 'quiz.register',
-            UserRole::TEACHER => '',
-            default => '',
-        };
-        return view($destination);
+        if ($user->role == UserRole::STUDENT)
+        {
+            return  view('quiz.register');
+        }else if($user->role == UserRole::TEACHER){
+            $teacher = $user->teacher;
+            $quizzes = Quiz::all()->where('creator_id', $teacher->id);
+            return view('quiz.index', compact('quizzes'));
+        }else if($user->role == UserRole::ADMIN){
+
+        }
     }
     public function TeacherMonitoring(Quiz $quiz)
     {
@@ -344,4 +392,137 @@ class QuizController extends Controller
         }
         return view('quiz.quiz_monitoring', compact('quiz'));
     }
+    public function manage(Quiz $quiz)
+    {
+        return view('quiz.manage', compact('quiz'));
+    }
+    public function CreateQuestion(Quiz $quiz)
+    {
+        $nextOrder = QuizQuestion::where('quiz_id', $quiz->id)->count();
+        if ($nextOrder<=0)
+            {$nextOrder = 1;
+        }else{
+            $nextOrder += 1;
+        }
+        return view('quiz.create_question', compact('quiz', 'nextOrder'));
+    }
+    public function EditQuestion(Quiz $quiz, QuizQuestion $question)
+    {
+        return view('quiz.edit_question', compact('quiz', 'question'));
+    }
+    public function DeleteQuestion(Quiz $quiz, QuizQuestion $question)
+    {
+        // Ambil order index sebelum dihapus
+        $order = $question->order_index;
+
+        // Hapus pertanyaan
+        $question->delete();
+
+        // Re-order pertanyaan lain pada quiz yang sama
+        $quiz->questions()
+            ->where('order_index', '>', $order)
+            ->decrement('order_index');
+
+        return response()->json([
+            'message' => 'Pertanyaan berhasil dihapus'
+        ]);
+    }
+
+    private function reposition_order_index(QuizQuestion $question, $new_index)
+    {
+        $old_index = $question->order_index;
+        if ($old_index == $new_index){
+            return;
+        }else if ($old_index > $new_index){
+                QuizQuestion::where('quiz_id', $question->quiz_id)
+                            ->whereBetween('order_index', [$new_index, $old_index-1])
+                            ->increment('order_index');
+        }else{
+                QuizQuestion::where('quiz_id', $question->quiz_id)
+                            ->whereBetween('order_index', [$old_index+1, $new_index])
+                            ->decrement('order_index');
+        }
+        $question->order_index=$new_index;
+        $question->save();
+    }
+
+    public function UpdateQuestion(Request $request, QuizQuestion $question)
+    {
+        $validated = $request->validate([
+            'question'       => 'required|string',
+            'order_index'    => 'required|integer',
+            'choices'        => 'required|array|size:4',
+            'choices.*.text' => 'required|string',
+            'correct'        => 'required|string|in:A,B,C,D',
+        ]);
+        $maxIndex = QuizQuestion::where('quiz_id', $question->quiz_id)
+                        ->max('order_index');
+
+        $newIndex = $validated['order_index'];
+
+        if ($newIndex > $maxIndex) {
+            $newIndex = $maxIndex + 1;
+        }
+
+        if ($newIndex <= 0) {
+            $newIndex = 1;
+        }
+
+        $this->reposition_order_index($question, $newIndex);
+
+        $question->question = $validated['question'];
+        $question->save();
+        $choices = $question->choices->keyBy('label'); 
+
+        foreach ($validated['choices'] as $label => $data) {
+
+            if (!isset($choices[$label])) {
+                continue; 
+            }
+
+            $choice = $choices[$label];
+            $choice->text       = $data['text'];
+            $choice->is_correct = ($label === $validated['correct']);
+            $choice->save();
+        }
+
+        return back()->with('success', 'Pertanyaan berhasil diperbarui');
+    }
+
+
+
+    public function StoreQuestion(Quiz $quiz, Request $request)
+    {
+        // Validasi input
+        $validated = $request->validate([
+            'question'       => 'required|string',
+            'order_index'    => 'required|integer|min:1',
+            'choices'        => 'required|array',
+            'choices.*.text' => 'required|string',
+            'correct'        => 'required|string|in:A,B,C,D',
+        ]);
+
+        // Simpan Pertanyaan
+        $question = QuizQuestion::create([
+            'quiz_id'     => $quiz->id,
+            'order_index' => $validated['order_index'],
+            'question'    => $validated['question'],
+        ]);
+
+        // Simpan Semua Pilihan Jawaban
+        foreach ($validated['choices'] as $label => $choiceData) {
+            QuizQuestionChoice::create([
+                'question_id' => $question->id,
+                'label'       => $label,
+                'text'        => $choiceData['text'],
+                'is_correct'  => $validated['correct'] === $label,
+            ]);
+        }
+
+        // Redirect balik ke halaman manajemen quiz
+        return redirect()
+            ->route('quiz.manage', $quiz->id)
+            ->with('success', 'Pertanyaan berhasil ditambahkan!');
+    }
+
 }

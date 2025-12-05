@@ -10,11 +10,8 @@
     <a href="#" class="sidebar-item">
         <img src="/assets/icons/sidebar-icons/leaderboard.png" class="icon" alt="Leaderboard">
     </a>
-    <a href="{{ route('quiz.index') }}" class="sidebar-item">
+    <a href="{{ route('quiz.index') }}" class="sidebar-item {{ request()->routeIs('quiz.*') ? 'active' : '' }}">
         <img src="/assets/icons/sidebar-icons/pvp.png" class="icon" alt="PvP">
-    </a>
-    <a href="#" class="sidebar-item">
-        <img src="/assets/icons/sidebar-icons/community.png" class="icon" alt="Community">
     </a>
     <form action="{{ route('logout') }}" method="POST" class="sidebar-item small-icon sidebar-bottom">
         @csrf

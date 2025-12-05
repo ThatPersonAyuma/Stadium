@@ -3,7 +3,9 @@
     <div class="container grid grid-cols-1 md:grid-cols-3 gap-10 text-center md:text-left">
       <div class="flex flex-col items-center md:items-start gap-3">
         <div class="flex items-center gap-3">
-          <div class="w-8 h-8 bg-white rounded-full"></div>
+          <div class="w-8 h-8 bg-white rounded-full">
+            <img src="{{ asset('images/maskot.png') }}" alt="Maskot Stadium">
+          </div>
           <span class="text-lg font-extrabold text-white">STADIUM</span>
         </div>
         <p class="text-gray-300 text-sm leading-relaxed max-w-xs">

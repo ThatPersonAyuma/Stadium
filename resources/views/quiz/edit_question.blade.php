@@ -6,7 +6,7 @@
 
     <x-dashboard-header title="Edit Pertanyaan" />
 
-    <form action="{{ route('quiz.question.update', [$quiz->id, $question->id]) }}"
+    <form action="{{ route('quiz.question.update', [ $question->id,]) }}"
           method="POST" class="bg-white/10 p-6 rounded-xl space-y-6">
         @csrf
         @method('PUT')
