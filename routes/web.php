@@ -129,7 +129,7 @@ Route::middleware(['auth', 'role:teacher'])->group(function() {
         Route::get('/quiz/create', [QuizController::class, 'create'])->name('create');
         Route::put('/quiz/update/{quiz}', [QuizController::class, 'update'])->name('update');
         Route::delete('/{quiz}/delete', [QuizController::class, 'delete'])->name('delete');
-        
+        Route::get('/monitoring/{quiz}', [QuizController::class, 'TeacherMonitoring'])->name('monitoring');
         Route::post('/open-quiz/{quiz}', [QuizController::class, 'OpenQuiz'])->name('open');
         Route::post('/start', [QuizController::class, 'startQuestion'])->name('start');
         Route::post('/send-question', [QuizController::class, 'sendQuestion'])->name('send');
@@ -145,7 +145,7 @@ Route::middleware(['auth', 'role:teacher'])->group(function() {
     }); 
     
 });
-Route::get('quiz/monitoring/{quiz}', [QuizController::class, 'TeacherMonitoring'])->name('quiz.monitoring');
+
 Route::middleware(['auth', 'role:student'])->group(function() { 
     Route::prefix('quiz')->name('quiz.')->group(function (){
         Route::get('/test', fn() => 'OK STUDENT');

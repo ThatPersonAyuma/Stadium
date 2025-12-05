@@ -359,9 +359,10 @@ document.addEventListener('DOMContentLoaded', () => {
             .then(res => res.json())
             .then(res => {console.log(res)});
     }
-    @if ($quiz->is_finished)
+    if(@json($quiz->is_finished)){
         switchState("end")
-    @endif
+        sendEnded()
+    }
 });
 </script>
 

@@ -256,8 +256,8 @@ class QuizController extends Controller
         $validated = $request->validate([
             'quiz_id' => 'required|integer'
         ]);
+        $quiz = Quiz::findOrFail($validated['quiz_id']);
         if (!($quiz->is_finished)){
-            $quiz = Quiz::findOrFail($validated['quiz_id']);
             $quiz->is_finished = true;
             $quiz->save();
         }
