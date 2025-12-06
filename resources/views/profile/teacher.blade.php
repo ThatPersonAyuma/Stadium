@@ -9,7 +9,7 @@
     <form action="{{ route('profile.update') }}"
           method="POST"
           enctype="multipart/form-data"
-          class="bg-white/10 p-6 rounded-xl space-y-8">
+          class="bg-white/10 p-6 rounded-xl space-y-8 mt-5">
         @csrf
         @method('PUT')
         <div class="hidden">

@@ -15,6 +15,7 @@ use App\Models\Quiz;
 use App\Models\QuizParticipant;
 use App\Models\QuizQuestion;
 use App\Models\QuizQuestionChoice;
+use App\Helpers\Utils;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
@@ -262,6 +263,24 @@ class QuizController extends Controller
             $quiz->save();
         }
         broadcast(new QuizEnd($validated['quiz_id']));
+        $participants = QuizParticipant::where('quiz_id', $quiz->id)
+            ->with('student')
+            ->orderByDesc('score')
+            ->get();
+
+        $maxXP = $quiz->max_experience;
+        $decay = 0.85; // <-- curve level (boleh diubah 0.80 - 0.95)
+
+        foreach ($participants as $i => $result) {
+            $rank = $i + 1;
+
+            // Curve distribution
+            $xp = intval($maxXP * pow($decay, $rank - 1));
+
+            // Update XP student
+            $student = $result->student;
+            Utils::add_exp_student($xp,$student->id);
+        }
         return response()->json(['status'=>'Ok'], 200);
     }
     public function OpenQuiz(Quiz $quiz)
@@ -336,7 +355,10 @@ class QuizController extends Controller
             return response()->json(['message' => 'Kode salah'], 200);
             // return abort(404, 'Quiz dengan kode tersebut tidak ditemukan.');
         }
+        if ($quiz->is_finished)
+        {
 
+        }
         // if ($quiz->code !== $validated['quiz_code']) {
         //     return response()->json(['message' => 'Kode salah'], 200);
         // }

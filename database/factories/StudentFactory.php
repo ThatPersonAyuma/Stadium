@@ -3,21 +3,24 @@
 namespace Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
+use App\Models\User;
+use App\Models\Rank;
 
-/**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Student>
- */
 class StudentFactory extends Factory
 {
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
-    public function definition(): array
+    public function definition()
     {
+        $xp = $this->faker->numberBetween(0, 1100);
+
+        // 2. Cari rank yang cocok untuk XP ini
+        $rank = Rank::where('min_xp', '<=', $xp)
+            ->orderByDesc('min_xp')
+            ->first();
+
         return [
-            //
+            'user_id' => User::factory(),      // create user baru
+            'experience' => $xp,
+            'rank_id' => $rank?->id ?? Rank::orderBy('min_xp')->first()->id,  
         ];
     }
 }

@@ -1,3 +1,13 @@
+@php
+    $profileRoute = null;
+
+    if (auth()->user()?->student) {
+        $profileRoute = route('profile.student');
+    } elseif (auth()->user()?->teacher) {
+        $profileRoute = route('profile.teacher');
+    }
+@endphp
+
 <div class="sidebar">
     <a href="{{ route('dashboard.index') }}"
        class="sidebar-item {{ request()->routeIs('dashboard.*') ? 'active' : '' }}">
@@ -14,6 +24,11 @@
     <a href="{{ route('quiz.index') }}" class="sidebar-item {{ request()->routeIs('quiz.*') ? 'active' : '' }}">
         <img src="/assets/icons/sidebar-icons/pvp.png" class="icon" alt="PvP">
     </a>
+    @if ($profileRoute)
+        <a href="{{ $profileRoute }}" class="sidebar-item {{ request()->is('profile*') ? 'active' : '' }}">
+            <img src="/assets/icons/sidebar-icons/profile.png" class="icon" alt="profile">
+        </a>
+    @endif
     <form action="{{ route('logout') }}" method="POST" class="sidebar-item small-icon sidebar-bottom">
         @csrf
         <button type="submit">

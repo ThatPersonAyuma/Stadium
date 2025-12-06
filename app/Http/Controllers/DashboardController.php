@@ -4,11 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Course;
+use App\Models\Student;
 use App\Enums\UserRole;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class DashboardController extends Controller
 {
@@ -68,23 +70,36 @@ class DashboardController extends Controller
             ]);
         }
 
-        $leaderboard = $hasPivot
-            ? User::where('role', 'student')
-                ->select('name', 'xp', 'avatar')
-                ->orderByDesc('xp')
-                ->take(5)
-                ->get()
-                ->map(function ($u) {
-                    return (object)[
-                        'name'   => $u->name ?? $u->username,
-                        'score'  => $u->xp ?? 0,
-                        'avatar' => $u->avatar ?? '/assets/icons/mascotss.png',
-                    ];
-                })
+        $champions = Student::with('user')
+            ->orderByDesc('experience')
+            ->take(3)
+            ->get()
+            ->map(function ($u) {
+                return (object) [
+                    'id' => $u->user->id,
+                    'name'   => $u->user?->name ?? $u->user?->username ?? 'Unknown',
+                    'score'  => $u->experience ?? 0,
+                    'avatar_filename' => $u->user?->avatar_filename,
+                ];
+            });
+        $leaderboard = $champions != NULL
+            ? $champions
             : collect([
-                (object)[ 'name' => 'Damrowr', 'score' => 2001, 'avatar' => '/assets/icons/mascotss.png' ],
-                (object)[ 'name' => 'Denmit',  'score' => 2000, 'avatar' => '/assets/icons/mascotss.png' ],
-                (object)[ 'name' => 'Darma',   'score' => 1999, 'avatar' => '/assets/icons/mascotss.png' ],
+                (object)[
+                    'name' => 'Damrowr',
+                    'score' => 2001,
+                    'avatar_filename' => '/assets/icons/mascotss.png'
+                ],
+                (object)[
+                    'name' => 'Denmit',
+                    'score' => 2000,
+                    'avatar_filename' => '/assets/icons/mascotss.png'
+                ],
+                (object)[
+                    'name' => 'Darma',
+                    'score' => 1999,
+                    'avatar_filename' => '/assets/icons/mascotss.png'
+                ],
             ]);
 
         $recentActivity = [

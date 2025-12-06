@@ -100,12 +100,12 @@ Route::middleware('auth')->group(function () { // dont fotget you must have rout
         function (){
             return view('profile.student');
         }
-    );
+    )->name('profile.student');
     Route::get('/profile/teacher',
         function (){
             return view('profile.teacher');
         }
-    );
+    )->name('profile.teacher');
     Route::put('/profile/update',
         [AuthController::class, 'UpdateProfile']
     )->name('profile.update');
@@ -183,6 +183,9 @@ Route::middleware(['auth', 'role:student'])->group(function () {
         })->name('play');
     });
     Route::post('/lesson/answer', [BlockController::class, 'check_answer'])->name('lesson-answer');
+    Route::get('/leaderboard/fetch', [LeaderboardController::class, 'fetch']);
+    Route::get('/leaderboard', [LeaderboardController::class, 'index'])
+        ->name('leaderboard.index');
 });
 
 // Quiz CRUD
@@ -190,6 +193,5 @@ Route::middleware(['auth', 'role:student'])->group(function () {
 // Manajemen pertanyaan
 
 // Testing Error Pages
-// Route::get('/test-403', fn() => abort(403));
 // Route::get('/test-500', fn() => abort(500));
 // Route::get('/test-404', fn() => abort(404));

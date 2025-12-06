@@ -3,8 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Rank;
+use App\Models\Student;
+use App\Helpers\Utils;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Log;
 
 class LeaderboardController extends Controller
 {
@@ -61,30 +65,130 @@ class LeaderboardController extends Controller
         // ==========================================
         // 3. LOGIKA PEMBAGIAN KATEGORI (POTONG KUE)
         // ==========================================
-
+        $champions = Student::with('user')
+            ->orderByDesc('experience')
+            ->take(3)
+            ->get()
+            ->map(function ($u) {
+                return (object) [
+                    'id' => $u->user->id,
+                    'name'   => $u->user?->name ?? $u->user?->username ?? 'Unknown',
+                    'score'  => $u->experience ?? 0,
+                    'avatar_filename' => $u->user?->avatar_filename,
+                ];
+            });
+        $leaderboard = $champions != NULL
+            ? $champions
+            : collect([
+                (object)[
+                    'name' => 'Damrowr',
+                    'score' => 2001,
+                    'avatar_filename' => '/assets/icons/mascotss.png'
+                ],
+                (object)[
+                    'name' => 'Denmit',
+                    'score' => 2000,
+                    'avatar_filename' => '/assets/icons/mascotss.png'
+                ],
+                (object)[
+                    'name' => 'Darma',
+                    'score' => 1999,
+                    'avatar_filename' => '/assets/icons/mascotss.png'
+                ],
+            ]);
         // A. Ambil 3 Teratas buat Podium (Juara 1, 2, 3)
         // .pad(3, null) fungsinya biar arraynya tetap 3 slot meski user cuma 1
-        $topThree = $allPlayers->take(3)->pad(3, null);
+        $topThree = $leaderboard;//$allPlayers->take(3)->pad(3, null);
 
         // B. Ambil SISANYA (Mulai dari ranking 4 ke bawah)
         // .values() buat mereset urutan nomor array dari 0 lagi
         $others = $allPlayers->slice(3)->values(); 
 
-        // C. Masukkan ke Kotak Kategori
-        $categories = [
-            // Ambil 3 orang pertama dari sisa (Ranking 4, 5, 6)
-            'Jago Bangett' => $others->take(3), 
-            
-            // Lewati 3 orang tadi, ambil 3 orang berikutnya (Ranking 7, 8, 9)
-            'Jago' => $others->slice(3)->take(3), 
-            
-            // Lewati 6 orang pertama, ambil SEMUA sisanya (Ranking 10++)
-            'Lumayan Jago' => $others->slice(6), 
-        ];
+        $ranks = Rank::orderByDesc('min_xp')->get();
+        $perPage = 10;
+
+        $allStudents = Student::with('user','rank')
+            ->orderByDesc('experience')
+            ->get()
+            ->values();
+
+        $globalRankMap = [];
+        foreach ($allStudents as $i => $student) {
+            $globalRankMap[$student->id] = $i + 1;
+            $student->global_rank = $i + 1;
+        }
+
+        $grouped = $allStudents->groupBy('rank_id');
+
+        $rankStudents = [];
+
+        foreach ($ranks as $rank) {
+            $rankStudents[$rank->id] = Utils::paginateCollection(
+                $grouped->get($rank->id, collect())->values(),
+                $perPage,
+                null,
+                ['pageName' => "page_{$rank->id}"]
+            );
+        }
+        session(['globalRankMap' => $globalRankMap]);
 
         // ==========================================
         // 4. KIRIM KE VIEW
         // ==========================================
-        return view('Leaderboard.leaderboard', compact('topThree', 'categories'));
+        return view('leaderboard.leaderboard', compact('topThree', 'ranks', 'rankStudents'));
     }
+    public function index2(Request $request)
+    {
+        $ranks = Rank::orderByDesc('min_xp')->get();
+        $perPage = 10;
+
+        $allStudents = Student::with('user','rank')
+            ->orderByDesc('experience')
+            ->get()
+            ->values();
+
+        $globalRankMap = [];
+        foreach ($allStudents as $i => $student) {
+            $globalRankMap[$student->id] = $i + 1;
+            $student->global_rank = $i + 1;
+        }
+
+        $grouped = $allStudents->groupBy('rank_id');
+
+        $rankStudents = [];
+
+        foreach ($ranks as $rank) {
+            $rankStudents[$rank->id] = Utils::paginateCollection(
+                $grouped->get($rank->id, collect())->values(),
+                $perPage,
+                null,
+                ['pageName' => "page_{$rank->id}"]
+            );
+        }
+        session(['globalRankMap' => $globalRankMap]);
+        return view('leaderboard.test', compact('ranks', 'rankStudents'));
+    }
+
+
+    public function fetch(Request $request)
+    {
+        Log::info($request->all());
+        $rankId = $request->rank_id;
+        $page   = $request->page ?? 1;
+
+        $students = Student::with('user','rank')
+            ->where('rank_id', $rankId)
+            ->orderByDesc('experience')
+            ->paginate(10, ['*'], 'page', $page);
+        $globalRankMap = session('globalRankMap', []);
+        foreach ($students as $s) {
+            $s->global_rank = $globalRankMap[$s->id] ?? null;
+        }
+        $html = view('leaderboard.items', compact('students'))->render();
+        return response()->json([
+            'html' => $html,
+            'next_page' => $students->hasMorePages() ? $page + 1 : null
+        ]);
+    }
+
 }

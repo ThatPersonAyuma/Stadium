@@ -176,6 +176,7 @@ class FileHelper
 
     public static function getAvatarPath($userId)
     {
+        if ($userId == NULL) return NULL;
         $user = User::findOrFail($userId);
         if ($user->avatar_filename == NULL){
             return asset('images/user.png');
