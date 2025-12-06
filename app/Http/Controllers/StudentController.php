@@ -2,11 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
+use App\Models\Student;
 use Illuminate\Http\Request;
 
-class UserController extends Controller
+class StudentController extends Controller
 {
+    public static function reset_heart()
+    {
+        $updated = Student::query()->update(['heart' => 5]);
+        \Log::info("Rows updated: $updated");
+    }
     /**
      * Display a listing of the resource.
      */

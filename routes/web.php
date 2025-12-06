@@ -60,9 +60,7 @@ Route::get('/users', function () {
 // Route::get('/view-courses', function () {
 //     return view('view_course');
 // });
-Route::get('/course', [CourseController::class, 'index'])->name('course.index');
-Route::get('/course/{course}', [CourseController::class, 'detail'])->name('course.detail');
-Route::get('/course/{course}/lesson/{lesson}/content/{content}', [LessonController::class, 'play'])->name('lesson.show');
+
 Route::get('/lesson-by-course', [LessonController::class, 'getRelationWithCourse'])->name('getLessWCourse');
 Route::post('/content/finish', [BlockController::class, 'finish_content'])->name('finish-content');
 Route::post('/add-file', [BlockController::class, 'store'])->name('addFile');
@@ -90,11 +88,9 @@ Route::post('/register', [AuthController::class, 'register'])->name('register.po
 
 
 
-Route::get('/dashboard', [DashboardController::class, 'student'])
-    ->name('dashboard.index');
 
-Route::get('/student/dashboard', [DashboardController::class, 'student'])
-    ->name('dashboard.student');
+
+
 
 Route::resource('courses', CourseController::class);
 // Route::resource('quiz', QuizController::class);
@@ -147,6 +143,13 @@ Route::middleware(['auth', 'role:teacher'])->group(function() {
 });
 
 Route::middleware(['auth', 'role:student'])->group(function() { 
+    Route::get('/course', [CourseController::class, 'index'])->name('course.index');
+    Route::get('/course/{course}', [CourseController::class, 'detail'])->name('course.detail');
+    Route::get('/course/{course}/lesson/{lesson}/content/{content}', [LessonController::class, 'play'])->name('lesson.show');
+    // Route::get('/student/dashboard', [DashboardController::class, 'student'])
+    //     ->name('dashboard.student');
+    Route::get('/dashboard', [DashboardController::class, 'student'])
+        ->name('dashboard.index');
     Route::prefix('quiz')->name('quiz.')->group(function (){
         Route::get('/test', fn() => 'OK STUDENT');
         // Route::get('/register', [QuizController::class, 'ShowRegister'])->name('running');

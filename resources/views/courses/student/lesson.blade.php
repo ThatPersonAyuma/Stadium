@@ -233,13 +233,24 @@ ${escapeHtml(data.code)}
                 });
 
                 const data = await res.json();
-
+                if (data.status === 'error') {
+                    Swal.fire({
+                        icon: 'error',
+                        title: data.title,
+                        text: data.message,
+                    }).then(() => {
+                        if (data.redirect) window.location.href = data.redirect;
+                    });
+                }
                 // Highlight
                 buttons.forEach(b => {
                     const key = b.dataset.key;
                     if (key === data.correct_answer) b.classList.add("!bg-green-600/70");
                     if (key === selected && selected !== data.correct_answer)
+                    {
                         b.classList.add("!bg-red-600/70");
+                        loseHeart();
+                    }
                 });
 
                 explanationEl.classList.remove("hidden");
@@ -340,300 +351,19 @@ ${escapeHtml(data.code)}
     };
 
     renderCard();
+    function loseHeart() {
+        const hpEl = document.querySelector(".hp-number");
+        if (!hpEl) return;
+
+        let hp = parseInt(hpEl.textContent);
+        if (isNaN(hp)) hp = 0;
+
+        if (hp > 0) {
+            hp--;               // Kurangi 1
+            hpEl.textContent = hp;
+        }
+    }
 });
 </script>
-{{-- Load JS --}}
-{{-- <script>
-const resourceUrlPrefix = "{{ asset(App\Helpers\FileHelper::getBlockUrlPath($courseId, $lesson->id, $contentId)) }}";
-
-
-document.addEventListener('DOMContentLoaded', () => {
-    const FINISH_URL = "{{ route('finish-content') }}";
-    const content_id = {{ $contentId }}
-    const el = id => document.getElementById(id);
-    console.log(resourceUrlPrefix);
-    const container = el('block-player');
-    const cards = JSON.parse(container.dataset.cards || '[]');
-    const detailUrl = container.dataset.detail;
-
-    const display = el('block-display');
-    const statusEl = el('block-status');
-    const progressBar = el('block-progress-bar');
-    const btnPrev = el('btn-prev');
-    const btnNext = el('btn-next');
-
-    let cardIndex = 0;
-
-    // --------------------------- Utilities ---------------------------
-    const escapeHtml = val => val?.toString()
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;") || "";
-
-    const getAssetUrl = (block, data) => {
-        if (data.asset_url) return data.asset_url;
-        if (data.url) return data.url;
-        console.log(block)
-        if (data.filename && block.card_id) {
-            return `${resourceUrlPrefix}/${block.card_id}-card/${block.id}-${data.filename}`;
-        }
-        return "";
-    };
-
-    // --------------------------- Renderers ---------------------------
-    const renderers = {
-        text: ({ data }) => `
-            <div class="rounded-2xl bg-white/10 border border-white/15 p-5 shadow-lg text-white text-lg whitespace-pre-line">
-                ${escapeHtml(data.content)}
-            </div>
-        `,
-
-        code: ({ data }) => `
-            <div class="rounded-2xl bg-slate-900/60 border border-white/15 p-5 shadow-lg">
-                <pre class="text-sm font-mono text-emerald-100 whitespace-pre-wrap m-0">
-                ${escapeHtml(data.code)}
-                </pre>
-            </div>
-        `,
-
-        image: ({ block, data }) => {
-            const url = getAssetUrl(block, data);
-            return `
-                <div class="flex flex-col items-center gap-3">
-                    <img src="${escapeHtml(url)}" class="w-full max-h-[360px] object-contain rounded-xl border border-white/10">
-                    ${data.alt ? `<p class="text-sm text-white/70">${escapeHtml(data.alt)}</p>` : ""}
-                </div>
-            `;
-        },
-
-        gif: ({ block, data }) => renderers.image({ block, data }),
-
-        video: ({ block, data }) => {
-            const url = getAssetUrl(block, data);
-            return `<video src="${escapeHtml(url)}" controls class="w-full max-h-[360px] rounded-xl border border-white/10"></video>`;
-        },
-
-        quiz: ({ block, data }) => {
-            const choices = data.choices || {};
-            const question = escapeHtml(data.question || "Pertanyaan tidak tersedia");
-
-            const buttons = Object.entries(choices).map(([key, val]) => `
-                <button 
-                    data-key="${escapeHtml(key)}"
-                    class="quiz-option w-full rounded-2xl bg-white/10 text-white font-semibold text-lg px-5 py-4 shadow-lg hover:bg-white/20 transition"
-                >
-                    ${escapeHtml(val)}
-                </button>
-            `).join("");
-
-            return `
-                <div class="quiz-block" data-block="${block.id}">
-                    <div class="text-xl font-bold text-white">${question}</div>
-                    <div class="quiz-choices grid grid-cols-1 sm:grid-cols-2 gap-3">${buttons}</div>
-
-                    <div class="quiz-explanation hidden mt-4 p-3 rounded-2xl bg-white/10 border border-white/20 text-sm text-white/90">
-                        <p class="font-semibold mb-1">Penjelasan:</p>
-                        <p class="m-0">${escapeHtml(data.explanation || "")}</p>
-                    </div>
-                </div>
-            `;
-        },
-
-        default: ({ block }) => `
-            <div class="p-6 text-center text-white/80">
-                Tipe "${escapeHtml(block.type)}" tidak dikenali.
-            </div>
-        `
-    };
-    function attachQuizEvents(block) {
-        const blockId = block.dataset.block;
-        const buttons = block.querySelectorAll(".quiz-option");
-        const explanation = block.querySelector(".quiz-explanation");
-
-        buttons.forEach(btn => {
-            btn.addEventListener("click", () => {
-                
-                const answer = btn.dataset.key;
-                console.log(answer, blockId)
-                // Disable all buttons
-                buttons.forEach(b => b.disabled = true);
-
-                // Send answer
-                if (window.sendQuizAnswer) {
-                    window.sendQuizAnswer({ block_id: blockId, answer, explanation });
-                }
-            });
-        });
-    }
-    window.sendQuizAnswer = async function ({ block_id, answer, explanation }) {
-        try {
-            const res = await fetch("{{ route('lesson-answer') }}", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-CSRF-TOKEN": "{{ csrf_token() }}"
-                },
-                body: JSON.stringify({ block_id, answer, content_id })
-            });
-            console.log(res)
-            if (!res.ok) {
-                console.error("Gagal mengirim jawaban:", res.status);
-                return;
-            }
-
-            const data = await res.json();
-            console.log("Jawaban terkirim:", data);
-
-            // ---------------------------
-            // Highlight jawaban
-            // ---------------------------
-            const block = document.querySelector(`.quiz-block[data-block="${block_id}"]`);
-            const buttons = block.querySelectorAll(".quiz-option");
-
-            buttons.forEach(btn => {
-                const key = btn.dataset.key;
-
-                btn.classList.remove("hover:bg-white/20", "transition");
-
-                if (key === data.correct_answer) {
-                    btn.classList.add("!bg-green-600/70", "border", "border-green-300");
-                }
-
-                if (key === answer && answer !== data.correct_answer) {
-                    btn.classList.add("!bg-red-600/70", "border", "border-red-300");
-                }
-
-                btn.disabled = true; // disable semua tombol setelah highlight
-            });
-            if (explanation) explanation.classList.remove("hidden");
-            return data;
-
-        } catch (err) {
-            console.error("Error fetch:", err);
-        }
-    };
-
-
-    const renderBlocks = (blocks) =>
-        blocks.map(b => {
-            // Pastikan block.card_id tersedia
-            const blockData = { block: b, data: b.data };
-            return (renderers[b.type] || renderers.default)(blockData);
-        }).join("");
-
-    // --------------------------- Card Renderer ---------------------------
-    function renderCard() {
-
-        // Jika tidak ada cards
-        if (!cards.length) {
-            display.innerHTML = `<div class="p-6 text-white/70">Tidak ada card.</div>`;
-            return;
-        }
-
-        // Pastikan index valid (hard protection)
-        if (cardIndex < 0 || cardIndex >= cards.length) {
-            console.error("cardIndex out of range:", cardIndex);
-            return;
-        }
-
-        const card = cards[cardIndex];
-        const isLastCard = (cardIndex === cards.length - 1);
-        console.log(card.id)
-        // Progress
-        progressBar.style.width = `${Math.round((cardIndex + 1) * 100 / cards.length)}%`;
-        statusEl.textContent = `Card ${cardIndex + 1} dari ${cards.length}`;
-
-        // Render konten
-        display.innerHTML = `
-            <div class="flex flex-col gap-6">
-                ${renderBlocks(card.blocks)}
-            </div>
-        `;
-
-        // Tombol prev/next
-        btnPrev.disabled = cardIndex === 0;
-        btnNext.textContent = isLastCard ? "Selesai" : "Selanjutnya";
-
-        // Bind quiz event (khusus jika ada quiz block)
-        const quizBlocks = document.querySelectorAll(".quiz-block");
-        quizBlocks.forEach(q => attachQuizEvents(q));
-
-        // ---- NEXT Button ----
-        btnNext.onclick = async () => {
-
-            // Jika ini card terakhir → kirim POST selesai
-            if (isLastCard) {
-                console.log(`card terakhir: ${card.card_id}`)
-                await finishContent();
-                return;
-            }
-
-            // Jika belum terakhir → lanjut
-            cardIndex++;
-            renderCard();
-        };
-    }
-
-    async function finishContent() {
-        try {
-            const response = await fetch(FINISH_URL, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-CSRF-TOKEN": "{{ csrf_token() }}"
-                },
-                body: JSON.stringify({
-                    content_id,
-                })
-            });
-
-            const data = await response.json();
-
-            if (data.status === "ok") {
-                alert("Konten selesai 🎉");
-
-                // redirect jika ada target
-                if (data.redirect) {
-                    window.location.href = data.redirect;
-                } else {
-                    window.location.reload();
-                }
-
-            } else {
-                console.error("Finish failed:", data);
-            }
-
-        } catch (err) {
-            console.error("Gagal menyelesaikan konten:", err);
-        }
-    }
-
-
-
-
-    // --------------------------- Navigation ---------------------------
-    btnPrev.onclick = () => {
-        if (cardIndex > 0) {
-            cardIndex--;
-            renderCard();
-            
-        }
-    };
-
-    btnNext.onclick = () => {
-        if (cardIndex < cards.length - 1) {
-            cardIndex++;
-            renderCard();
-        } else {
-            window.location.href = detailUrl;
-        }
-    };
-
-    // Render pertama
-    renderCard();
-});
-</script>--}}
 
 @endsection 

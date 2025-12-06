@@ -22,13 +22,6 @@ class ContentController extends Controller
 
         return response()->json($contents);
     }
-    
-    // public static function getCards(Content $content)
-    // {
-    //     $content->load('lesson.course');
-    //     $data = $content->cards()->blocks;
-    //     return $data;
-    // }
 
     public static function getCards(Content $content)
     {

@@ -17,7 +17,7 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
         if (!$user && $user->role !== UserRole::STUDENT) {
-            return respone()->json("SIlakan login dengan aku student",403);
+            return respone()->json("Silakan login dengan aku student",403);
             // $user = User::where('role', 'student')->first();
         }
         // Fallback demo user

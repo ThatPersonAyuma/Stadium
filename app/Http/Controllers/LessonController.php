@@ -5,9 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\Lesson;
 use App\Models\Block;
 use App\Models\Course;
+use App\Models\StudentContentProgress;
 use Illuminate\Http\Request;
 use App\Helpers\FileHelper;
 use App\Enums\ContentType;
+use Illuminate\Support\Facades\Auth;
 
 class LessonController extends Controller
 {
@@ -52,6 +54,15 @@ class LessonController extends Controller
 
     public function play(Request $request, int $courseId, int $lessonId, int $contentId)
     {
+        $user = Auth::user();
+        if ($user->student->heart<=0)
+        {
+            return redirect()->route('course.detail', $courseId)->with('status', [
+                'type' => 'error',
+                'title' => 'Heart habis!',
+                'message' => 'Tidak bisa melanjutkan lesson.'
+            ]);
+        }
         $lesson = Lesson::with([
             'contents' => fn ($q) => $q->orderBy('order_index')->with([
                 'cards' => fn ($q) => $q->orderBy('order_index')->with([
@@ -65,7 +76,7 @@ class LessonController extends Controller
             abort(404);
         }
 
-        $progress = 0;
+        $progress = (new CourseController)->getStudentCourseProgress($lesson->course, $user->student)['progress_percentage'];
 
         // Ambil content aktif
         $activeContent = $lesson->contents->firstWhere('id', $contentId)
@@ -102,65 +113,27 @@ class LessonController extends Controller
                 ];
             })
             ->values();
-        // return[
-        //     'courseId'      => $courseId,
-        //     'lesson'        => $lesson,
-        //     'progress'      => $progress,
-        //     'activeCard'    => $activeCard,
-        //     'cardsPayload'  => $cardsPayload, // ⬅ NEW: semua card dan blocks
-        // ];
+        $result = StudentContentProgress::where('student_id', $user->student->id)->where('content_id', $contentId)->first();
+        if ($result == NULL)
+        {
+            StudentContentProgress::create(
+                [
+                    'student_id' => $user->student->id,
+                    'content_id' => $contentId,
+                    'is_completed' => false,
+                    'completed_at' => now(),
+                ]
+            );
+        }
         return view('courses.student.lesson', [
             'courseId'      => $courseId,
             'lesson'        => $lesson,
             'progress'      => $progress,
             'contentId'     => $contentId,
             'activeCard'    => $activeCard,
-            'cardsPayload'  => $cardsPayload, // ⬅ NEW: semua card dan blocks
+            'cardsPayload'  => $cardsPayload, 
         ]);
     }
-
-
-
-    // public function play(Request $request, int $courseId, int $lessonId, int $contentId)
-    // {
-    //     $lesson = Lesson::with([
-    //         'contents' => fn ($q) => $q->orderBy('order_index')->with([
-    //             'cards' => fn ($q) => $q->orderBy('order_index')->with([
-    //                 'blocks' => fn ($b) => $b->orderBy('order_index'),
-    //             ]),
-    //         ]),
-    //         'course',
-    //     ])->findOrFail($lessonId);
-
-    //     if ($lesson->course_id != $courseId) {
-    //         abort(404);
-    //     }
-
-    //     $progress = 0;
-
-    //     $allCards = $lesson->contents->flatMap->cards->values();
-    //     $activeCardId = $request->integer('card');
-    //     $activeCard = $allCards->firstWhere('id', $activeCardId) ?? $allCards->first();
-
-    //     $blocks = $activeCard?->blocks ?? collect();
-    //     $blocksPayload = $blocks->map(function (Block $block) use ($lesson, $activeCard) {
-    //         return [
-    //             'id'         => $block->id,
-    //             'order'      => $block->order_index,
-    //             'type'       => $block->type->value,
-    //             'data'       => $block->data,
-    //             'asset_url'  => $this->resolveBlockAsset($block, $lesson, $activeCard),
-    //         ];
-    //     })->values();
-
-    //     return view('courses.student.lesson', [
-    //         'courseId' => $courseId,
-    //         'lesson'   => $lesson,
-    //         'progress' => $progress,
-    //         'activeCard' => $activeCard,
-    //         'blocksPayload' => $blocksPayload,
-    //     ]);
-    // }
 
     protected function resolveBlockAsset(Block $block, Lesson $lesson, $card): ?string
     {

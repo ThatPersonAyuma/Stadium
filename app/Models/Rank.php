@@ -12,8 +12,8 @@ class Rank extends Model
 
     protected $fillable =[
             'title',
-            'min-xp',
-            'max-xp',
+            'min_xp',
+            'max_xp',
     ];
 
     public function users():HasMany
