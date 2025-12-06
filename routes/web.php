@@ -7,6 +7,7 @@ use App\Http\Controllers\BlockController;
 use App\Http\Controllers\ContentController;
 use App\Http\Controllers\CardController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\LeaderboardController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\QuizController;
 use App\Models\User;
@@ -104,8 +105,10 @@ Route::get('/dashboard', [DashboardController::class, 'student'])
 Route::get('/student/dashboard', [DashboardController::class, 'student'])
     ->name('dashboard.student');
 
+Route::get('/leaderboard', [LeaderboardController::class, 'index'])
+    ->name('leaderboard.index');
 
-    
+
 Route::post('/logout', function () {
     return redirect('/');
 })->name('logout');

@@ -188,4 +188,5 @@ class DashboardController extends Controller
             'summary' => $summary,
         ]);
     }
+    
 }
