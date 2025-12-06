@@ -75,7 +75,7 @@
                 <p class="text-white/70">Mengambil data scoreboard...</p>
             </div>
 
-            <a href="{{ route('dashboard.student') }}" 
+            <a href="{{ route('dashboard.index') }}" 
             class="inline-block bg-blue-600 hover:bg-blue-500 text-white font-bold px-6 py-3 rounded-lg transition">
             Kembali
             </a>

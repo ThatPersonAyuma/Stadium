@@ -165,7 +165,7 @@ class FileHelper
     public static function storeAvatarFile($file, $userId)
     {
         $user = User::findOrFail($userId);
-        $filename = "{$user->id}-{$user->avatar_filename}";
+        $filename = "{$user->id}-{$file->getClientOriginalName()}";
         $stored = Storage::disk('public')->putFileAs(
             dirname('avatar/a'),
             $file,

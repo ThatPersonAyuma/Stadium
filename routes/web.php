@@ -1,30 +1,29 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\CourseController;
-use App\Http\Controllers\LessonController;
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BlockController;
-use App\Http\Controllers\ContentController;
 use App\Http\Controllers\CardController;
+use App\Http\Controllers\ContentController;
+use App\Http\Controllers\CourseController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LeaderboardController;
-use App\Http\Controllers\AuthController;
+use App\Http\Controllers\LessonController;
 use App\Http\Controllers\QuizController;
-use App\Models\User;
-use App\Models\Content;
-use App\Models\Rank;
 use App\Http\Controllers\UserAvatarController;
+use App\Models\Rank;
+use App\Models\User;
+use Illuminate\Support\Facades\Route;
 
 // Debug Session
 Route::get('/welcome', function () {
     $user = Auth::user();
-    if ($user){
+    if ($user) {
         return match ($user->role) {
             'student' => view('welcome.student', compact('user')),
             'teacher' => view('welcome.teacher', compact('user')),
-            default   => abort(403),
+            default => abort(403),
         };
-    }else{
+    } else {
         return view('loginpage');
     }
 })->name('welcome');
@@ -35,7 +34,7 @@ Route::get('/upload', function () {
 Route::get('/view-courses', function () {
     // ambil semua data dari database
     $courses = App\Models\Course::with([
-        'lessons.contents.cards.blocks'
+        'lessons.contents.cards.blocks',
     ])->get();
 
     // kirim ke view
@@ -44,9 +43,9 @@ Route::get('/view-courses', function () {
 
 Route::get('/ranks', function () {
     $ranks = Rank::all();
+
     return view('ranks', compact('ranks'));
 });
-
 
 // Route::get('/login', function(){
 //     return view('loginpage');
@@ -56,6 +55,7 @@ Route::get('/ranks', function () {
 
 Route::get('/users', function () {
     $users = User::with('rank')->get();
+
     return view('users', compact('users'));
 });
 // Route::get('/view-courses', function () {
@@ -66,55 +66,61 @@ Route::get('/lesson-by-course', [LessonController::class, 'getRelationWithCourse
 Route::post('/content/finish', [BlockController::class, 'finish_content'])->name('finish-content');
 Route::post('/add-file', [BlockController::class, 'store'])->name('addFile');
 
-
-
-
-
-Route::get('/user/avatar', [UserAvatarController::class, 'showForm'])->name('avatar.form');
-Route::post('/user/avatar', [UserAvatarController::class, 'upload'])->name('avatar.upload');
-
+// Route::get('/user/avatar', [UserAvatarController::class, 'showForm'])->name('avatar.form');
+// Route::post('/user/avatar', [UserAvatarController::class, 'upload'])->name('avatar.upload');
 
 // ini aku yang nambahin yh bang, tolong benerin kalo salh
 Route::get('/', function () {
     return view('landing.index');
 });
-Route::get('/login', fn() => view('auth.login'))->name('login');
+Route::get('/login', fn () => view('auth.login'))->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-Route::get('/register', fn() => view('auth.choose-role'))->name('register');
-Route::get('/register/student', fn() => view('auth.register'))->name('register.student');
-Route::get('/register/teacher', fn() => view('auth.register-teacher'))->name('register.teacher');
+Route::get('/register', fn () => view('auth.choose-role'))->name('register');
+Route::get('/register/student', fn () => view('auth.register'))->name('register.student');
+Route::get('/register/teacher', fn () => view('auth.register-teacher'))->name('register.teacher');
 Route::post('/register', [AuthController::class, 'register'])->name('register.post');
 
-
-
-
-
-
-
-<<<<<<< HEAD
 Route::get('/leaderboard', [LeaderboardController::class, 'index'])
     ->name('leaderboard.index');
 
-=======
-Route::resource('courses', CourseController::class);
 // Route::resource('quiz', QuizController::class);
->>>>>>> 40b183ec602f4856fd8b8a55490a619fa838ccb1
 
 Route::post('/logout', function () {
     return redirect('/');
 })->name('logout');
 
-Route::middleware('auth')->group(function() { // dont fotget you must have route login
+Route::middleware('auth')->group(function () { // dont fotget you must have route login
     Route::get('/debug-session', function () {
         return session()->all();
     });
     Route::get('/quiz', [QuizController::class, 'ShowIndex'])->name('quiz.index');
+    Route::get('/profile/student',
+        function (){
+            return view('profile.student');
+        }
+    );
+    Route::get('/profile/teacher',
+        function (){
+            return view('profile.teacher');
+        }
+    );
+    Route::put('/profile/update',
+        [AuthController::class, 'UpdateProfile']
+    )->name('profile.update');
+    
 });
-Route::middleware(['auth', 'role:teacher'])->group(function() { 
+Route::middleware(['auth', 'role:teacher'])->group(function () {
     Route::get('/teacher/dashboard', [DashboardController::class, 'teacher'])
         ->name('dashboard.teacher');
+    /* #region resource*/
+    Route::resource('courses', CourseController::class)->except(['index', 'show']);
+    Route::resource('lessons', LessonController::class)->except(['index', 'show']);
+    Route::resource('contents', ContentController::class)->except(['index', 'show']);
+    Route::resource('cards', CardController::class)->except(['index', 'show']);
+    Route::resource('blocks', BlockController::class)->except(['index', 'show']);
+    /* #endregion */
     Route::prefix('teacher/courses')->name('teacher.courses.')->group(function () {
         Route::get('/', [CourseController::class, 'teacherIndex'])->name('index');
         Route::get('/create', [CourseController::class, 'teacherCreate'])->name('create');
@@ -126,7 +132,7 @@ Route::middleware(['auth', 'role:teacher'])->group(function() {
         Route::delete('/{course}', [CourseController::class, 'teacherDestroy'])->name('destroy');
         Route::get('/{course}', [CourseController::class, 'teacherShow'])->name('show');
     });
-    Route::prefix('quiz')->name('quiz.')->group(function (){
+    Route::prefix('quiz')->name('quiz.')->group(function () {
         Route::get('/quiz', [QuizController::class, 'index'])->name('index');
         Route::get('/quiz/create', [QuizController::class, 'create'])->name('create');
         Route::put('/quiz/update/{quiz}', [QuizController::class, 'update'])->name('update');
@@ -144,11 +150,22 @@ Route::middleware(['auth', 'role:teacher'])->group(function() {
         Route::delete('/{quiz}/question/delete/{question}', [QuizController::class, 'DeleteQuestion'])->name('question.delete');
         Route::post('/{quiz}/question/store', [QuizController::class, 'StoreQuestion'])->name('question.store');
         Route::put('/question/update/{question}', [QuizController::class, 'UpdateQuestion'])->name('question.update');
-    }); 
-    
-});
+    });
 
-Route::middleware(['auth', 'role:student'])->group(function() { 
+});
+/* #region resource*/
+Route::get('/courses', [CourseController::class, 'index'])->name('courses.index');
+Route::get('/courses/{course}', [CourseController::class, 'show'])->name('courses.show');
+Route::get('/lessons', [LessonController::class, 'index'])->name('lessons.index');
+Route::get('/lessons/{lesson}', [LessonController::class, 'show'])->name('lessons.show');
+Route::get('/contents', [ContentController::class, 'index'])->name('contents.index');
+Route::get('/contents/{content}', [ContentController::class, 'show'])->name('contents.show');
+Route::get('/cards', [CardController::class, 'index'])->name('cards.index');
+Route::get('/cards/{card}', [CardController::class, 'show'])->name('cards.show');
+Route::get('/blocks', [BlockController::class, 'index'])->name('blocks.index');
+Route::get('/blocks/{block}', [BlockController::class, 'show'])->name('blocks.show');
+/* #endregion */
+Route::middleware(['auth', 'role:student'])->group(function () {
     Route::get('/course', [CourseController::class, 'index'])->name('course.index');
     Route::get('/course/{course}', [CourseController::class, 'detail'])->name('course.detail');
     Route::get('/course/{course}/lesson/{lesson}/content/{content}', [LessonController::class, 'play'])->name('lesson.show');
@@ -156,22 +173,19 @@ Route::middleware(['auth', 'role:student'])->group(function() {
     //     ->name('dashboard.student');
     Route::get('/dashboard', [DashboardController::class, 'student'])
         ->name('dashboard.index');
-    Route::prefix('quiz')->name('quiz.')->group(function (){
-        Route::get('/test', fn() => 'OK STUDENT');
+    Route::prefix('quiz')->name('quiz.')->group(function () {
+        Route::get('/test', fn () => 'OK STUDENT');
         // Route::get('/register', [QuizController::class, 'ShowRegister'])->name('running');
         Route::post('/register', [QuizController::class, 'studentJoin'])->name('post-register');
         Route::post('/post-answer', [QuizController::class, 'HandleAnswer'])->name('answer');
-        Route::get('/running-quiz/{quiz_id}', function($quiz_id){
-            return view('quiz.quiz_running',['quiz_id' => $quiz_id]);
-        } )->name('play');
-    }); 
+        Route::get('/running-quiz/{quiz_id}', function ($quiz_id) {
+            return view('quiz.quiz_running', ['quiz_id' => $quiz_id]);
+        })->name('play');
+    });
     Route::post('/lesson/answer', [BlockController::class, 'check_answer'])->name('lesson-answer');
 });
 
-
 // Quiz CRUD
-
-
 
 // Manajemen pertanyaan
 

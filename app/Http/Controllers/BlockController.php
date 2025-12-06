@@ -6,6 +6,7 @@ use App\Models\Block;
 use App\Models\Content;
 use Illuminate\Http\Request;
 use App\Helpers\FileHelper;
+use App\Helpers\Utils;
 use App\Enums\ContentType;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -504,8 +505,7 @@ class BlockController extends Controller
                 'completed_at' => now(),
             ]
         );
-        $user->student->experience += $content->experience;
-        $user->student->save();
+        Utils::add_exp_student($content->experience, $user->student->id);
         // Beri redirect ke kembali ke halaman lesson.show
         return response()->json([
             'status' => 'ok',

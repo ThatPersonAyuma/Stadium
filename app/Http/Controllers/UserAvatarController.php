@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Models\Teacher;
+use App\Models\UserRole;
+use App\FileHelpers\FileHelper;
 use Illuminate\Support\Facades\Storage;
 
 class UserAvatarController extends Controller

@@ -6,7 +6,7 @@
 
     <h2 class="text-3xl font-bold mb-6">Tambah Quiz Baru</h2>
 
-    <form action="{{ route('quiz.store') }}" method="POST"
+    <form action="{{ route('quiz.update') }}" method="POST"
           class="bg-white/10 p-6 rounded-xl space-y-6">
         @csrf
 

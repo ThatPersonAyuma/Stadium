@@ -7,6 +7,7 @@ use Illuminate\Database\Seeder;
 use App\Models\User;
 use App\Models\Teacher;
 use App\Enums\UserRole;
+use App\Enums\SocialMediaType;
 
 class TeacherSeeder extends Seeder
 {
@@ -18,7 +19,13 @@ class TeacherSeeder extends Seeder
         $users = User::where('role', UserRole::TEACHER)->get();
         foreach ($users as $user){
             Teacher::create(
-                ['user_id' => $user->id]
+                [
+                    'user_id' => $user->id,
+                    'phone_number' => '+6285643342009',
+                    'social_media_type' => SocialMediaType::GITHUB,
+                    'social_media' => 'ThatPersonAyuma',
+                    'institution' => 'Universitas Jember',
+                ]
             );
         }
     }
