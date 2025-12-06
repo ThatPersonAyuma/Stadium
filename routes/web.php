@@ -7,6 +7,7 @@ use App\Http\Controllers\BlockController;
 use App\Http\Controllers\ContentController;
 use App\Http\Controllers\CardController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\LeaderboardController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\QuizController;
 use App\Models\User;
@@ -92,10 +93,15 @@ Route::post('/register', [AuthController::class, 'register'])->name('register.po
 
 
 
+<<<<<<< HEAD
+Route::get('/leaderboard', [LeaderboardController::class, 'index'])
+    ->name('leaderboard.index');
+
+=======
 Route::resource('courses', CourseController::class);
 // Route::resource('quiz', QuizController::class);
+>>>>>>> 40b183ec602f4856fd8b8a55490a619fa838ccb1
 
-    
 Route::post('/logout', function () {
     return redirect('/');
 })->name('logout');

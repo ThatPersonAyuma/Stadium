@@ -26,6 +26,7 @@ class AuthController extends Controller
         // Logic login sederhana
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
+            
             if (Auth::user()->role==UserRole::STUDENT){
                 return redirect()->route('dashboard.index');
             }else{
