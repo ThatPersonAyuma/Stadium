@@ -11,7 +11,7 @@
        class="sidebar-item {{ request()->routeIs('leaderboard.*') ? 'active' : '' }}">
         <img src="/assets/icons/sidebar-icons/leaderboard.png" class="icon" alt="Leaderboard">
     </a>
-    <a href="#" class="sidebar-item">
+    <a href="{{ route('quiz.index') }}" class="sidebar-item {{ request()->routeIs('quiz.*') ? 'active' : '' }}">
         <img src="/assets/icons/sidebar-icons/pvp.png" class="icon" alt="PvP">
     </a>
     <form action="{{ route('logout') }}" method="POST" class="sidebar-item small-icon sidebar-bottom">

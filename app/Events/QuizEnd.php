@@ -11,18 +11,18 @@ use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 use App\Models\QuizParticipant;
 
-class ScoreBoard implements ShouldBroadcast
+class QuizEnd implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public $quiz_id;
+    public $quizId;
 
     /**
      * Create a new event instance.
      */
-    public function __construct($quiz_id)
+    public function __construct($quizId)
     {
-        $this->quiz_id = $quiz_id;
+        $this->quizId = $quizId;
     }
 
     /**
@@ -33,17 +33,18 @@ class ScoreBoard implements ShouldBroadcast
     public function broadcastOn(): array
     {
         return [
-            new PrivateChannel('quiz.' . $this->quiz_id),
+            // $this->quizId;
+            new PrivateChannel('quiz.' . $this->quizId),
         ];
     }
     public function broadcastAs(): string
     {
-        return 'quiz.scoreboard';
+        return 'quiz.ended';
     }
     public function broadcastWith(): array
     {
         return [
-            'scoreboard' => QuizParticipant::where('quiz_id', $this->quiz_id)
+            'scoreboard' => QuizParticipant::where('quiz_id', $this->quizId)
                 ->with('student.user')
                 ->orderByDesc('score')
                 ->get()

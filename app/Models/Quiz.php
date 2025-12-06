@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Enums\CourseStatus;
 
 class Quiz extends Model
 {
@@ -14,6 +15,13 @@ class Quiz extends Model
         'creator_id',
         'running_index',
         'is_finished',
+        'code',
+        'interval',
+        'status',
+    ];
+
+    protected $casts = [
+        'status' => CourseStatus::class,
     ];
 
     public function creator()
@@ -23,7 +31,7 @@ class Quiz extends Model
 
     public function questions()
     {
-        return $this->hasMany(QuizQuestion::class);
+        return $this->hasMany(QuizQuestion::class)->orderBy('order_index');
     }
 
     public function participants()

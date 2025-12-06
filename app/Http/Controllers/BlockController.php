@@ -3,11 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\Block;
+use App\Models\Content;
 use Illuminate\Http\Request;
 use App\Helpers\FileHelper;
 use App\Enums\ContentType;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Models\StudentContentProgress;
 
 class BlockController extends Controller
 {
@@ -415,5 +418,77 @@ class BlockController extends Controller
         });
 
         return response()->json(['message' => 'Block dihapus']);
+    }
+
+    public function check_answer(Request $request)
+    {
+        $user = Auth::user();
+        $validated = $request->validate([
+            'block_id'=> 'required|integer|min:1',
+            'answer' => 'required|string',
+            'content_id' => 'required|integer|min:1',
+        ]);
+
+        // Ambil block + relasi
+        $block = Block::with('card.content')->findOrFail($validated['block_id']);
+
+        // Cek jawaban
+        $correctAnswer = $block->data['answer'];
+        $isCorrect = ($validated['answer'] === $correctAnswer);
+
+        // Kurangi heart jika salah
+        $remain_heart = $user->student->heart;
+
+        if (!$isCorrect) {
+            $user->student->heart -= 1;
+            $user->student->save(); // WAJIB
+            $remain_heart = $user->student->heart;
+        }
+
+        // Jika heart habis (opsional)
+        if ($remain_heart <= 0) {
+            // handle game over here
+        }
+
+        // Ambil list card dalam content tersebut
+
+        return response()->json([
+            'status' => 'ok',
+            'correct' => $isCorrect,
+            'correct_answer' => $correctAnswer,
+            'remain_heart' => $remain_heart,
+        ]);
+    }
+    public function finish_content(Request $request)
+    {
+        $user = Auth::user();
+
+        // validasi input
+        $validated = $request->validate([
+            'content_id' => 'required|integer|min:1',
+        ]);
+
+        // Ambil content + lesson
+        $content = Content::with('lesson')->findOrFail($validated['content_id']);
+
+        // Tandai progres selesai
+        StudentContentProgress::updateOrCreate(
+            [
+                'student_id' => $user->student->id,
+                'content_id' => $content->id,
+            ],
+            [
+                'is_completed' => true,
+                'completed_at' => now(),
+            ]
+        );
+
+        // Beri redirect ke kembali ke halaman lesson.show
+        return response()->json([
+            'status' => 'ok',
+            'redirect' => route('course.detail', [
+                'course'  => $content->lesson->course_id,
+            ])
+        ]);
     }
 }

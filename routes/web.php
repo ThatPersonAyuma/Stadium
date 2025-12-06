@@ -13,6 +13,7 @@ use App\Http\Controllers\QuizController;
 use App\Models\User;
 use App\Models\Content;
 use App\Models\Rank;
+use App\Http\Controllers\UserAvatarController;
 
 // Debug Session
 Route::get('/welcome', function () {
@@ -64,11 +65,11 @@ Route::get('/course', [CourseController::class, 'index'])->name('course.index');
 Route::get('/course/{course}', [CourseController::class, 'detail'])->name('course.detail');
 Route::get('/course/{course}/lesson/{lesson}/content/{content}', [LessonController::class, 'play'])->name('lesson.show');
 Route::get('/lesson-by-course', [LessonController::class, 'getRelationWithCourse'])->name('getLessWCourse');
+Route::post('/content/finish', [BlockController::class, 'finish_content'])->name('finish-content');
 Route::post('/add-file', [BlockController::class, 'store'])->name('addFile');
 
 
 
-use App\Http\Controllers\UserAvatarController;
 
 
 Route::get('/user/avatar', [UserAvatarController::class, 'showForm'])->name('avatar.form');
@@ -88,16 +89,7 @@ Route::get('/register/student', fn() => view('auth.register'))->name('register.s
 Route::get('/register/teacher', fn() => view('auth.register-teacher'))->name('register.teacher');
 Route::post('/register', [AuthController::class, 'register'])->name('register.post');
 
-// Route::middleware(['auth'])->group(function () {
-//     Route::get('/dashboard', [DashboardController::class, 'student'])
-//         ->name('dashboard.index');
 
-//     Route::get('/dashboard/profile', [DashboardController::class, 'profile'])
-//         ->name('dashboard.profile');
-
-//     Route::get('/dashboard/teacher', [DashboardController::class, 'teacher'])
-//         ->name('dashboard.teacher');
-// });
 
 Route::get('/dashboard', [DashboardController::class, 'student'])
     ->name('dashboard.index');
@@ -105,9 +97,14 @@ Route::get('/dashboard', [DashboardController::class, 'student'])
 Route::get('/student/dashboard', [DashboardController::class, 'student'])
     ->name('dashboard.student');
 
+<<<<<<< HEAD
 Route::get('/leaderboard', [LeaderboardController::class, 'index'])
     ->name('leaderboard.index');
 
+=======
+Route::resource('courses', CourseController::class);
+// Route::resource('quiz', QuizController::class);
+>>>>>>> 40b183ec602f4856fd8b8a55490a619fa838ccb1
 
 Route::post('/logout', function () {
     return redirect('/');
@@ -117,6 +114,7 @@ Route::middleware('auth')->group(function() { // dont fotget you must have route
     Route::get('/debug-session', function () {
         return session()->all();
     });
+    Route::get('/quiz', [QuizController::class, 'ShowIndex'])->name('quiz.index');
 });
 Route::middleware(['auth', 'role:teacher'])->group(function() { 
     Route::get('/teacher/dashboard', [DashboardController::class, 'teacher'])
@@ -132,65 +130,47 @@ Route::middleware(['auth', 'role:teacher'])->group(function() {
         Route::delete('/{course}', [CourseController::class, 'teacherDestroy'])->name('destroy');
         Route::get('/{course}', [CourseController::class, 'teacherShow'])->name('show');
     });
+    Route::prefix('quiz')->name('quiz.')->group(function (){
+        Route::get('/quiz', [QuizController::class, 'index'])->name('index');
+        Route::get('/quiz/create', [QuizController::class, 'create'])->name('create');
+        Route::put('/quiz/update/{quiz}', [QuizController::class, 'update'])->name('update');
+        Route::delete('/{quiz}/delete', [QuizController::class, 'delete'])->name('delete');
+        Route::get('/monitoring/{quiz}', [QuizController::class, 'TeacherMonitoring'])->name('monitoring');
+        Route::post('/open-quiz/{quiz}', [QuizController::class, 'OpenQuiz'])->name('open');
+        Route::post('/start', [QuizController::class, 'startQuestion'])->name('start');
+        Route::post('/send-question', [QuizController::class, 'sendQuestion'])->name('send');
+        Route::post('/end-question', [QuizController::class, 'EndQuestion'])->name('end-question');
+        Route::post('/post-scoreboard', [QuizController::class, 'BroadcastScoreboard'])->name('scoreboard');
+        Route::post('/end-quiz', [QuizController::class, 'EndQuiz'])->name('end-quiz');
+        Route::get('/{quiz}/manage', [QuizController::class, 'manage'])->name('manage');
+        Route::get('/{quiz}/question/create', [QuizController::class, 'CreateQuestion'])->name('question.create');
+        Route::get('/{quiz}/question/edit/{question}', [QuizController::class, 'EditQuestion'])->name('question.edit');
+        Route::delete('/{quiz}/question/delete/{question}', [QuizController::class, 'DeleteQuestion'])->name('question.delete');
+        Route::post('/{quiz}/question/store', [QuizController::class, 'StoreQuestion'])->name('question.store');
+        Route::put('/question/update/{question}', [QuizController::class, 'UpdateQuestion'])->name('question.update');
+    }); 
+    
 });
-// Resources
-// Route::resource('fasilitas', MatkulController::class);
-// Route::resource('contents', ContentController::class);
-Route::Resource('contents', ContentController::class);
-// To get all of courses that available use this get
-Route::Resource('courses', CourseController::class);
-Route::Resource('blocks', BlockController::class);
-Route::Resource('lessons', LessonController::class);
-Route::Resource('cards', CardController::class);
-Route::get('get-type', [BlockController::class, 'getType'])->name('get-type');
-// Use this to get the data of all of the lessons in a course
-Route::get('get-lessons/{course}', [CourseController::class, 'getAllLessonOFACourse'])->name('get-lessons');
-// Use this to get the blocks needed for building a card
-Route::get('/get-blocks/{card}', // This is for getting all of blocks data of a card
-    [CardController::class, 'getBlocksOfCard']
-)->name('card.get-blocks');
-Route::get('get-progress/{course}/{student}', [CourseController::class, 'getStudentCourseProgress'])->name('get-progress');
-Route::get('/get-cards/{content}', // This is for getting all of card datas of a content
-    [ContentController::class, 'getCards']
-)->name('card.get-cards');
+
+Route::middleware(['auth', 'role:student'])->group(function() { 
+    Route::prefix('quiz')->name('quiz.')->group(function (){
+        Route::get('/test', fn() => 'OK STUDENT');
+        // Route::get('/register', [QuizController::class, 'ShowRegister'])->name('running');
+        Route::post('/register', [QuizController::class, 'studentJoin'])->name('post-register');
+        Route::post('/post-answer', [QuizController::class, 'HandleAnswer'])->name('answer');
+        Route::get('/running-quiz/{quiz_id}', function($quiz_id){
+            return view('quiz.quiz_running',['quiz_id' => $quiz_id]);
+        } )->name('play');
+    }); 
+    Route::post('/lesson/answer', [BlockController::class, 'check_answer'])->name('lesson-answer');
+});
 
 
-//testing
-Route::get('/test-websocket', 
-    function (){
-        return view('test_websocket');
-    }
-);
-Route::post('/post-question',
-    [QuizController::class, 'startQuestion']
-);
-Route::get('/post-question',
-    function(){
-        return view('post_question');
-    }
-);
+// Quiz CRUD
 
-Route::get('/edit-content',
-    function(){
-        $content = Content::findOrFail(1);
-        return view('TESTING.change_content', compact('content'));
-    }
-);
 
-Route::get('/delete-block',
-    function(){
-        return view('TESTING.test_delete');
-    }
-);
-// Route::get('/get-a-card/{content}',
-//     // function(){
-//         [ContentController::class, 'getCards']
-//         // $cards = ContentController::getCards(Content::findOrFail(1));
-//         // $blocks = Content::findOrFail(1)->load('cards.blocks');
-//         // return view('TESTING.card', compact('cards', 'blocks'));
-//     // }
-// );
 
+// Manajemen pertanyaan
 
 // Testing Error Pages
 // Route::get('/test-403', fn() => abort(403));

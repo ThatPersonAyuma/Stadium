@@ -35,7 +35,7 @@
         <div class="grid grid-cols-1 gap-6">
             @forelse ($courses as $course)
                 @php
-                    $status = strtolower($course->status ?? 'draft');
+                    $status = strtolower($course->status->value ?? 'draft');
                     $statusMeta = [
                         'new'       => ['label' => 'New', 'bg' => '#38bdf8'],
                         'pending'   => ['label' => 'Pending', 'bg' => '#f59e0b'],

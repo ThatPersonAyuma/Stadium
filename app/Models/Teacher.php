@@ -22,6 +22,10 @@ class Teacher extends Model
     {
         return $this->hasMany(Course::class);
     }
+    public function quizzes()
+    {
+        return $this->hasMany(Quiz::class);
+    }
     public function user()
     {
         return $this->belongsTo(User::class);

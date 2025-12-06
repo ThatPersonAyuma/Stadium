@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use App\Helpers\FileHelper;
+use App\Enums\CourseStatus;
 
 
 class Course extends Model
@@ -18,6 +19,10 @@ class Course extends Model
         'description',
         'status',
         'teacher_id',
+    ];
+
+    protected $casts = [
+        'status' => CourseStatus::class,
     ];
 
     protected static function booted()

@@ -15,7 +15,10 @@ class StudentContentProgress extends Model
             'student_id',
             'content_id',
             'is_completed',
+            'completed_at',
     ];
+
+    public $timestamps = false;
 
     public function student():BelongsTo
     {
