@@ -69,30 +69,6 @@
 <section class="section-feature">
   <div class="container grid grid-cols-1 md:grid-cols-2 items-center gap-10 md:gap-16">
     <div class="feature-txt">
-      <h2>Grow Your Plant</h2>
-      <p>Stay consistent! Each correct answer helps your virtual plant grow stronger every day.</p>
-    </div>
-    <div class="feature-img">
-      <img src="{{ asset('images/plant.png') }}" alt="Plant Illustration">
-    </div>
-  </div>
-</section>
-
-<section class="section-feature">
-  <div class="container grid grid-cols-1 md:grid-cols-2 items-center gap-10 md:gap-16">
-    <div class="feature-img">
-      <img src="{{ asset('images/community.png') }}" alt="Community-feature Illustration">
-    </div>
-    <div class="feature-txt">
-      <h2>Community</h2>
-      <p>Join a friendly space to share ideas, ask questions, and grow together with other learners</p>
-    </div>
-  </div>
-</section>
-
-<section class="section-feature">
-  <div class="container grid grid-cols-1 md:grid-cols-2 items-center gap-10 md:gap-16">
-    <div class="feature-txt">
       <h2>Daily Lives System</h2>
       <p>You start each day with 5 lives — use them wisely to complete quizzes and keep your streak alive!</p>
     </div>
