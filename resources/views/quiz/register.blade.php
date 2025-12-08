@@ -29,25 +29,4 @@
     </div>
 </div>
 
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    const form = document.getElementById('joinQuizForm');
-    const progressBar = document.getElementById('progressBar');
-    const progressPercent = document.getElementById('progressPercent');
-    const progressStatus = document.getElementById('progressStatus');
-
-    // form.addEventListener('submit', (e) => {
-    //     e.preventDefault();
-    //     const code = document.getElementById('quizCode').value.trim();
-
-    //     if(!code) return alert('Masukkan kode quiz terlebih dahulu!');
-
-    //     // Simulasi join quiz
-    //     progressBar.style.width = '100%';
-    //     progressPercent.textContent = '100%';
-    //     progressStatus.textContent = 'Joined';
-    //     alert(`Berhasil bergabung ke quiz dengan kode: ${code}`);
-    // });
-});
-</script>
 @endsection

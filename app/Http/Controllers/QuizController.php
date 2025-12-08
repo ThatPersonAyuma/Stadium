@@ -355,10 +355,6 @@ class QuizController extends Controller
             return response()->json(['message' => 'Kode salah'], 200);
             // return abort(404, 'Quiz dengan kode tersebut tidak ditemukan.');
         }
-        if ($quiz->is_finished)
-        {
-
-        }
         // if ($quiz->code !== $validated['quiz_code']) {
         //     return response()->json(['message' => 'Kode salah'], 200);
         // }
@@ -387,7 +383,7 @@ class QuizController extends Controller
         }
 
         // return 'baru join';
-        return redirect()->route('quiz.play', $quiz->id)
+        return view('quiz.quiz_running', ['quiz_id' => $quiz->id, 'is_finished' => $quiz->is_finished])
             ->with('success', 'Berhasil bergabung ke quiz');
     }
 
@@ -546,5 +542,22 @@ class QuizController extends Controller
             ->route('quiz.manage', $quiz->id)
             ->with('success', 'Pertanyaan berhasil ditambahkan!');
     }
-
+    public function GetScoreboard(Request $request)
+    {
+        $validated = $request->validate([
+            'quiz_id'    => 'required|integer|min:1',
+        ]);
+        return [
+            'scoreboard' => QuizParticipant::where('quiz_id', $validated['quiz_id'])
+                ->with('student.user')
+                ->orderByDesc('score')
+                ->get()
+                ->map(function ($p) {
+                    return [
+                        'username' => $p->student->user->username, 
+                        'score' => $p->score,
+                    ];
+                }),
+        ];
+    }
 }

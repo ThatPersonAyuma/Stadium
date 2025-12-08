@@ -94,7 +94,7 @@ class CourseController extends Controller
         if ($user==NULL){
             return;
         }
-        $teacher = $user->teacher;
+        $teacher = $user->with('teacher')->first();
         $courses = Course::query()
             ->when($teacher, fn ($q) => $q->where('teacher_id', $teacher->id))
             ->withCount('lessons')

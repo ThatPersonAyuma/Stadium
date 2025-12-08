@@ -82,8 +82,6 @@ Route::get('/register/student', fn () => view('auth.register'))->name('register.
 Route::get('/register/teacher', fn () => view('auth.register-teacher'))->name('register.teacher');
 Route::post('/register', [AuthController::class, 'register'])->name('register.post');
 
-Route::get('/leaderboard', [LeaderboardController::class, 'index'])
-    ->name('leaderboard.index');
 
 // Route::resource('quiz', QuizController::class);
 
@@ -92,6 +90,8 @@ Route::post('/logout', function () {
 })->name('logout');
 
 Route::middleware('auth')->group(function () { // dont fotget you must have route login
+    Route::get('/leaderboard', [LeaderboardController::class, 'index'])
+        ->name('leaderboard.index');
     Route::get('/debug-session', function () {
         return session()->all();
     });
@@ -171,14 +171,12 @@ Route::middleware(['auth', 'role:student'])->group(function () {
         // Route::get('/register', [QuizController::class, 'ShowRegister'])->name('running');
         Route::post('/register', [QuizController::class, 'studentJoin'])->name('post-register');
         Route::post('/post-answer', [QuizController::class, 'HandleAnswer'])->name('answer');
-        Route::get('/running-quiz/{quiz_id}', function ($quiz_id) {
-            return view('quiz.quiz_running', ['quiz_id' => $quiz_id]);
-        })->name('play');
+        Route::post('/get-scoreboard', [QuizController::class, 'GetScoreboard'])->name('get-scoreboard');
     });
     Route::post('/lesson/answer', [BlockController::class, 'check_answer'])->name('lesson-answer');
     Route::get('/leaderboard/fetch', [LeaderboardController::class, 'fetch']);
-    Route::get('/leaderboard', [LeaderboardController::class, 'index'])
-        ->name('leaderboard.index');
+    // Route::get('/leaderboard', [LeaderboardController::class, 'index'])
+    //     ->name('leaderboard.index');
 });
 
 // Quiz CRUD

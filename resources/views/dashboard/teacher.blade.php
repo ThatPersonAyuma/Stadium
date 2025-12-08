@@ -31,7 +31,7 @@
         <div class="flex flex-wrap items-center justify-between gap-3">
             <a href="{{ route('course.index') }}"
                class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-white text-slate-900 px-4 py-3 font-semibold shadow-lg transition hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-white">
-                <i class="fa-solid fa-circle-plus text-base"></i>
+                <i class="fa fa-bars" aria-hidden="true"></i>
                 Kelola Course
             </a>
         </div>
