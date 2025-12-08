@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Course;
+use App\Models\Teacher;
+use App\Models\Quiz;
 use App\Enums\UserRole;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -189,4 +191,109 @@ class DashboardController extends Controller
         ]);
     }
     
+public function admin()
+    {
+        // 1. STATISTIK UTAMA (Angka Karangan)
+        $stats = [
+            'total_quizzes'      => 24, 
+            'total_courses'      => 12,
+            'active_users'       => 1543,
+            'total_teachers'     => 45,
+            'new_teachers_today' => 3,
+            'new_courses_week'   => 5,
+        ];
+
+        // 2. DUMMY LIST TEACHER (Pura-pura ada di database)
+        // Struktur object disesuaikan biar cocok sama View ($t->user->name)
+        $pendingTeachers = collect([
+            (object)[
+                'id' => 1,
+                'expertise' => 'Matematika Murni',
+                'experience_years' => 5,
+                'created_at' => Carbon::now()->subHours(2),
+                'user' => (object)[ 'name' => 'Dr. Budi Santoso' ]
+            ],
+            (object)[
+                'id' => 2,
+                'expertise' => 'Fisika Kuantum',
+                'experience_years' => 8,
+                'created_at' => Carbon::now()->subDays(1),
+                'user' => (object)[ 'name' => 'Prof. Sarah Wijaya' ]
+            ],
+            (object)[
+                'id' => 3,
+                'expertise' => 'Sastra Inggris',
+                'experience_years' => 3,
+                'created_at' => Carbon::now()->subDays(2),
+                'user' => (object)[ 'name' => 'Andi Pratama, M.Pd' ]
+            ],
+        ]);
+
+        // 3. DUMMY LIST COURSE
+        // Struktur: $c->teacher->user->name
+        $pendingCourses = collect([
+            (object)[
+                'id' => 101,
+                'title' => 'Mastering Laravel 11',
+                'category' => 'Web Development',
+                'created_at' => Carbon::now()->subHours(5),
+                'teacher' => (object)[
+                    'user' => (object)[ 'name' => 'Prof. Sarah Wijaya' ]
+                ]
+            ],
+            (object)[
+                'id' => 102,
+                'title' => 'Dasar-Dasar Kalkulus',
+                'category' => 'Matematika',
+                'created_at' => Carbon::now()->subDays(1),
+                'teacher' => (object)[
+                    'user' => (object)[ 'name' => 'Dr. Budi Santoso' ]
+                ]
+            ],
+            (object)[
+                'id' => 103,
+                'title' => 'Speaking for IELTS',
+                'category' => 'Bahasa',
+                'created_at' => Carbon::now()->subDays(3),
+                'teacher' => (object)[
+                    'user' => (object)[ 'name' => 'Andi Pratama, M.Pd' ]
+                ]
+            ]
+        ]);
+
+        // 4. DUMMY LIST QUIZ
+        // Struktur: $q->creator->user->name
+        $pendingQuizzes = collect([
+            (object)[
+                'id' => 501,
+                'title' => 'Ujian Tengah Semester Aljabar',
+                'questions_count' => 25,
+                'created_at' => Carbon::now()->subMinutes(45),
+                'creator' => (object)[
+                    'user' => (object)[ 'name' => 'Dr. Budi Santoso' ]
+                ]
+            ],
+            (object)[
+                'id' => 502,
+                'title' => 'Tes Vocabulary Level 1',
+                'questions_count' => 50,
+                'created_at' => Carbon::now()->subHours(6),
+                'creator' => (object)[
+                    'user' => (object)[ 'name' => 'Andi Pratama, M.Pd' ]
+                ]
+            ],
+            (object)[
+                'id' => 503,
+                'title' => 'Kuis Logika Pemrograman',
+                'questions_count' => 10,
+                'created_at' => Carbon::now()->subDays(2),
+                'creator' => (object)[
+                    'user' => (object)[ 'name' => 'Prof. Sarah Wijaya' ]
+                ]
+            ]
+        ]);
+
+        // Kirim semua data dummy ke View
+        return view('dashboard.admin', compact('stats', 'pendingTeachers', 'pendingCourses', 'pendingQuizzes'));
+    }
 }

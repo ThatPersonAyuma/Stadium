@@ -8,6 +8,9 @@ use App\Http\Controllers\ContentController;
 use App\Http\Controllers\CardController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LeaderboardController;
+use App\Http\Controllers\ManajemenTeachersController;
+use App\Http\Controllers\ManajemenCourseController;
+use App\Http\Controllers\ManajemenQuizController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\QuizController;
 use App\Models\User;
@@ -97,14 +100,45 @@ Route::get('/dashboard', [DashboardController::class, 'student'])
 Route::get('/student/dashboard', [DashboardController::class, 'student'])
     ->name('dashboard.student');
 
-<<<<<<< HEAD
 Route::get('/leaderboard', [LeaderboardController::class, 'index'])
     ->name('leaderboard.index');
 
-=======
 Route::resource('courses', CourseController::class);
 // Route::resource('quiz', QuizController::class);
->>>>>>> 40b183ec602f4856fd8b8a55490a619fa838ccb1
+
+
+Route::get('/admin/dashboard', [DashboardController::class, 'admin'])
+    ->name('dashboard.admin');
+
+Route::get('/admin/manajemen-teacher', [ManajemenTeachersController::class, 'index'])
+    ->name('admin.manajemen-teachers');
+
+Route::prefix('admin')->name('admin.')->group(function () {
+    
+    // 1. Daftar (Index)
+    Route::get('/manajemen-courses', [ManajemenCourseController::class, 'index'])
+    ->name('manajemen-course.index');
+
+    // 2. Detail (Show)
+    Route::get('/manajemen-courses/{course}', [ManajemenCourseController::class, 'show'])
+    ->name('manajemen-course.show');
+
+    Route::get('/manajemen-courses/content/{content}', [ManajemenCourseController::class, 'previewContent'])
+        ->name('manajemen-course.preview');
+});
+
+Route::prefix('admin')->name('admin.')->group(function () {
+    
+    // --- MANAJEMEN QUIZ ---
+    
+    // 1. Daftar Quiz
+    Route::get('/manajemen-quiz', [ManajemenQuizController::class, 'index'])->name('manajemen-quiz.index');
+    
+    // 2. Detail / Review Quiz
+    Route::get('/manajemen-quiz/{id}', [ManajemenQuizController::class, 'show'])->name('manajemen-quiz.show');
+    
+});
+
 
 Route::post('/logout', function () {
     return redirect('/');
@@ -134,6 +168,7 @@ Route::middleware(['auth', 'role:teacher'])->group(function() {
         Route::get('/quiz', [QuizController::class, 'index'])->name('index');
         Route::get('/quiz/create', [QuizController::class, 'create'])->name('create');
         Route::put('/quiz/update/{quiz}', [QuizController::class, 'update'])->name('update');
+        Route::post('/quiz/store', [QuizController::class, 'store'])->name('store');
         Route::delete('/{quiz}/delete', [QuizController::class, 'delete'])->name('delete');
         Route::get('/monitoring/{quiz}', [QuizController::class, 'TeacherMonitoring'])->name('monitoring');
         Route::post('/open-quiz/{quiz}', [QuizController::class, 'OpenQuiz'])->name('open');
