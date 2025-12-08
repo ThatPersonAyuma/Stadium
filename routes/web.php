@@ -96,24 +96,17 @@ Route::middleware('auth')->group(function () { // dont fotget you must have rout
         return session()->all();
     });
     Route::get('/quiz', [QuizController::class, 'ShowIndex'])->name('quiz.index');
-    Route::get('/profile/student',
-        function (){
-            return view('profile.student');
-        }
-    )->name('profile.student');
-    Route::get('/profile/teacher',
-        function (){
-            return view('profile.teacher');
-        }
-    )->name('profile.teacher');
+    Route::get('/course', [CourseController::class, 'index'])->name('course.index');
+    Route::get('/profile', [AuthController::class, 'ProfileIndex'])->name('profile.index');
     Route::put('/profile/update',
         [AuthController::class, 'UpdateProfile']
     )->name('profile.update');
-    
+    Route::get('/dashboard', [DashboardController::class, 'dashboard'])
+        ->name('dashboard.index');
 });
 Route::middleware(['auth', 'role:teacher'])->group(function () {
-    Route::get('/teacher/dashboard', [DashboardController::class, 'teacher'])
-        ->name('dashboard.teacher');
+    // Route::get('/teacher/dashboard', [DashboardController::class, 'teacher'])
+    //     ->name('dashboard.teacher');
     /* #region resource*/
     Route::resource('courses', CourseController::class)->except(['index', 'show']);
     Route::resource('lessons', LessonController::class)->except(['index', 'show']);
@@ -122,7 +115,7 @@ Route::middleware(['auth', 'role:teacher'])->group(function () {
     Route::resource('blocks', BlockController::class)->except(['index', 'show']);
     /* #endregion */
     Route::prefix('teacher/courses')->name('teacher.courses.')->group(function () {
-        Route::get('/', [CourseController::class, 'teacherIndex'])->name('index');
+        // Route::get('/', [CourseController::class, 'teacherIndex'])->name('index');
         Route::get('/create', [CourseController::class, 'teacherCreate'])->name('create');
         Route::get('/{course}/edit', [CourseController::class, 'teacherEdit'])->name('edit');
         Route::get('/{course}/lessons/{lesson}', [CourseController::class, 'teacherLessonShow'])->name('lessons.show');
@@ -166,13 +159,13 @@ Route::get('/blocks', [BlockController::class, 'index'])->name('blocks.index');
 Route::get('/blocks/{block}', [BlockController::class, 'show'])->name('blocks.show');
 /* #endregion */
 Route::middleware(['auth', 'role:student'])->group(function () {
-    Route::get('/course', [CourseController::class, 'index'])->name('course.index');
+    // Route::get('/course', [CourseController::class, 'index'])->name('course.index');
     Route::get('/course/{course}', [CourseController::class, 'detail'])->name('course.detail');
     Route::get('/course/{course}/lesson/{lesson}/content/{content}', [LessonController::class, 'play'])->name('lesson.show');
     // Route::get('/student/dashboard', [DashboardController::class, 'student'])
     //     ->name('dashboard.student');
-    Route::get('/dashboard', [DashboardController::class, 'student'])
-        ->name('dashboard.index');
+    // Route::get('/dashboard', [DashboardController::class, 'student'])
+    //     ->name('dashboard.index');
     Route::prefix('quiz')->name('quiz.')->group(function () {
         Route::get('/test', fn () => 'OK STUDENT');
         // Route::get('/register', [QuizController::class, 'ShowRegister'])->name('running');

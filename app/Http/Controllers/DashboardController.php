@@ -139,62 +139,84 @@ class DashboardController extends Controller
 
         $courses = Course::query()
             ->where('teacher_id', $teacher->id)
+            ->with([
+                'contents.student_content_progress',
+                'contents',
+            ])
             ->when($hasEnrollmentPivot, function ($query) {
-                $query->withCount([
-                    'users as total_students' => fn ($q) => $q->where('role', 'student'),
-                    'users as completed_count' => fn ($q) => $q->where('role', 'student')->wherePivot('progress', '>=', 100),
-                ])->with(['users' => fn ($q) => $q
-                    ->where('role', 'student')
-                    ->orderByPivot('updated_at', 'desc')
+                $query->with([
+                    'users' => fn ($q) => $q
+                        ->where('role', 'student')
+                        ->orderByPivot('updated_at', 'desc')
                 ]);
             })
             ->get()
             ->map(function ($course) use ($hasEnrollmentPivot) {
+
                 if (! $hasEnrollmentPivot) {
-                    $course->total_students = 0;
-                    $course->completed_count = 0;
                     $course->recent_completes = collect();
-                    return $course;
+                } else {
+                    $course->recent_completes = $course->users
+                        ->take(5)
+                        ->map(function ($student) {
+                            $updatedAt = $student->pivot?->updated_at;
+                            return [
+                                'name'  => $student->name ?? $student->username,
+                                'score' => $student->pivot?->progress ?? 0,
+                                'time'  => $updatedAt ? Carbon::parse($updatedAt)->diffForHumans() : '-',
+                            ];
+                        });
                 }
 
-                $course->recent_completes = $course->users
-                    ->take(5)
-                    ->map(function ($student) {
-                        $updatedAt = $student->pivot?->updated_at;
-                        return [
-                            'name'  => $student->name ?? $student->username,
-                            'score' => $student->pivot?->progress ?? 0,
-                            'time'  => $updatedAt ? Carbon::parse($updatedAt)->diffForHumans() : '-',
-                        ];
-                    });
+                $contents = $course->contents;
+                $totalContents = $contents->count();
+
+                $progressByStudent = $contents
+                    ->flatMap(fn($c) => $c->student_content_progress)
+                    ->groupBy('student_id');
+
+                $course->total_students = $progressByStudent->keys()->count();
+
+                $course->completed_count = $progressByStudent
+                    ->filter(function ($progress) use ($totalContents) {
+                        return $progress->where('is_completed', true)->count() === $totalContents;
+                    })
+                    ->count();
 
                 return $course;
             });
 
-        $summary = [
-            'courses'   => $courses->count(),
-            'students'  => $courses->sum('total_students'),
-            'completed' => $courses->sum('completed_count'),
-        ];
+        $totalCourses = $courses->count();
 
-        $completedToday = 0;
-        if ($hasEnrollmentPivot) {
-            $completedToday = $courses->sum(function ($course) {
-                return $course->users
-                    ->filter(function ($student) {
-                        $progress = (int) ($student->pivot?->progress ?? 0);
-                        $updatedAt = $student->pivot?->updated_at;
-                        return $progress >= 100 && $updatedAt && Carbon::parse($updatedAt)->isToday();
-                    })
-                    ->count();
-            });
+        $allStudents = collect();
+        $totalCompleted = 0;
+
+        foreach ($courses as $course) {
+            $contents = $course->contents;
+            $totalContents = $contents->count();
+
+            $progressByStudent = $contents
+                ->flatMap(fn($c) => $c->student_content_progress)
+                ->groupBy('student_id');
+
+            $allStudents = $allStudents->merge($progressByStudent->keys());
+
+            $completedInCourse = $progressByStudent
+                ->filter(fn($progress) => $progress->where('is_completed', true)->count() === $totalContents)
+                ->count();
+
+            $totalCompleted += $completedInCourse;
         }
 
+        $summary = [
+            'courses'   => $totalCourses,
+            'students'  => $allStudents->unique()->count(),
+            'completed' => $totalCompleted,
+        ];
         $teacherMeta = (object) [
             'name'           => $teacher->name ?? 'Teacher',
             'totalCourses'   => $summary['courses'],
             'totalStudents'  => $summary['students'],
-            'completedToday' => $completedToday,
         ];
 
         return view('dashboard.teacher', [
@@ -203,5 +225,17 @@ class DashboardController extends Controller
             'summary' => $summary,
         ]);
     }
-    
+    public function dashboard()
+    {
+        $user = Auth::user();
+        if ($user->role == UserRole::STUDENT) {
+            return $this->student();
+        }
+        if ($user->role == UserRole::TEACHER) {
+            return $this->teacher();
+        } 
+        if ($user->role == UserRole::ADMIN) {
+            return $this->admin();
+        }
+    }
 }

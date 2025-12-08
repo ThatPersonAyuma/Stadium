@@ -1,3 +1,4 @@
+
 <footer class="footer">
   <section class="footer-container">
     <div class="container grid grid-cols-1 md:grid-cols-3 gap-10 text-center md:text-left">
@@ -30,7 +31,9 @@
           <li><a href="/" class="hover:text-white">Home</a></li>
           <li><a href="/courses" class="hover:text-white">Courses</a></li>
           <li><a href="/ranks" class="hover:text-white">Leaderboard</a></li>
-          <li><a href="/community" class="hover:text-white">Community</a></li>
+          <li>
+              <a href="{{ route('profile.index') }}" class="hover:text-white">Profile</a>
+          </li>
         </ul>
       </div>
       <div>

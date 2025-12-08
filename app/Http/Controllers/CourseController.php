@@ -31,17 +31,28 @@ class CourseController extends Controller
         ]);
     }
 
+    public function index()
+    {
+        $user = Auth::user();
+        if ($user->role == UserRole::STUDENT){
+            return $this->indexStudent();
+        }
+        if ($user->role == UserRole::TEACHER){
+            return $this->teacherIndex();
+        }
+        if ($user->role == UserRole::STUDENT){
+            return $this->indexStudent();
+        }
+    }
+
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function indexStudent()
     {
         $user = Auth::user();
         if ($user===NULL){
             return redirect()->route('login');;
-        }
-        if ($user->role == UserRole::TEACHER){
-            return redirect()->route('teacher.courses.index');
         }
         // $student = $user && $user->role === 'student'
             // ? $user
@@ -324,12 +335,7 @@ class CourseController extends Controller
             'title'       => 'required|string|max:255',
             'description' => 'nullable|string',
             'status'      => 'nullable|in:draft,pending,approved,revision,rejected,hidden,archived',
-            // 'teacher_id'  => 'nullable|integer|exists:users,id',
         ]);
-
-        // $teacherId = $validated['teacher_id']
-        //     ?? (Auth::check() ? Auth::id() : null)
-        //     ?? User::where('role', UserRole::TEACHER)->value('id');
         $user = Auth::user();
         if ($user===NULL){
             return redirect()->route('login');;

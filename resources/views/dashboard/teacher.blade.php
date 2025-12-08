@@ -13,18 +13,7 @@
     <div class="relative z-10 mx-auto max-w-6xl space-y-8">
         <x-dashboard-header title="Teacher Panel" subtitle="Kelola course secara ringkas" />
 
-        <div class="flex flex-wrap items-center justify-between gap-3">
-            <div class="rounded-2xl bg-white/10 px-4 py-3 shadow-lg border border-white/15">
-                <p class="m-0 text-xs uppercase tracking-wide opacity-70">Selesai Hari Ini</p>
-                <p class="m-0 text-2xl font-black">{{ $teacher->completedToday ?? 0 }}</p>
-            </div>
-            <a href="{{ route('teacher.courses.create') }}"
-               class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-white text-slate-900 px-4 py-3 font-semibold shadow-lg transition hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-white">
-                <i class="fa-solid fa-circle-plus text-base"></i>
-                Tambah Course
-            </a>
-        </div>
-
+        
         <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
             <div class="rounded-2xl bg-white/10 border border-white/15 p-4 shadow-lg">
                 <p class="m-0 text-xs uppercase tracking-wide opacity-70">Course Aktif</p>
@@ -39,7 +28,14 @@
                 <p class="m-0 text-3xl font-black">{{ $summary['completed'] ?? 0 }}</p>
             </div>
         </div>
-
+        <div class="flex flex-wrap items-center justify-between gap-3">
+            <a href="{{ route('course.index') }}"
+               class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-white text-slate-900 px-4 py-3 font-semibold shadow-lg transition hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-white">
+                <i class="fa-solid fa-circle-plus text-base"></i>
+                Kelola Course
+            </a>
+        </div>
+        
         <div class="space-y-6">
             @forelse ($courses as $course)
                 @php
@@ -63,10 +59,6 @@
                 @endphp
                 <div class="space-y-4">
                     <div class="flex flex-wrap items-center gap-3">
-                        {{-- <button type="button" class="inline-flex items-center gap-2 rounded-lg border border-white/30 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white transition hover:-translate-y-0.5">
-                            <i class="fa-solid fa-comments text-base"></i>
-                            Forum Course
-                        </button> --}}
                     </div>
                     <div class="rounded-2xl border border-white/15 bg-white/10 p-6 shadow-2xl">
                         <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -105,33 +97,6 @@
                                 <i class="fa-solid fa-layer-group text-base"></i>
                                 Kelola Materi
                             </a>
-                        </div>
-
-                        <div class="mt-6 rounded-xl border border-white/10 bg-white/5 p-4">
-                            <div class="mb-3 flex items-center justify-between">
-                                <p class="m-0 text-sm font-semibold">Aktivitas Terbaru</p>
-                                <span class="text-xs uppercase tracking-widest opacity-70">Update</span>
-                            </div>
-                            <div class="divide-y divide-white/10">
-                                @forelse ($recentCompletes as $student)
-                                    <div class="flex items-center justify-between py-3">
-                                        <div class="flex items-center gap-3">
-                                            <div class="flex h-10 w-10 items-center justify-center rounded-full bg-white/15 text-sm font-bold text-white">
-                                                {{ strtoupper(substr($student['name'], 0, 1)) }}
-                                            </div>
-                                            <div>
-                                                <p class="m-0 font-semibold">{{ $student['name'] }}</p>
-                                                <p class="m-0 text-xs opacity-70">{{ $student['time'] }}</p>
-                                            </div>
-                                        </div>
-                                        <span class="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-semibold">
-                                            Progress {{ $student['score'] }}%
-                                        </span>
-                                    </div>
-                                @empty
-                                    <p class="m-0 text-sm opacity-70">Belum ada progres terbaru.</p>
-                                @endforelse
-                            </div>
                         </div>
                     </div>
                 </div>

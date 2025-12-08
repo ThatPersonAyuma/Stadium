@@ -9,7 +9,7 @@
     <form action="{{ route('profile.update') }}"
           method="POST"
           enctype="multipart/form-data"
-          class="bg-white/10 p-6 rounded-xl space-y-8 mt-5">
+          class="bg-white/10 p-6 !text-white rounded-xl space-y-8 mt-5">
 
         @csrf
         @method('PUT')
@@ -17,7 +17,7 @@
             <label class="font-semibold">Email</label>
             <input type="text"
                    name="role"
-                   class="w-full mt-2 p-3 bg-white/5 rounded-lg"
+                   class="w-full mt-2 p-3 !text-white  bg-white/5 rounded-lg"
                    value="{{ auth()->user()->role->value }}"
                    required>
         </div>
@@ -33,7 +33,7 @@
             <input type="file"
                    name="avatar"
                    accept="image/*"
-                   class="mt-1 bg-white/10 p-2 rounded w-full cursor-pointer">
+                   class="mt-1 bg-white/10 p-2 !text-white  rounded w-full cursor-pointer">
             <p class="text-xs text-white/60">Biarkan kosong jika tidak ingin mengubah avatar.</p>
         </div>
 
@@ -42,7 +42,7 @@
             <label class="font-semibold">Nama Lengkap</label>
             <input type="text"
                    name="fullname"
-                   class="w-full mt-2 p-3 bg-white/5 rounded-lg"
+                   class="w-full mt-2 p-3 !text-white  bg-white/5 rounded-lg"
                    value="{{ old('name', auth()->user()->name) }}"
                    required>
         </div>
@@ -52,7 +52,7 @@
             <label class="font-semibold">Email</label>
             <input type="email"
                    name="email"
-                   class="w-full mt-2 p-3 bg-white/5 rounded-lg"
+                   class="w-full mt-2 p-3 !text-white bg-white/5 rounded-lg"
                    value="{{ old('email', auth()->user()->email) }}"
                    required>
         </div>
@@ -62,7 +62,7 @@
             <label class="font-semibold">Username</label>
             <input type="text"
                    name="username"
-                   class="w-full mt-2 p-3 bg-white/5 rounded-lg"
+                   class="w-full mt-2 p-3 !text-white  bg-white/5 rounded-lg"
                    value="{{ old('username', auth()->user()->username) }}">
         </div>
 
@@ -74,7 +74,7 @@
                 <label class="font-semibold">Password Baru</label>
                 <input type="password"
                        name="password"
-                       class="w-full mt-2 p-3 bg-white/5 rounded-lg"
+                       class="w-full mt-2 p-3 !text-white bg-white/5 rounded-lg"
                        placeholder="Biarkan kosong jika tidak ingin mengubah">
             </div>
 
@@ -82,7 +82,7 @@
                 <label class="font-semibold">Konfirmasi Password</label>
                 <input type="password"
                        name="password_confirmation"
-                       class="w-full mt-2 p-3 bg-white/5 rounded-lg"
+                       class="w-full mt-2 p-3 !text-white  bg-white/5 rounded-lg"
                        placeholder="Ulangi password baru">
             </div>
         </div>

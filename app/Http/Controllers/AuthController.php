@@ -41,12 +41,7 @@ class AuthController extends Controller
         // Logic login sederhana
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
-            
-            if (Auth::user()->role==UserRole::STUDENT){
-                return redirect()->route('dashboard.index');
-            }else{
-                return redirect()->route('dashboard.teacher');
-            }
+            return redirect()->route('dashboard.index');
         }
         return back()->withErrors('Email atau password salah');
     }
@@ -214,5 +209,18 @@ class AuthController extends Controller
             'title' => 'Berhasil!',
             'message' => 'Profil berhasil diperbarui.'
         ]);
+    }
+    public function ProfileIndex()
+    {
+        $user = Auth::user();
+        switch ($user->role)
+            {
+                case UserRole::STUDENT:
+                    return view('profile.student');
+                case UserRole::TEACHER:
+                    return view('profile.teacher');
+                case UserRole::ADMIN:
+                    back()->withErrors('Akun tidak diterima, silakan buat akun lain');
+            }
     }
 }
