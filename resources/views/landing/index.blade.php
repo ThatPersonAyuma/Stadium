@@ -49,7 +49,7 @@
       <a href="/courses" class="btn-cta">Explore Courses</a>
     </div>
     <div class="feature-img">
-      <img src="{{ asset('images/interactive-courses.png') }}" alt="Interactive Courses Illustration">
+      <img src="{{ asset('images/women.png') }}" alt="Interactive Courses Illustration">
     </div>
   </div>
 </section>
@@ -75,6 +75,17 @@
     <div class="feature-img">
       <img src="{{ asset('images/heart.png') }}" alt=" Illustration">
     </div>
+  </div>
+</section>
+
+<section class="section-feature">
+  <div class="container grid grid-cols-1 md:grid-cols-2 items-center gap-10 md:gap-16">
+    <div class="feature-img">
+      <img src="{{ asset('images/quiz.png') }}" alt="Leaderboard Illustration">
+    </div>
+    <div class="feature-txt">
+      <h2>Quiz Battles </h2>
+      <p>Prove you're the smartest in the room! Challenge opponents in a Real-Time Battle. Watch the scores flip live and leave them in the dust!</p>
   </div>
 </section>
 
