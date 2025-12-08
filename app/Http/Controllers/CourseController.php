@@ -14,6 +14,8 @@ use Illuminate\Support\Facades\Schema;
 use App\Models\StudentContentProgress;
 use App\Models\Student;
 use App\Models\Content;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 
 class CourseController extends Controller
 {
@@ -29,17 +31,28 @@ class CourseController extends Controller
         ]);
     }
 
+    public function index()
+    {
+        $user = Auth::user();
+        if ($user->role == UserRole::STUDENT){
+            return $this->indexStudent();
+        }
+        if ($user->role == UserRole::TEACHER){
+            return $this->teacherIndex();
+        }
+        if ($user->role == UserRole::STUDENT){
+            return $this->indexStudent();
+        }
+    }
+
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function indexStudent()
     {
         $user = Auth::user();
         if ($user===NULL){
             return redirect()->route('login');;
-        }
-        if ($user->role == UserRole::TEACHER){
-            return redirect()->route('teacher.courses.index');
         }
         // $student = $user && $user->role === 'student'
             // ? $user
@@ -81,7 +94,7 @@ class CourseController extends Controller
         if ($user==NULL){
             return;
         }
-        $teacher = $user->teacher;
+        $teacher = $user->with('teacher')->first();
         $courses = Course::query()
             ->when($teacher, fn ($q) => $q->where('teacher_id', $teacher->id))
             ->withCount('lessons')
@@ -322,12 +335,7 @@ class CourseController extends Controller
             'title'       => 'required|string|max:255',
             'description' => 'nullable|string',
             'status'      => 'nullable|in:draft,pending,approved,revision,rejected,hidden,archived',
-            // 'teacher_id'  => 'nullable|integer|exists:users,id',
         ]);
-
-        // $teacherId = $validated['teacher_id']
-        //     ?? (Auth::check() ? Auth::id() : null)
-        //     ?? User::where('role', UserRole::TEACHER)->value('id');
         $user = Auth::user();
         if ($user===NULL){
             return redirect()->route('login');;
@@ -462,9 +470,8 @@ class CourseController extends Controller
         $totalContents = $course->contents()->count();
 
         $completedCount = StudentContentProgress::where('student_id', $student->id)
-            ->whereIn('content_id', $course->contents()->pluck('contents.id'));
-            // ->where('is_completed', true)
-            // ->count();
+            ->whereIn(DB::raw('content_id::int'), $course->contents()->pluck('contents.id')->toArray())->get();
+
         $contentCounted = $completedCount->count();
         $contentCountedCompleted = $completedCount->where('is_completed', true)->count();
         if ($totalContents>0){
@@ -472,9 +479,6 @@ class CourseController extends Controller
         }else{
             $percentage = 0;
         }
-        // $percentage = $totalContents > 0
-        //     ? round(($completedCount / $totalContents) * 100, 2)
-        //     : 0;
         if ($contentCountedCompleted > 0){
             if ($percentage==100){
                 $status = 'completed';
@@ -482,7 +486,9 @@ class CourseController extends Controller
                 $status = 'activity';
             }
         }else{
-            $status = 'new';
+            $x = $completedCount->count();
+            if ($x!=0)
+            {$status = 'activity';}else{$status = 'new';}
         }
         // $status = $contentCounted > 0
         //     ? 'new'

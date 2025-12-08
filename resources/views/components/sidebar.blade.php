@@ -1,3 +1,4 @@
+
 <div class="sidebar">
     <a href="{{ route('dashboard.index') }}"
        class="sidebar-item {{ request()->routeIs('dashboard.*') ? 'active' : '' }}">
@@ -13,6 +14,9 @@
     </a>
     <a href="{{ route('quiz.index') }}" class="sidebar-item {{ request()->routeIs('quiz.*') ? 'active' : '' }}">
         <img src="/assets/icons/sidebar-icons/pvp.png" class="icon" alt="PvP">
+    </a>
+    <a href="{{ route('profile.index') }}" class="sidebar-item {{ request()->is('profile*') ? 'active' : '' }}">
+        <img src="/assets/icons/sidebar-icons/profile.png" class="icon" alt="profile">
     </a>
     <form action="{{ route('logout') }}" method="POST" class="sidebar-item small-icon sidebar-bottom">
         @csrf

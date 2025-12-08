@@ -4,6 +4,8 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use App\Http\Middleware\AuthUser;
+use Illuminate\Console\Scheduling\Schedule;
+use App\Controllers\StudentController;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -21,3 +23,8 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withExceptions(function (Exceptions $exceptions): void {
         //
     })->create();
+    // ->withSchedule(function (Schedule $schedule) {
+    //     $schedule->call(function () {
+    //         StudentController::reset_heart();
+    //     })->daily();
+    // });

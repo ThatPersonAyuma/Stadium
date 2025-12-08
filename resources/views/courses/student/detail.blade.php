@@ -113,4 +113,17 @@
         </div>
     </div>
 </div>
+@if (session('status'))
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const status = @json(session('status'));
+        Swal.fire({
+            icon: status.type || 'info',
+            title: status.title || '',
+            text: status.message || '',
+            confirmButtonText: 'OK'
+        });
+    });
+</script>
+@endif
 @endsection

@@ -71,13 +71,13 @@ class QuizSeeder extends Seeder
         // ========================
         QuizParticipant::create([
             'quiz_id' => $quiz->id,
-            'participants_id' => 1,  // pastikan student id = 1 ada
+            'participant_id' => 1,  // pastikan student id = 1 ada
             'score' => 100,
         ]);
 
         QuizParticipant::create([
             'quiz_id' => $quiz->id,
-            'participants_id' => 2,  // pastikan student id = 2 ada
+            'participant_id' => 2,  // pastikan student id = 2 ada
             'score' => 80,
         ]);
     }

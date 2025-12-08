@@ -15,6 +15,7 @@ use App\Models\Quiz;
 use App\Models\QuizParticipant;
 use App\Models\QuizQuestion;
 use App\Models\QuizQuestionChoice;
+use App\Helpers\Utils;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
@@ -262,6 +263,24 @@ class QuizController extends Controller
             $quiz->save();
         }
         broadcast(new QuizEnd($validated['quiz_id']));
+        $participants = QuizParticipant::where('quiz_id', $quiz->id)
+            ->with('student')
+            ->orderByDesc('score')
+            ->get();
+
+        $maxXP = $quiz->max_experience;
+        $decay = 0.85; // <-- curve level (boleh diubah 0.80 - 0.95)
+
+        foreach ($participants as $i => $result) {
+            $rank = $i + 1;
+
+            // Curve distribution
+            $xp = intval($maxXP * pow($decay, $rank - 1));
+
+            // Update XP student
+            $student = $result->student;
+            Utils::add_exp_student($xp,$student->id);
+        }
         return response()->json(['status'=>'Ok'], 200);
     }
     public function OpenQuiz(Quiz $quiz)
@@ -336,7 +355,6 @@ class QuizController extends Controller
             return response()->json(['message' => 'Kode salah'], 200);
             // return abort(404, 'Quiz dengan kode tersebut tidak ditemukan.');
         }
-
         // if ($quiz->code !== $validated['quiz_code']) {
         //     return response()->json(['message' => 'Kode salah'], 200);
         // }
@@ -365,7 +383,7 @@ class QuizController extends Controller
         }
 
         // return 'baru join';
-        return redirect()->route('quiz.play', $quiz->id)
+        return view('quiz.quiz_running', ['quiz_id' => $quiz->id, 'is_finished' => $quiz->is_finished])
             ->with('success', 'Berhasil bergabung ke quiz');
     }
 
@@ -524,5 +542,22 @@ class QuizController extends Controller
             ->route('quiz.manage', $quiz->id)
             ->with('success', 'Pertanyaan berhasil ditambahkan!');
     }
-
+    public function GetScoreboard(Request $request)
+    {
+        $validated = $request->validate([
+            'quiz_id'    => 'required|integer|min:1',
+        ]);
+        return [
+            'scoreboard' => QuizParticipant::where('quiz_id', $validated['quiz_id'])
+                ->with('student.user')
+                ->orderByDesc('score')
+                ->get()
+                ->map(function ($p) {
+                    return [
+                        'username' => $p->student->user->username, 
+                        'score' => $p->score,
+                    ];
+                }),
+        ];
+    }
 }

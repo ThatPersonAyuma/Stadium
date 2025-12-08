@@ -24,10 +24,8 @@
                     <x-dashboard-header />
                 </div>
 
-                
-
-                <div class="hello-box">
-                    <img src="/assets/icons/mascotss.png" class="hello-mascot" alt="Mascot">
+                <div class="hello-box m-8">
+                    <img src="/assets/icons/mascotss.png" class="hello-mascot " alt="Mascot">
 
                     <div class="hello-text">
                         <h2 class="hello-title">Hello</h2>
@@ -86,19 +84,19 @@
                 <div class="leaderboard-container">
                     <div class="leader-podium">
                         <div class="podium podium-2">
-                            <img src="{{ $leaderboard[1]->avatar ?? '/assets/icons/mascotss.png' }}" class="podium-avatar">
+                            <img src="{{ asset(App\Helpers\FileHelper::getAvatarPath($leaderboard[1]->id)) ?? '/assets/icons/mascotss.png' }}" class="podium-avatar">
                             <span>{{ $leaderboard[1]->name ?? '-' }}</span>
                             <strong>{{ $leaderboard[1]->score ?? 0 }}</strong>
                         </div>
 
                         <div class="podium podium-1">
-                            <img src="{{ $leaderboard[0]->avatar ?? '/assets/icons/mascotss.png' }}" class="podium-avatar">
+                            <img src="{{ asset(App\Helpers\FileHelper::getAvatarPath($leaderboard[0]->id)) ?? '/assets/icons/mascotss.png' }}" class="podium-avatar">
                             <span>{{ $leaderboard[0]->name ?? '-' }}</span>
                             <strong>{{ $leaderboard[0]->score ?? 0 }}</strong>
                         </div>
 
                         <div class="podium podium-3">
-                            <img src="{{ $leaderboard[2]->avatar ?? '/assets/icons/mascotss.png' }}" class="podium-avatar">
+                            <img src="{{ asset(App\Helpers\FileHelper::getAvatarPath($leaderboard[2]->id)) ?? '/assets/icons/mascotss.png' }}" class="podium-avatar">
                             <span>{{ $leaderboard[2]->name ?? '-' }}</span>
                             <strong>{{ $leaderboard[2]->score ?? 0 }}</strong>
                         </div>

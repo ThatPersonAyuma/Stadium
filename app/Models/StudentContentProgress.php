@@ -17,6 +17,11 @@ class StudentContentProgress extends Model
             'is_completed',
             'completed_at',
     ];
+    
+    protected $casts = [
+        'is_completed' => 'boolean',
+        'completed_at' => 'datetime',
+    ];
 
     public $timestamps = false;
 

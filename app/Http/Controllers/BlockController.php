@@ -6,6 +6,7 @@ use App\Models\Block;
 use App\Models\Content;
 use Illuminate\Http\Request;
 use App\Helpers\FileHelper;
+use App\Helpers\Utils;
 use App\Enums\ContentType;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -447,7 +448,17 @@ class BlockController extends Controller
 
         // Jika heart habis (opsional)
         if ($remain_heart <= 0) {
-            // handle game over here
+            return response()->json([
+                'status'   => 'error',
+                'title'    => 'Heart habis!',
+                'message'  => 'Tidak bisa melanjutkan lesson.',
+                'redirect' => route('course.detail', $block->card->content->lesson->course->id)
+            ]);
+            return redirect()->route('course.detail', $block->card->content->lesson->course->id)->with('status', [
+                'type' => 'error',
+                'title' => 'Heart habis!',
+                'message' => 'Tidak bisa melanjutkan lesson.'
+            ]);
         }
 
         // Ambil list card dalam content tersebut
@@ -462,14 +473,26 @@ class BlockController extends Controller
     public function finish_content(Request $request)
     {
         $user = Auth::user();
-
         // validasi input
         $validated = $request->validate([
             'content_id' => 'required|integer|min:1',
         ]);
-
+        
         // Ambil content + lesson
         $content = Content::with('lesson')->findOrFail($validated['content_id']);
+        $progress1 = StudentContentProgress::where('student_id', $user->student->id)->where('content_id', $content->id)->first();
+        if ($progress1 != NULL)
+        {
+            if ($progress1->is_completed)
+            {
+                return response()->json([
+                    'status' => 'ok',
+                    'redirect' => route('course.detail', [
+                        'course'  => $content->lesson->course_id,
+                    ])
+                ]);
+            }
+        }
 
         // Tandai progres selesai
         StudentContentProgress::updateOrCreate(
@@ -482,7 +505,7 @@ class BlockController extends Controller
                 'completed_at' => now(),
             ]
         );
-
+        Utils::add_exp_student($content->experience, $user->student->id);
         // Beri redirect ke kembali ke halaman lesson.show
         return response()->json([
             'status' => 'ok',

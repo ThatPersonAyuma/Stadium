@@ -75,7 +75,7 @@
                 <p class="text-white/70">Mengambil data scoreboard...</p>
             </div>
 
-            <a href="{{ route('dashboard.student') }}" 
+            <a href="{{ route('dashboard.index') }}" 
             class="inline-block bg-blue-600 hover:bg-blue-500 text-white font-bold px-6 py-3 rounded-lg transition">
             Kembali
             </a>
@@ -90,7 +90,6 @@
 ============================ --}}
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    
     // ELEMENTS
     const el = {
         waiting: document.getElementById('waiting-section'),
@@ -108,7 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
         endLeaderboard: document.getElementById('endLeaderboard'),
     };
 
-    let quizId = {{ $quiz_id }};
+    const quizId = {{ $quiz_id }};
     let studentId = @json(auth()->user()->student->id);
     let myAnswer = "";
 
@@ -208,6 +207,21 @@ document.addEventListener('DOMContentLoaded', () => {
         let data = await res.json();
         console.log(data);
     }
+    async function getEndLeaderboard(id) {
+        let res = await fetch("{{ route('quiz.get-scoreboard') }}", {
+            method: 'POST',
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRF-TOKEN": "{{ csrf_token() }}"
+            },
+            body: JSON.stringify({
+                quiz_id: quizId,
+            })
+        });
+        let data = await res.json();
+        console.log(data);
+        renderEndLeaderboard(data.scoreboard);
+    }
 
     // LIVE LEADERBOARD
     function renderLeaderboard(items) {
@@ -240,7 +254,10 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
         });
     }
-
+    @if ($is_finished)
+        states.endQuiz();
+        getEndLeaderboard(quizId);
+    @endif
 });
 </script>
 @endsection

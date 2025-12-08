@@ -43,7 +43,7 @@
                     {{-- Avatar --}}
                     <div class="absolute -top-[140px] z-10">
                         <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-full border-4 border-gray-300 overflow-hidden bg-white/20 shadow-lg backdrop-blur-sm">
-                            <img src="{{ $topThree[1]->avatar ?? asset('assets/icons/mascotss.png') }}" class="w-full h-full object-cover">
+                            <img src="{{ asset(App\Helpers\FileHelper::getAvatarPath($topThree[1]->id)) ?? '/assets/icons/mascotss.png' }}" class="w-full h-full object-cover">
                         </div>
                     </div>
                     {{-- Gambar Podium --}}
@@ -64,7 +64,7 @@
                     {{-- Avatar --}}
                     <div class="absolute -top-[180px] z-10">
                         <div class="w-28 h-28 sm:w-36 sm:h-36 rounded-full border-4 border-[#EDB240] overflow-hidden bg-[#EDB240]/20 shadow-xl ring-4 ring-[#EDB240]/30 backdrop-blur-sm">
-                            <img src="{{ $topThree[0]->avatar ?? asset('assets/icons/mascotss.png') }}" class="w-full h-full object-cover">
+                            <img src="{{ asset(App\Helpers\FileHelper::getAvatarPath($topThree[0]->id)) ?? '/assets/icons/mascotss.png' }}" class="w-full h-full object-cover">
                         </div>
                     </div>
                     {{-- Gambar Podium --}}
@@ -85,7 +85,7 @@
                     {{-- Avatar --}}
                     <div class="absolute -top-[120px] z-10">
                         <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-4 border-orange-400 overflow-hidden bg-white/20 shadow-lg backdrop-blur-sm">
-                            <img src="{{ $topThree[2]->avatar ?? asset('assets/icons/mascotss.png') }}" class="w-full h-full object-cover">
+                            <img src="{{ asset(App\Helpers\FileHelper::getAvatarPath($topThree[2]->id)) ?? '/assets/icons/mascotss.png' }}" class="w-full h-full object-cover">
                         </div>
                     </div>
                     {{-- Gambar Podium --}}
@@ -106,51 +106,81 @@
              4. LIST KATEGORI (CUSTOM DESIGN KAMU - VERTIKAL)
              =============================================================== --}}
         <div class="grid gap-8 pb-10">
-            @foreach($categories as $title => $players)
-            <div class="bg-white/5 border border-white/10 rounded-3xl p-6 backdrop-blur-sm">
-                
-                {{-- Judul Kategori --}}
+            @foreach ($ranks as $rank)
+            <div 
+                class="bg-white/5 border border-white/10 rounded-3xl p-6 backdrop-blur-sm rank-section w-full"
+                data-rank-id="{{ $rank->id }}"
+                data-page="2"
+                data-loading="false"
+                id="rank-{{ $rank->id }}"
+            >
+
                 <h3 class="section-t2 text-2xl mb-4 text-[#EDB240] pl-2 border-l-4 border-[#EDB240]">
-                    {{ $title }}
+                    {{ $rank->title }}
                 </h3>
-                
-                {{-- List Player --}}
-                <div class="flex flex-col gap-3">
-                    @forelse($players as $player)
-                    <div class="recent-card !w-full !h-auto !flex-row !justify-start !gap-4 !py-3 !px-4 group cursor-pointer hover:bg-white/10 hover:translate-x-1 transition-all duration-300">
-                        {{-- Rank --}}
-                        <div class="flex flex-col items-center justify-center min-w-[40px]">
-                            <span class="font-heading text-xl text-white/40 group-hover:text-[#EDB240]">
-                                #{{ $loop->parent->index * 3 + $loop->iteration + 3 }}
-                            </span> 
-                        </div>
-                        {{-- Avatar --}}
-                        <div class="w-10 h-10 rounded-lg border border-white/20 overflow-hidden bg-white/10 shrink-0">
-                            <img src="{{ $player->avatar ?? asset('assets/icons/mascotss.png') }}" class="w-full h-full object-cover">
-                        </div>
-                        {{-- Nama --}}
-                        <div class="flex-1 flex flex-col justify-center overflow-hidden">
-                            <h4 class="recent-title text-base text-white font-bold truncate group-hover:text-[#4FB4F8] transition-colors">
-                                {{ $player->name }}
-                            </h4>
-                        </div>
-                        {{-- Score --}}
-                        <div class="shrink-0">
-                            <div class="bg-[#002872] border border-white/10 px-3 py-1.5 rounded-lg shadow-inner">
-                                <p class="font-mono font-bold text-[#EDB240] text-sm">{{ $player->score }} XP</p>
-                            </div>
-                        </div>
+
+                <!-- SCROLL CONTAINER -->
+                <div class="scroll-box max-h-96 overflow-y-auto w-full p-0 m-0">
+
+                    <div class="flex flex-col gap-3 rank-items w-full">
+                        @include('leaderboard.items', [
+                            'students' => $rankStudents[$rank->id]
+                        ])
                     </div>
-                    @empty
-                    <div class="text-center py-6 text-white/30 italic bg-black/20 rounded-xl">
-                        Belum ada player di kategori ini.
+
+                    <div class="rank-loader text-center py-3 text-white/40 italic bg-black/20 rounded-xl mt-4 hidden">
+                        Loading more {{ $rank->title }}...
                     </div>
-                    @endforelse
+
                 </div>
+
             </div>
             @endforeach
+
         </div>
 
     </div>
 </div>
 @endsection
+@push('scripts')
+<script>
+// =========================
+// LOAD MORE FUNCTION
+// =========================
+async function loadMore(rankSection) {
+    const rankId = rankSection.dataset.rankId;
+    const page = parseInt(rankSection.dataset.page);
+    const loading = rankSection.dataset.loading === "true";
+
+    if (loading) return;
+
+    rankSection.dataset.loading = "true";
+    rankSection.querySelector(".rank-loader").classList.remove("hidden");
+
+    const url = `/leaderboard/fetch?rank_id=${rankId}&page=${page}`;
+    const res = await fetch(url);
+    const data = await res.json();
+
+    rankSection.querySelector(".rank-items").insertAdjacentHTML("beforeend", data.html);
+    rankSection.querySelector(".rank-loader").classList.add("hidden");
+
+    if (data.next_page) {
+        rankSection.dataset.page = data.next_page;
+        rankSection.dataset.loading = "false";
+    }
+}
+
+// =========================
+// SCROLL DETECTOR
+// =========================
+document.querySelectorAll(".rank-section .scroll-box").forEach(scrollBox => {
+    scrollBox.addEventListener("scroll", () => {
+        const rankSection = scrollBox.closest(".rank-section");
+
+        if (scrollBox.scrollTop + scrollBox.clientHeight >= scrollBox.scrollHeight - 50) {
+            loadMore(rankSection);
+        }
+    });
+});
+</script>
+@endpush
