@@ -8,6 +8,7 @@ use App\Models\Teacher;
 use App\Models\Quiz;
 use App\Models\Student;
 use App\Enums\UserRole;
+use App\Enums\CourseStatus;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
@@ -269,67 +270,69 @@ class DashboardController extends Controller
 
             // 3. DUMMY LIST COURSE
             // Struktur: $c->teacher->user->name
-            $pendingCourses = collect([
-                (object)[
-                    'id' => 101,
-                    'title' => 'Mastering Laravel 11',
-                    'category' => 'Web Development',
-                    'created_at' => Carbon::now()->subHours(5),
-                    'teacher' => (object)[
-                        'user' => (object)[ 'name' => 'Prof. Sarah Wijaya' ]
-                    ]
-                ],
-                (object)[
-                    'id' => 102,
-                    'title' => 'Dasar-Dasar Kalkulus',
-                    'category' => 'Matematika',
-                    'created_at' => Carbon::now()->subDays(1),
-                    'teacher' => (object)[
-                        'user' => (object)[ 'name' => 'Dr. Budi Santoso' ]
-                    ]
-                ],
-                (object)[
-                    'id' => 103,
-                    'title' => 'Speaking for IELTS',
-                    'category' => 'Bahasa',
-                    'created_at' => Carbon::now()->subDays(3),
-                    'teacher' => (object)[
-                        'user' => (object)[ 'name' => 'Andi Pratama, M.Pd' ]
-                    ]
-                ]
-            ]);
+            $pendingCourses = Course::where('status', CourseStatus::PENDING)->get();
+            // $pendingCourses = collect([
+            //     (object)[
+            //         'id' => 101,
+            //         'title' => 'Mastering Laravel 11',
+            //         'category' => 'Web Development',
+            //         'created_at' => Carbon::now()->subHours(5),
+            //         'teacher' => (object)[
+            //             'user' => (object)[ 'name' => 'Prof. Sarah Wijaya' ]
+            //         ]
+            //     ],
+            //     (object)[
+            //         'id' => 102,
+            //         'title' => 'Dasar-Dasar Kalkulus',
+            //         'category' => 'Matematika',
+            //         'created_at' => Carbon::now()->subDays(1),
+            //         'teacher' => (object)[
+            //             'user' => (object)[ 'name' => 'Dr. Budi Santoso' ]
+            //         ]
+            //     ],
+            //     (object)[
+            //         'id' => 103,
+            //         'title' => 'Speaking for IELTS',
+            //         'category' => 'Bahasa',
+            //         'created_at' => Carbon::now()->subDays(3),
+            //         'teacher' => (object)[
+            //             'user' => (object)[ 'name' => 'Andi Pratama, M.Pd' ]
+            //         ]
+            //     ]
+            // ]);
 
             // 4. DUMMY LIST QUIZ
             // Struktur: $q->creator->user->name
-            $pendingQuizzes = collect([
-                (object)[
-                    'id' => 501,
-                    'title' => 'Ujian Tengah Semester Aljabar',
-                    'questions_count' => 25,
-                    'created_at' => Carbon::now()->subMinutes(45),
-                    'creator' => (object)[
-                        'user' => (object)[ 'name' => 'Dr. Budi Santoso' ]
-                    ]
-                ],
-                (object)[
-                    'id' => 502,
-                    'title' => 'Tes Vocabulary Level 1',
-                    'questions_count' => 50,
-                    'created_at' => Carbon::now()->subHours(6),
-                    'creator' => (object)[
-                        'user' => (object)[ 'name' => 'Andi Pratama, M.Pd' ]
-                    ]
-                ],
-                (object)[
-                    'id' => 503,
-                    'title' => 'Kuis Logika Pemrograman',
-                    'questions_count' => 10,
-                    'created_at' => Carbon::now()->subDays(2),
-                    'creator' => (object)[
-                        'user' => (object)[ 'name' => 'Prof. Sarah Wijaya' ]
-                    ]
-                ]
-            ]);
+            $pendingQuizzes = Quiz::where('status', CourseStatus::PENDING)->get();
+            // $pendingQuizzes = collect([
+            //     (object)[
+            //         'id' => 501,
+            //         'title' => 'Ujian Tengah Semester Aljabar',
+            //         'questions_count' => 25,
+            //         'created_at' => Carbon::now()->subMinutes(45),
+            //         'creator' => (object)[
+            //             'user' => (object)[ 'name' => 'Dr. Budi Santoso' ]
+            //         ]
+            //     ],
+            //     (object)[
+            //         'id' => 502,
+            //         'title' => 'Tes Vocabulary Level 1',
+            //         'questions_count' => 50,
+            //         'created_at' => Carbon::now()->subHours(6),
+            //         'creator' => (object)[
+            //             'user' => (object)[ 'name' => 'Andi Pratama, M.Pd' ]
+            //         ]
+            //     ],
+            //     (object)[
+            //         'id' => 503,
+            //         'title' => 'Kuis Logika Pemrograman',
+            //         'questions_count' => 10,
+            //         'created_at' => Carbon::now()->subDays(2),
+            //         'creator' => (object)[
+            //             'user' => (object)[ 'name' => 'Prof. Sarah Wijaya' ]
+            //         ]
+            //     ]
+            // ]);
 
             // Kirim semua data dummy ke View
         

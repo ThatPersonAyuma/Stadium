@@ -182,12 +182,27 @@
                                 </div>
                             </div>
                             <div class="flex gap-2">
-                                <button class="w-8 h-8 rounded-lg bg-green-500/20 text-green-400 hover:bg-green-500 hover:text-white transition-colors flex items-center justify-center">
-                                    <i class="fas fa-check text-xs"></i>
-                                </button>
-                                <button class="w-8 h-8 rounded-lg bg-slate-700/50 text-slate-400 hover:bg-slate-700 hover:text-white transition-colors flex items-center justify-center">
-                                    <i class="fas fa-eye text-xs"></i>
-                                </button>
+                                <form action="{{ route('admin.manajemen.course.action') }}" method="POST" class="flex items-center gap-2">
+                                    @csrf
+
+                                    <input
+                                        type="hidden"
+                                        name="course_id"
+                                        class="text-black"
+                                        value="{{ $course->id }}"
+                                        required
+                                    >
+                                    <button type="submit" 
+                                            name="status"
+                                            value="{{ App\Enums\CourseStatus::APPROVED }}"
+                                            class="w-8 h-8 rounded-lg bg-green-500/20 text-green-400 hover:bg-green-500 hover:text-white transition-colors flex items-center justify-center">
+                                        <i class="fas fa-check text-xs"></i>
+                                    </button>
+                                    <a href="{{ route('admin.manajemen-course.show', $course) }}" 
+                                        class="w-8 h-8 rounded-lg bg-slate-700/50 text-slate-400 hover:bg-slate-700 hover:text-white transition-colors flex items-center justify-center">
+                                        <i class="fas fa-eye text-xs"></i>
+                                    </a>
+                                </form>
                             </div>
                         </div>
                     @empty
@@ -224,16 +239,31 @@
                                 </div>
                                 <div>
                                     <h4 class="text-sm font-bold text-white group-hover:text-purple-400 transition-colors">{{ Str::limit($quiz->title, 20) }}</h4>
-                                    <p class="text-[10px] text-slate-400">{{ $quiz->questions_count ?? 0 }} Soal</p>
+                                    <p class="text-[10px] text-slate-400">{{ $quiz->questions->count() ?? 0 }} Soal</p>
                                 </div>
                             </div>
                             <div class="flex gap-2">
-                                <button class="w-8 h-8 rounded-lg bg-green-500/20 text-green-400 hover:bg-green-500 hover:text-white transition-colors flex items-center justify-center">
-                                    <i class="fas fa-check text-xs"></i>
-                                </button>
-                                <button class="w-8 h-8 rounded-lg bg-slate-700/50 text-slate-400 hover:bg-slate-700 hover:text-white transition-colors flex items-center justify-center">
-                                    <i class="fas fa-eye text-xs"></i>
-                                </button>
+                                <form action="{{ route('admin.manajemen.quiz.action') }}" method="POST" class="flex items-center gap-2">
+                                    @csrf
+
+                                    <input
+                                        type="hidden"
+                                        name="quiz_id"
+                                        class="text-black"
+                                        value="{{ $quiz->id }}"
+                                        required
+                                    >
+                                    <button type="submit" 
+                                            name="status"
+                                            value="{{ App\Enums\CourseStatus::APPROVED }}"
+                                            class="w-8 h-8 rounded-lg bg-green-500/20 text-green-400 hover:bg-green-500 hover:text-white transition-colors flex items-center justify-center">
+                                        <i class="fas fa-check text-xs"></i>
+                                    </button>
+                                    <a href="{{ route('admin.manajemen-quiz.show', $quiz) }}" 
+                                        class="w-8 h-8 rounded-lg bg-slate-700/50 text-slate-400 hover:bg-slate-700 hover:text-white transition-colors flex items-center justify-center">
+                                        <i class="fas fa-eye text-xs"></i>
+                                    </a>
+                                </form>
                             </div>
                         </div>
                     @empty
@@ -246,4 +276,19 @@
 
     </div>
 </div>
+@if (session()->has('success'))
+    @push('scripts')
+        <script>
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil',
+                text: "{{ session('success') }}",
+                timer: 2000,
+                showConfirmButton: false
+            }).then(() => {
+                window.location.reload();
+            });
+        </script>
+    @endpush
+@endif
 @endsection
