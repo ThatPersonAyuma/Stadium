@@ -25,24 +25,25 @@ class AuthController extends Controller
             'email' => 'required|email',
             'password' => 'required',
         ]);
-        $user = User::where('email', $credentials['email'])->first();
-        if ($user->role == UserRole::TEACHER)
-        {
-            switch ($user->teacher->status)
-            {
-                case AccountStatus::WAITING:
-                    return back()->withErrors('Akun masih diproses');
-                case AccountStatus::ACCEPTED:
-                    break;
-                case AccountStatus::REJECTED:
-                    return back()->withErrors('Akun tidak diterima, silakan buat akun lain');
-            }
-        }
         // Logic login sederhana
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
+            $user = User::where('email', $credentials['email'])->first();
+            if ($user->role == UserRole::TEACHER)
+            {
+                switch ($user->teacher->status)
+                {
+                    case AccountStatus::WAITING:
+                        return back()->withErrors('Akun masih diproses');
+                    case AccountStatus::ACCEPTED:
+                        break;
+                    case AccountStatus::REJECTED:
+                        return back()->withErrors('Akun tidak diterima, silakan buat akun lain');
+                }
+            }
             return redirect()->route('dashboard.index');
         }
+        
         return back()->withErrors('Email atau password salah');
     }
 
