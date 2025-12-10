@@ -130,14 +130,34 @@
                         </div>
 
                         {{-- Action Buttons --}}
-                        <div class="flex items-center gap-3">
-                            <button class="flex-1 h-11 rounded-xl bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 text-white text-xs font-black uppercase tracking-wider shadow-lg shadow-green-900/20 transition-all hover:scale-[1.02] flex items-center justify-center gap-2">
-                                <i class="fas fa-check"></i> Setujui
+                        <form action="{{ route('admin.manajemen.teachers.action') }}" method="POST" class="flex items-center gap-3">
+                            @csrf
+
+                            <input
+                                type="hidden"
+                                name="teacher_id"
+                                class="text-black"
+                                value="{{ $teacher->teacher->id }}"
+                                required
+                            >
+
+                            {{-- Tombol Setujui (Lebar) --}}
+                            <button
+                                type="submit"
+                                name="action"
+                                value="accepted"
+                                class="flex-1 h-11 rounded-xl bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 text-white text-xs font-black uppercase tracking-wider shadow-lg shadow-green-900/20 transition-all hover:scale-[1.02] flex items-center justify-center gap-2"
+                            >
+                                <i class="fas fa-check"></i>
+                                <span>Setujui</span>
                             </button>
-                            <button class="w-11 h-11 rounded-xl bg-[#1e293b] hover:bg-[#334155] border border-white/5 text-slate-400 hover:text-white transition-all flex items-center justify-center">
+
+                            {{-- Tombol Tolak (Fixed Size) --}}
+                            <a href="{{ route('admin.manajemen.teachers') }}"
+                                class="w-11 h-11 rounded-xl bg-[#1e293b] hover:bg-[#334155] border border-white/5 text-slate-400 hover:text-white transition-all flex items-center justify-center">
                                 <i class="fas fa-eye"></i>
-                            </button>
-                        </div>
+                            </a>
+                        </form>
                     </div>
                 @empty
                     <div class="col-span-full py-12 text-center border border-dashed border-white/10 rounded-3xl bg-white/5">

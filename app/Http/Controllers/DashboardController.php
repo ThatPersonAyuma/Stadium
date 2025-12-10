@@ -9,6 +9,7 @@ use App\Models\Quiz;
 use App\Models\Student;
 use App\Enums\UserRole;
 use App\Enums\CourseStatus;
+use App\Enums\AccountStatus;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
@@ -243,7 +244,14 @@ class DashboardController extends Controller
 
             // 2. DUMMY LIST TEACHER (Pura-pura ada di database)
             // Struktur object disesuaikan biar cocok sama View ($t->user->name)
-            $pendingTeachers = User::where('role', 'teacher')->latest()->get()->load('teacher');
+            $pendingTeachers = User::where('role', 'teacher')
+                ->with('teacher')
+                ->whereHas('teacher', function ($q) {
+                    $q->where('status', AccountStatus::WAITING);
+                })
+                ->latest()
+                ->get();
+
             // $pendingTeachers = collect([
             //     (object)[
             //         'id' => 1,
