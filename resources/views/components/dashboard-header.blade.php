@@ -14,7 +14,7 @@
     <h1 class="header-title">{{ $title }}</h1>
 
     <div class="header-icons flex items-center gap-4">
-        @if ($user->role == App\Enums\UserRole::STUDENT)
+        @if ($user?->role == App\Enums\UserRole::STUDENT)
             <div class="flex items-center justify-center rounded-lg shadow-lg $size $bgColor">
                 <span class="font-bold text-center text-sm md:text-base lg:text-lg {{ $textColor }}">
                     {{ $user->student->rank?->title }}
@@ -26,7 +26,7 @@
             </div>
         @endif
         <div class="icon-circle">
-            <img src="{{ asset(App\Helpers\FileHelper::getAvatarPath(Illuminate\Support\Facades\Auth::user()->id)) }}" alt="Profile">
+            <img src="{{ asset(App\Helpers\FileHelper::getAvatarPath(Illuminate\Support\Facades\Auth::user()?->id)) }}" alt="Profile">
         </div>
 
     </div>

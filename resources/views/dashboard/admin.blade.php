@@ -1,4 +1,4 @@
-@extends('layouts.dashboardadmin')
+@extends('layouts.dashboard')
 @section('title', 'Admin Dashboard')
 
 @section('content')
@@ -97,7 +97,7 @@
                     </div>
                 </div>
                 {{-- TOMBOL LIHAT SEMUA --}}
-                <a href="{{ route('admin.manajemen-teachers') }}" class="px-5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold text-white transition-all hover:scale-105">
+                <a href="{{ route('admin.manajemen.teachers') }}" class="px-5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold text-white transition-all hover:scale-105">
                     Lihat Semua
                 </a>
             </div>
@@ -109,7 +109,7 @@
                         {{-- Top Part --}}
                         <div class="flex justify-between items-start mb-6">
                             <div>
-                                <h3 class="text-lg font-bold text-white leading-tight group-hover:text-blue-400 transition-colors">{{ $teacher->user->name ?? 'Unknown' }}</h3>
+                                <h3 class="text-lg font-bold text-white leading-tight group-hover:text-blue-400 transition-colors">{{ $teacher->name ?? 'Unknown' }}</h3>
                                 <p class="text-xs font-medium text-slate-400 mt-1">{{ $teacher->expertise ?? 'Expertise N/A' }}</p>
                             </div>
                             <span class="px-3 py-1 rounded-full bg-yellow-500/10 border border-yellow-500/20 text-yellow-400 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5">
@@ -125,7 +125,7 @@
                             </div>
                             <div class="flex items-center gap-3 text-xs text-slate-400 font-medium">
                                 <i class="fas fa-calendar-alt text-slate-600 w-4"></i>
-                                <span>Tanggal: {{ $teacher->created_at->format('d/m/Y') }}</span>
+                                <span>Tanggal: {{  $teacher->created_at->format('d/m/Y') }}</span>
                             </div>
                         </div>
 

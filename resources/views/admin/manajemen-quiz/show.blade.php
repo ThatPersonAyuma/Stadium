@@ -1,4 +1,4 @@
-@extends('layouts.dashboardadmin')
+@extends('layouts.dashboard')
 @section('title', 'Review Quiz')
 
 @section('content')

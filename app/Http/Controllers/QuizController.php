@@ -398,7 +398,7 @@ class QuizController extends Controller
             $quizzes = Quiz::all()->where('creator_id', $teacher->id);
             return view('quiz.index', compact('quizzes'));
         }else if($user->role == UserRole::ADMIN){
-
+            return redirect()->route('admin.manajemen-quiz.index');
         }
     }
     public function TeacherMonitoring(Quiz $quiz)

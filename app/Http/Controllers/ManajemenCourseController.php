@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Course;
 use App\Models\Content;
+use App\Enums\CourseStatus;
 use Illuminate\Http\Request;
 
 class ManajemenCourseController extends Controller
@@ -18,6 +19,7 @@ class ManajemenCourseController extends Controller
         // Kita gunakan orderByRaw agar status 'pending' punya prioritas (muncul duluan)
         // CASE WHEN status = 'pending' THEN 0 ELSE 1 END -> Artinya pending dianggap angka 0 (kecil), sisanya 1 (besar)
         $courses = Course::with(['teacher.user', 'lessons'])
+            ->where('status', CourseStatus::PENDING->value)
             ->orderByRaw("CASE WHEN status = 'pending' THEN 0 ELSE 1 END") 
             ->latest() // Setelah dipisah pending/bukan, urutkan berdasarkan tanggal terbaru
             ->get();
@@ -106,5 +108,25 @@ class ManajemenCourseController extends Controller
         ]);
 
         return view('admin.manajemen-course.preview', compact('content'));
+    }
+    public function action(Request $request)
+    {
+        $request->validate([
+            'course_id' => 'required|integer',
+            'status'     => 'required|in:revision,rejected,approved'
+        ]);
+
+        $course = Course::find($request['course_id']);
+        if ($request->status === CourseStatus::APPROVED->value) {
+            $course->status = CourseStatus::APPROVED;
+        } else if($request->status === CourseStatus::REJECTED->value)
+        {
+            $course->status = CourseStatus::REJECTED;
+        }else if($request->status === CourseStatus::REVISION->value){
+            $course->status = CourseStatus::REVISION;
+        }
+        $course->save();
+
+        return back()->with('success', 'Status course berhasil diperbarui!');
     }
 }

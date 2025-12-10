@@ -242,29 +242,30 @@ class DashboardController extends Controller
 
             // 2. DUMMY LIST TEACHER (Pura-pura ada di database)
             // Struktur object disesuaikan biar cocok sama View ($t->user->name)
-            $pendingTeachers = collect([
-                (object)[
-                    'id' => 1,
-                    'expertise' => 'Matematika Murni',
-                    'experience_years' => 5,
-                    'created_at' => Carbon::now()->subHours(2),
-                    'user' => (object)[ 'name' => 'Dr. Budi Santoso' ]
-                ],
-                (object)[
-                    'id' => 2,
-                    'expertise' => 'Fisika Kuantum',
-                    'experience_years' => 8,
-                    'created_at' => Carbon::now()->subDays(1),
-                    'user' => (object)[ 'name' => 'Prof. Sarah Wijaya' ]
-                ],
-                (object)[
-                    'id' => 3,
-                    'expertise' => 'Sastra Inggris',
-                    'experience_years' => 3,
-                    'created_at' => Carbon::now()->subDays(2),
-                    'user' => (object)[ 'name' => 'Andi Pratama, M.Pd' ]
-                ],
-            ]);
+            $pendingTeachers = User::where('role', 'teacher')->latest()->get()->load('teacher');
+            // $pendingTeachers = collect([
+            //     (object)[
+            //         'id' => 1,
+            //         'expertise' => 'Matematika Murni',
+            //         'experience_years' => 5,
+            //         'created_at' => Carbon::now()->subHours(2),
+            //         'user' => (object)[ 'name' => 'Dr. Budi Santoso' ]
+            //     ],
+            //     (object)[
+            //         'id' => 2,
+            //         'expertise' => 'Fisika Kuantum',
+            //         'experience_years' => 8,
+            //         'created_at' => Carbon::now()->subDays(1),
+            //         'user' => (object)[ 'name' => 'Prof. Sarah Wijaya' ]
+            //     ],
+            //     (object)[
+            //         'id' => 3,
+            //         'expertise' => 'Sastra Inggris',
+            //         'experience_years' => 3,
+            //         'created_at' => Carbon::now()->subDays(2),
+            //         'user' => (object)[ 'name' => 'Andi Pratama, M.Pd' ]
+            //     ],
+            // ]);
 
             // 3. DUMMY LIST COURSE
             // Struktur: $c->teacher->user->name

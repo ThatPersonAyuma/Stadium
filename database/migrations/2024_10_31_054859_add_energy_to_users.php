@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::table('users', function (Blueprint $table) {
             $table->smallInteger('energy', false, true)->default(10);
             $table->smallInteger('key', false, true)->default(0);
-            $table->enum('role', ['student', 'teacher'])->default('student');
+            $table->enum('role', ['student', 'teacher', 'admin'])->default('student');
         });
     }
 

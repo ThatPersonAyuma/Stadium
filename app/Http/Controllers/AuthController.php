@@ -31,11 +31,11 @@ class AuthController extends Controller
             switch ($user->teacher->status)
             {
                 case AccountStatus::WAITING:
-                    back()->withErrors('Akun masih diproses');
+                    return back()->withErrors('Akun masih diproses');
                 case AccountStatus::ACCEPTED:
                     break;
                 case AccountStatus::REJECTED:
-                    back()->withErrors('Akun tidak diterima, silakan buat akun lain');
+                    return back()->withErrors('Akun tidak diterima, silakan buat akun lain');
             }
         }
         // Logic login sederhana
@@ -80,6 +80,8 @@ class AuthController extends Controller
             'email'    => $validated['email'],
             'password' => Hash::make($validated['password']),
             'role' => $validated['role'],
+            'created_at' => Carbon::now(),
+            'updated_at' => Carbon::now(),
         ]);
 
         $student = null;
@@ -183,6 +185,7 @@ class AuthController extends Controller
         $user->name = $validated['fullname'];
         $user->email = $validated['email'];
         $user->username = $validated['username'] ?? $user->username;
+        $user->updated_at = Carbon::now();
 
         if (!empty($validated['password'])) {
             $user->password = bcrypt($validated['password']);
@@ -220,7 +223,7 @@ class AuthController extends Controller
                 case UserRole::TEACHER:
                     return view('profile.teacher');
                 case UserRole::ADMIN:
-                    back()->withErrors('Akun tidak diterima, silakan buat akun lain');
+                    return view('profile.admin');
             }
     }
 }

@@ -1,4 +1,4 @@
-@extends('layouts.dashboardadmin')
+@extends('layouts.dashboard')
 @section('title', 'Manajemen Teacher')
 
 @section('content')
@@ -24,7 +24,7 @@
             style="background: linear-gradient(135deg, #002F87 0%, #000B21 100%);">
             <div class="relative z-10">
                 <p class="text-sm font-bold opacity-70 tracking-wider uppercase mb-1">Total Teachers</p>
-                <h2 class="text-4xl font-extrabold font-heading">{{ $teachers->count() }}</h2>
+                <h2 class="text-4xl font-extrabold font-heading">{{ $teachers->where('teacher.status', App\Enums\AccountStatus::ACCEPTED)->count() }}</h2>
             </div>
             {{-- Icon: fa-users --}}
             <i class="fas fa-users absolute -right-4 -bottom-4 text-8xl opacity-10 group-hover:scale-110 transition-transform"></i>
@@ -36,7 +36,7 @@
             style="background: linear-gradient(135deg, #EDB240 0%, #d97706 100%);">
             <div class="relative z-10">
                 <p class="text-sm font-bold opacity-80 tracking-wider uppercase mb-1 text-black/60">Need Approval</p>
-                <h2 class="text-4xl font-extrabold font-heading text-black">{{ $summary['pending'] ?? 0 }}</h2>
+                <h2 class="text-4xl font-extrabold font-heading text-black">{{ $teachers->where('teacher.status', App\Enums\AccountStatus::WAITING)->count()}}</h2>
             </div>
             {{-- Icon: fa-clock --}}
             <i class="fas fa-clock absolute -right-4 -bottom-4 text-8xl text-black opacity-10 group-hover:scale-110 transition-transform"></i>
@@ -47,8 +47,8 @@
         <div class="relative overflow-hidden rounded-3xl p-6 text-white shadow-lg group hover:-translate-y-1 transition-all duration-300"
             style="background: linear-gradient(135deg, #059669 0%, #047857 100%);">
             <div class="relative z-10">
-                <p class="text-sm font-bold opacity-70 tracking-wider uppercase mb-1">Approved</p>
-                <h2 class="text-4xl font-extrabold font-heading">{{ $summary['approved'] ?? 0 }}</h2>
+                <p class="text-sm font-bold opacity-70 tracking-wider uppercase mb-1">Rejcted</p>
+                <h2 class="text-4xl font-extrabold font-heading">{{ $teachers->where('teacher.status', App\Enums\AccountStatus::REJECTED)->count()}}</h2>
             </div>
             {{-- Icon: fa-check-circle --}}
             <i class="fas fa-check-circle absolute -right-4 -bottom-4 text-8xl opacity-10 group-hover:scale-110 transition-transform"></i>
@@ -67,7 +67,7 @@
                 </div>
                 <div>
                     <h3 class="text-2xl font-bold font-heading text-white">Daftar Pengajuan</h3>
-                    <p class="text-blue-200 text-sm">{{ count($teachers) }} pengajuan menunggu review</p>
+                    <p class="text-blue-200 text-sm">{{ $teachers->where('teacher.status', App\Enums\AccountStatus::WAITING)->count() }} pengajuan menunggu review</p>
                 </div>
             </div>
         </div>
@@ -75,7 +75,7 @@
         {{-- GRID TEACHER CARDS --}}
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full">
 
-            @forelse($teachers as $teacher)
+            @forelse($teachers->where('teacher.status', App\Enums\AccountStatus::WAITING) as $user)
                 {{-- CARD INDIVIDUAL (Darker Navy Background) --}}
                 <div class="bg-[#000B21] rounded-[2rem] p-6 border border-white/5 hover:border-blue-500/50 transition-all duration-300 group shadow-lg">
                     
@@ -85,7 +85,7 @@
                         <div class="shrink-0 flex flex-col gap-3">
                             <div class="w-20 h-20 rounded-2xl bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center shadow-lg transform group-hover:rotate-3 transition-transform">
                                 <span class="font-heading font-bold text-3xl text-white">
-                                    {{ substr($teacher->name, 0, 1) }}
+                                    {{ substr($user->name, 0, 1) }}
                                 </span>
                             </div>
                             {{-- Badge Pending --}}
@@ -99,32 +99,70 @@
                             
                             {{-- Nama & Jabatan --}}
                             <div class="mb-4">
-                                <h4 class="text-xl font-bold text-white mb-1 truncate">{{ $teacher->name }}</h4>
-                                <p class="text-slate-400 text-xs font-medium">{{ $teacher->email }}</p>
+                                <h4 class="text-xl font-bold text-white mb-1 truncate">{{ $user->name }}</h4>
+                                <p class="text-slate-400 text-xs font-medium">{{ $user->email }}</p>
                             </div>
 
                             {{-- Mini Stats / Info --}}
                             <div class="grid grid-cols-1 gap-2 mb-6">
                                 <div class="flex items-center gap-2 text-slate-500 text-xs">
                                     <i class="fas fa-user-tag w-4"></i>
-                                    <span>Username: {{ $teacher->username }}</span>
+                                    <span>Username: {{ $user->username }}</span>
+                                </div>
+                                <div class="flex items-center gap-3 text-xs text-slate-400 font-medium">
+                                    <i class="fas fa-calendar-alt text-slate-600 w-4"></i>
+                                    <span>Tanggal Pengajuan: {{ $user->created_at->format('d/m/Y') }}</span>
+                                </div>
+                                <div class="flex items-center gap-3 text-xs text-slate-400 font-medium">
+                                    <i class="fas fa-calendar-alt text-slate-600 w-4"></i>
+                                    <span>Phone Number: {{ $user->teacher->phone_number }}</span>
+                                </div>
+                                <div class="flex items-center gap-3 text-xs text-slate-400 font-medium">
+                                    <i class="fas fa-calendar-alt text-slate-600 w-4"></i>
+                                    <span>Institution: {{ $user->teacher->institution }}</span>
+                                </div>
+                                <div class="flex items-center gap-3 text-xs text-slate-400 font-medium">
+                                    <i class="fas fa-calendar-alt text-slate-600 w-4"></i>
+                                    <span>Social Media: {{ $user->teacher->social_media }} ({{ $user->teacher->social_media_type }}) </span>
                                 </div>
                             </div>
 
                             {{-- BUTTONS (Green Wide & Red Square) --}}
-                            <div class="mt-auto flex gap-3">
-                                {{-- Tombol Terima (Hijau Lebar - Solid) --}}
-                                <button class="flex-1 bg-[#10B981] hover:bg-[#059669] text-white py-3 rounded-xl font-bold text-sm shadow-lg shadow-green-900/20 transition-all flex items-center justify-center gap-2">
-                                    <i class="fas fa-check"></i>
-                                    <span>Setujui</span>
-                                </button>
+                            <div class="mt-auto flex justify-end">
+                                <form action="{{ route('admin.manajemen.teachers.action') }}" method="POST" class="flex items-center gap-2">
+                                    @csrf
 
-                                {{-- Tombol Tolak (Merah Kotak Kecil - Solid) --}}
-                                <button class="w-12 h-auto rounded-xl bg-[#DC2626] hover:bg-[#B91C1C] text-white flex items-center justify-center shadow-lg shadow-red-900/20 transition-all" title="Tolak">
-                                    <i class="fas fa-times text-lg"></i>
-                                </button>
+                                    <input
+                                        type="hidden"
+                                        name="teacher_id"
+                                        class="text-black"
+                                        value="{{ $user->teacher->id }}"
+                                        required
+                                    >
+
+                                    {{-- Tombol Setujui (Lebar) --}}
+                                    <button
+                                        type="submit"
+                                        name="action"
+                                        value="accepted"
+                                        class="px-6 h-12 bg-[#10B981] hover:bg-[#059669] text-white py-3 rounded-xl font-bold text-sm shadow-lg shadow-green-900/20 transition-all flex items-center justify-center gap-2"
+                                    >
+                                        <i class="fas fa-check"></i>
+                                        <span>Setujui</span>
+                                    </button>
+
+                                    {{-- Tombol Tolak (Fixed Size) --}}
+                                    <button
+                                        type="submit"
+                                        name="action"
+                                        value="rejected"
+                                        class="w-12 h-12 rounded-xl bg-[#DC2626] hover:bg-[#B91C1C] text-white flex items-center justify-center shadow-lg shadow-red-900/20 transition-all"
+                                        title="Tolak"
+                                    >
+                                        <i class="fas fa-times text-lg"></i>
+                                    </button>
+                                </form>
                             </div>
-
                         </div>
                     </div>
                 </div>
@@ -143,4 +181,19 @@
         </div>
     </div>
 </div>
+@if (session()->has('success'))
+    @push('scripts')
+        <script>
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil',
+                text: "{{ session('success') }}",
+                timer: 2000,
+                showConfirmButton: false
+            }).then(() => {
+                window.location.reload();
+            });
+        </script>
+    @endpush
+@endif
 @endsection

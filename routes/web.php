@@ -90,46 +90,39 @@ Route::post('/register', [AuthController::class, 'register'])->name('register.po
 Route::get('/dashboard', [DashboardController::class, 'student'])
     ->name('dashboard.index');
 
-Route::get('/student/dashboard', [DashboardController::class, 'student'])
-    ->name('dashboard.student');
+// Route::get('/student/dashboard', [DashboardController::class, 'student'])
+//     ->name('dashboard.student');
 
-Route::get('/leaderboard', [LeaderboardController::class, 'index'])
-    ->name('leaderboard.index');
+// Route::get('/admin/dashboard', [DashboardController::class, 'admin'])
+//     ->name('dashboard.admin');
 
-Route::resource('courses', CourseController::class);
-// Route::resource('quiz', QuizController::class);
-
-
-Route::get('/admin/dashboard', [DashboardController::class, 'admin'])
-    ->name('dashboard.admin');
-
-Route::get('/admin/manajemen-teacher', [ManajemenTeachersController::class, 'index'])
-    ->name('admin.manajemen-teachers');
 
 Route::prefix('admin')->name('admin.')->group(function () {
     
+    Route::get('/admin/manajemen-teacher', [ManajemenTeachersController::class, 'index'])
+        ->name('manajemen.teachers');
     // 1. Daftar (Index)
     Route::get('/manajemen-courses', [ManajemenCourseController::class, 'index'])
     ->name('manajemen-course.index');
-
+    
     // 2. Detail (Show)
     Route::get('/manajemen-courses/{course}', [ManajemenCourseController::class, 'show'])
     ->name('manajemen-course.show');
 
+    Route::post('/manajemen-courses/action', [ManajemenCourseController::class, 'action'])
+        ->name('manajemen.course.action');
+
     Route::get('/manajemen-courses/content/{content}', [ManajemenCourseController::class, 'previewContent'])
         ->name('manajemen-course.preview');
-});
 
-Route::prefix('admin')->name('admin.')->group(function () {
-    
-    // --- MANAJEMEN QUIZ ---
-    
-    // 1. Daftar Quiz
+    Route::post('/admin/manajemen-teacher/action', [ManajemenTeachersController::class, 'action'])
+        ->name('manajemen.teachers.action');
+
+
     Route::get('/manajemen-quiz', [ManajemenQuizController::class, 'index'])->name('manajemen-quiz.index');
-    
+    Route::post('/manajemen-quiz/action', [ManajemenQuizController::class, 'action'])->name('manajemen.quiz.action');
     // 2. Detail / Review Quiz
     Route::get('/manajemen-quiz/{id}', [ManajemenQuizController::class, 'show'])->name('manajemen-quiz.show');
-    
 });
 
 // Route::resource('quiz', QuizController::class);

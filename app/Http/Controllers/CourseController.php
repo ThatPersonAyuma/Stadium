@@ -40,8 +40,8 @@ class CourseController extends Controller
         if ($user->role == UserRole::TEACHER){
             return $this->teacherIndex();
         }
-        if ($user->role == UserRole::STUDENT){
-            return $this->indexStudent();
+        if ($user->role == UserRole::ADMIN){
+            return redirect()->route('admin.manajemen-course.index');
         }
     }
 

@@ -1,4 +1,4 @@
-@extends('layouts.dashboardadmin')
+@extends('layouts.dashboard')
 @section('title', 'Manajemen Course')
 
 @section('content')
@@ -90,24 +90,44 @@
 
                     {{-- 3. TOMBOL AKSI (Muncul Terus) --}}
                     <div class="flex items-center gap-3 ml-auto pr-2">
-                        
+                        <form action="{{ route('admin.manajemen.course.action') }}" method="POST" class="flex items-center gap-2">
+                            @csrf
+
+                            <input
+                                type="hidden"
+                                name="course_id"
+                                class="text-black"
+                                value="{{ $course->id }}"
+                                required
+                            >
+                            <a href="{{ route('admin.manajemen-course.show', $course) }}" 
+                            class="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-sm font-bold transition-all border border-white/10">
+                                <i class="fas fa-eye mr-1"></i> Detail
+                            </a>
+                            <button type="submit" 
+                                    name="status"
+                                    value="{{ App\Enums\CourseStatus::REVISION }}"
+                                    class="px-4 py-2 rounded-xl bg-[#EDB240] hover:bg-[#0ed193] text-[#ffffff] text-sm font-bold shadow-lg hover:shadow-green-500/40 transition-all">
+                                <i class="fa-solid fa-circle-notch"></i> Revisi
+                            </button>
+                            <button type="submit" 
+                                    name="status"
+                                    value="{{ App\Enums\CourseStatus::REJECTED }}"
+                                    class="px-4 py-2 rounded-xl bg-red-600/90 hover:bg-red-600 text-white text-sm font-bold shadow-lg hover:shadow-red-500/30 transition-all">
+                                <i class="fas fa-times"></i> Tolak
+                            </button>
+    
+                            {{-- Tombol Terima (Visual) --}}
+                            <button type="submit" 
+                                    name="status"
+                                    value="{{ App\Enums\CourseStatus::APPROVED }}"
+                                    class="px-4 py-2 rounded-xl bg-[#10b981] hover:bg-[#0ed193] text-[#ffffff] text-sm font-bold shadow-lg hover:shadow-green-500/40 transition-all">
+                                <i class="fas fa-check mr-1"></i> Terima
+                            </button>
+                        </form>
                         {{-- Tombol Detail --}}
-                        <a href="{{ route('admin.manajemen-course.show', $course) }}" 
-                        class="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-sm font-bold transition-all border border-white/10">
-                            <i class="fas fa-eye mr-1"></i> Detail
-                        </a>
 
                         {{-- Tombol Tolak (Visual) --}}
-                        <button type="button" 
-                                class="px-4 py-2 rounded-xl bg-red-600/90 hover:bg-red-600 text-white text-sm font-bold shadow-lg hover:shadow-red-500/30 transition-all">
-                            <i class="fas fa-times"></i>
-                        </button>
-
-                        {{-- Tombol Terima (Visual) --}}
-                        <button type="button" 
-                                class="px-4 py-2 rounded-xl bg-[#10b981] hover:bg-[#0ed193] text-[#ffffff] text-sm font-bold shadow-lg hover:shadow-green-500/40 transition-all">
-                            <i class="fas fa-check mr-1"></i> Terima
-                        </button>
 
                     </div>
                 </div>
@@ -120,4 +140,19 @@
         </div>
     </div>
 </div>
-@endsection
+@if (session()->has('success'))
+@push('scripts')
+<script>
+    Swal.fire({
+        icon: 'success',
+        title: 'Berhasil',
+        text: "{{ session('success') }}",
+        timer: 2000,
+        showConfirmButton: false
+    }).then(() => {
+        window.location.reload();
+    });
+    </script>
+    @endpush
+@endif
+    @endsection

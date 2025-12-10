@@ -1,4 +1,4 @@
-@extends('layouts.dashboardadmin')
+@extends('layouts.dashboard')
 @section('title', 'Admin Dashboard')
 
 @section('content')
@@ -86,10 +86,12 @@
                         <div class="flex-1 min-w-0 flex flex-col">
                             <div class="mb-6">
                                 <div class="flex flex-wrap items-center gap-3 mb-3">
-                                    @if($quiz->status == 'pending')
+                                    @if($quiz->status == App\Enums\CourseStatus::PENDING)
                                         <span class="px-3 py-1 rounded-lg text-[10px] font-black uppercase bg-[#EA580C]/20 text-[#EA580C] border border-[#EA580C]/30 tracking-wider">Pending</span>
-                                    @elseif($quiz->status == 'approved')
+                                    @elseif($quiz->status == App\Enums\CourseStatus::APPROVED)
                                         <span class="px-3 py-1 rounded-lg text-[10px] font-black uppercase bg-[#0F9D58]/20 text-[#0F9D58] border border-[#0F9D58]/30 tracking-wider">Active</span>
+                                    @elseif($quiz->status == App\Enums\CourseStatus::REVISION)
+                                        <span class="px-3 py-1 rounded-lg text-[10px] font-black uppercase bg-[#EDB240]/20 text-[#0F9D58] border border-[#0F9D58]/30 tracking-wider">REVISION</span>
                                     @else
                                         <span class="px-3 py-1 rounded-lg text-[10px] font-black uppercase bg-[#DC2626]/20 text-[#DC2626] border border-[#DC2626]/30 tracking-wider">Rejected</span>
                                     @endif
@@ -103,27 +105,39 @@
 
                             {{-- Footer Card (Action Buttons) --}}
                             <div class="mt-auto flex items-center gap-3 pt-6 border-t border-white/5">
-                                
-                                {{-- Tombol Detail --}}
-                                <a href="{{ route('admin.manajemen-quiz.show', $quiz->id) }}" class="flex-1 h-12 rounded-xl bg-white/5 hover:bg-white/10 text-white text-xs font-bold uppercase tracking-wider transition-all border border-white/5 flex items-center justify-center gap-2 group/btn">
-                                    <i class="fas fa-eye text-blue-400 group-hover/btn:text-white transition-colors"></i>
-                                    <span>Review</span>
-                                </a>
-
-                                {{-- Tombol Tolak --}}
-                                <form>
+                                <form action="{{ route('admin.manajemen.quiz.action') }}" method="POST" class="flex items-center gap-2">
                                     @csrf
-                                    <button type="submit" class="w-12 h-12 rounded-xl bg-[#DC2626]/10 border border-[#DC2626]/30 text-[#DC2626] hover:bg-[#DC2626] hover:text-white flex items-center justify-center transition-all shadow-lg hover:shadow-red-500/30" title="Tolak">
-                                        <i class="fas fa-times text-lg"></i>
+
+                                    <input
+                                        type="hidden"
+                                        name="quiz_id"
+                                        class="text-black"
+                                        value="{{ $quiz->id }}"
+                                        required
+                                    >
+                                    <a href="{{ route('admin.manajemen-quiz.show', $quiz->id) }}"  class="flex-1 h-12 rounded-xl bg-white/5 hover:bg-white/10 text-white text-xs font-bold uppercase tracking-wider transition-all border border-white/5 flex items-center justify-center gap-2 group/btn">
+                                        <i class="fas fa-eye text-blue-400 group-hover/btn:text-white transition-colors"></i>
+                                        <span>Review</span>
+                                    </a>
+                                    <button type="submit" 
+                                            name="status"
+                                            value="{{ App\Enums\CourseStatus::REVISION }}"
+                                            class="px-4 py-3 rounded-xl bg-[#EDB240] hover:bg-[#0ed193] text-[#ffffff] text-sm font-bold shadow-lg hover:shadow-green-500/40 transition-all">
+                                        <i class="fa-solid fa-circle-notch"></i> Revisi
                                     </button>
-                                </form>
-
-                                {{-- Tombol Terima --}}
-                                <form>
-                                    @csrf
-                                    <button type="submit" class="px-6 h-12 rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-400 hover:to-emerald-500 text-white text-xs font-black uppercase tracking-wider transition-all shadow-lg hover:shadow-green-500/30 flex items-center justify-center gap-2 transform hover:-translate-y-0.5">
-                                        <i class="fas fa-check text-lg"></i>
-                                        <span>Terima</span>
+                                    <button type="submit" 
+                                            name="status"
+                                            value="{{ App\Enums\CourseStatus::REJECTED }}"
+                                            class="w-12 h-12 rounded-xl bg-[#DC2626]/10 border border-[#DC2626]/30 text-[#DC2626] hover:bg-[#DC2626] hover:text-white flex items-center justify-center transition-all shadow-lg hover:shadow-red-500/30" title="Tolak">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+            
+                                    {{-- Tombol Terima (Visual) --}}
+                                    <button type="submit" 
+                                            name="status"
+                                            value="{{ App\Enums\CourseStatus::APPROVED }}"
+                                            class="px-4 py-3 rounded-xl bg-[#10b981] hover:bg-[#0ed193] text-[#ffffff] text-sm font-bold shadow-lg hover:shadow-green-500/40 transition-all">
+                                        <i class="fas fa-check mr-1"></i> Terima
                                     </button>
                                 </form>
 
@@ -143,4 +157,19 @@
         </div>
     </div>
 </div>
+@if (session()->has('success'))
+    @push('scripts')
+        <script>
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil',
+                text: "{{ session('success') }}",
+                timer: 2000,
+                showConfirmButton: false
+            }).then(() => {
+                window.location.reload();
+            });
+        </script>
+    @endpush
+@endif
 @endsection

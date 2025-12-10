@@ -30,6 +30,8 @@ class User extends Authenticatable
         'password',
         'avatar_filename',
         'role',
+        'created_at',
+        'updated_at'
     ];
     protected $casts = [
         'role' => UserRole::class,
