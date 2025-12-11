@@ -77,7 +77,7 @@
 const resourceUrlPrefix = "{{ asset(App\Helpers\FileHelper::getBlockUrlPath($courseId, $lesson->id, $contentId)) }}";
 
 document.addEventListener("DOMContentLoaded", () => {
-    const FINISH_URL = "{{ route('finish-content') }}";
+    const FINISH_URL = "{{ route('content.finish') }}";
     const content_id = {{ $contentId }};
     const el = id => document.getElementById(id);
 
@@ -338,7 +338,13 @@ ${escapeHtml(data.code)}
         const data = await res.json();
 
         if (data.status === "ok") {
-            window.location.href = data.redirect ?? window.location.href;
+            handleExpGain(
+                data.exp_before,
+                data.exp_gain,
+                data.rank.old_rank_name ?? data.rank.old_rank,
+                data.rank.new_rank_name ?? data.rank.new_rank,
+                data.redirect
+            );
         }
     }
 
@@ -363,6 +369,37 @@ ${escapeHtml(data.code)}
             hpEl.textContent = hp;
         }
     }
+    function handleExpGain(expBefore, expGained, oldRank, newRank, redirectUrl) {
+
+        Swal.fire({
+            icon: 'success',
+            title: 'EXP Bertambah!',
+            html: `Kamu mendapatkan <b>${expGained} EXP</b> 🎉`,
+            confirmButtonText: 'OK'
+        }).then(() => {
+
+            // Jika rank-up
+            if (newRank !== oldRank) {
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Rank UP!',
+                    html: `
+                        Rank kamu naik dari <b>${oldRank}</b> ➜ 
+                        <b>${newRank}</b> 🔥
+                    `,
+                    confirmButtonText: 'Lanjut'
+                }).then(() => {
+                    window.location.href = redirectUrl; // ⬅️ Redirect dari server
+                });
+
+            } else {
+                // Jika tidak rank up → langsung redirect
+                window.location.href = redirectUrl;
+            }
+
+        });
+    }
+
 });
 </script>
 

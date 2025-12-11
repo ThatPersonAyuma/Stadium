@@ -29,9 +29,6 @@ Route::get('/register/student', fn () => view('auth.register'))->name('register.
 Route::get('/register/teacher', fn () => view('auth.register-teacher'))->name('register.teacher');
 Route::post('/register', [AuthController::class, 'register'])->name('register.post');
 
-Route::get('/dashboard', [DashboardController::class, 'student'])
-    ->name('dashboard.index');
-
 Route::prefix('admin')->name('admin.')->group(function () {
     
     Route::get('/admin/manajemen-teacher', [ManajemenTeachersController::class, 'index'])
@@ -132,10 +129,10 @@ Route::get('/blocks', [BlockController::class, 'index'])->name('blocks.index');
 Route::get('/blocks/{block}', [BlockController::class, 'show'])->name('blocks.show');
 /* #endregion */
 Route::middleware(['auth', 'role:student'])->group(function () {
+    Route::post('/lesson/finish', [BlockController::class, 'finish_content'])->name('content.finish');
     Route::get('/course/{course}', [CourseController::class, 'detail'])->name('course.detail');
     Route::get('/course/{course}/lesson/{lesson}/content/{content}', [LessonController::class, 'play'])->name('lesson.show');
     Route::prefix('quiz')->name('quiz.')->group(function () {
-        Route::get('/test', fn () => 'OK STUDENT');
         Route::post('/register', [QuizController::class, 'studentJoin'])->name('post-register');
         Route::post('/post-answer', [QuizController::class, 'HandleAnswer'])->name('answer');
         Route::post('/get-scoreboard', [QuizController::class, 'GetScoreboard'])->name('get-scoreboard');

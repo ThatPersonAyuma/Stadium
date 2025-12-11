@@ -34,4 +34,8 @@ class Student extends Model
     {
         return $this->belongsTo(Rank::class);
     }
+    public function quiz_participants()
+    {
+        return $this->hasMany(QuizParticipant::class);
+    }
 }

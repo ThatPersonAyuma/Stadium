@@ -505,13 +505,18 @@ class BlockController extends Controller
                 'completed_at' => now(),
             ]
         );
-        Utils::add_exp_student($content->experience, $user->student->id);
+        $old_exp = $user->student->experience;
+        $rank = Utils::add_exp_student($content->experience, $user->student->id);
         // Beri redirect ke kembali ke halaman lesson.show
+        // return redirect()->route('course.detail', ['course'  => $content->lesson->course_id])->with(['rank' => $rank, 'exp_gain' => $content->experience, 'exp_before' => $old_exp]);
         return response()->json([
             'status' => 'ok',
             'redirect' => route('course.detail', [
                 'course'  => $content->lesson->course_id,
-            ])
+            ]), 
+            'rank' => $rank,
+            'exp_gain' => $content->experience,
+            'exp_before' => $old_exp,
         ]);
     }
 }

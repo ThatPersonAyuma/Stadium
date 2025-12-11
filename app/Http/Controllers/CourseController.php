@@ -221,7 +221,7 @@ class CourseController extends Controller
         }
 
         return redirect()
-            ->route('teacher.courses.index')
+            ->route('courses.index')
             ->with('status', 'Course berhasil dihapus.');
     }
 

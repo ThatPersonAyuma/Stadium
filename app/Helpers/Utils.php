@@ -26,13 +26,18 @@ class Utils
                     })
                     ->orderBy('min_xp', 'desc')
                     ->first();
-
+        $oldRank = $student->rank;
         if ($newRank && $student->rank_id !== $newRank->id) {
             $student->rank_id = $newRank->id;
         }
 
         $student->save();
-
+        return [
+            'old_rank'      => $oldRank->id,
+            'old_rank_name' => $oldRank->title,
+            'new_rank'      => $newRank->id,
+            'new_rank_name' => $newRank->title,
+        ];
     }
 
     /**

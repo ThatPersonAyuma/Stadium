@@ -279,6 +279,8 @@ class QuizController extends Controller
 
             // Update XP student
             $student = $result->student;
+            $result->experience_got = $xp;
+            $result->save();
             Utils::add_exp_student($xp,$student->id);
         }
         return response()->json(['status'=>'Ok'], 200);

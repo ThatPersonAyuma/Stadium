@@ -75,7 +75,7 @@
                 <p class="text-white/70">Mengambil data scoreboard...</p>
             </div>
 
-            <a href="{{ route('dashboard.index') }}" 
+            <a href="{{ route('quiz.index') }}" 
             class="inline-block bg-blue-600 hover:bg-blue-500 text-white font-bold px-6 py-3 rounded-lg transition">
             Kembali
             </a>
@@ -109,6 +109,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const quizId = {{ $quiz_id }};
     let studentId = @json(auth()->user()->student->id);
+    let studentUsername = @json(auth()->user()->username);
     let myAnswer = "";
 
     // STATE MANAGER
@@ -166,6 +167,7 @@ document.addEventListener('DOMContentLoaded', () => {
         .listen('.quiz.ended', (e) => {
             states.endQuiz();
             renderEndLeaderboard(e.scoreboard);
+            handleExpGain(e.scoreboard);
         });
 
 
@@ -254,6 +256,45 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
         });
     }
+    function handleExpGain(items) {
+        let storedP = null;
+        items.forEach((p) => {
+            if (p.username === studentUsername) {
+                storedP = p;
+            }
+        });
+        if (!storedP) {
+            console.error("User tidak ditemukan dalam scoreboard.");
+            return;
+        }
+        const expBefore = storedP.experience - storedP.experience_got;
+        const expGained = storedP.experience_got;
+        const expAfter = storedP.experience;
+        const oldRank = storedP.rank_before;
+        const newRank = storedP.rank_after;
+        Swal.fire({
+            icon: 'success',
+            title: 'EXP Bertambah!',
+            html: `Kamu mendapatkan <b>${expGained} EXP</b> 🎉`,
+            showConfirmButton: true,
+            confirmButtonText: "OK"
+        }).then(() => {
+            if (storedP.rank_up) {
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Rank UP!',
+                    html: `
+                        Rank kamu naik dari 
+                        <b>${oldRank}</b> ➜ <b>${newRank}</b> 🔥
+                    `,
+                    showConfirmButton: true,
+                    confirmButtonText: "OK"
+                });
+            }
+        });
+        return { expAfter, newRank };
+    }
+
     @if ($is_finished)
         states.endQuiz();
         getEndLeaderboard(quizId);
