@@ -256,7 +256,6 @@ class QuizController extends Controller
         ]);
         $quiz = Quiz::findOrFail($validated['quiz_id']);
         if (!($quiz->is_finished)){
-            $quiz->code = NULL;
             $quiz->is_finished = true;
             $quiz->save();
         }   
