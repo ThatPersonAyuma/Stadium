@@ -74,8 +74,6 @@ Route::middleware('auth')->group(function () { // dont fotget you must have rout
         ->name('dashboard.index');
 });
 Route::middleware(['auth', 'role:teacher'])->group(function () {
-    // Route::get('/teacher/dashboard', [DashboardController::class, 'teacher'])
-    //     ->name('dashboard.teacher');
     /* #region resource*/
     Route::resource('courses', CourseController::class)->except(['index', 'show']);
     Route::resource('lessons', LessonController::class)->except(['index', 'show']);
@@ -84,9 +82,9 @@ Route::middleware(['auth', 'role:teacher'])->group(function () {
     Route::resource('blocks', BlockController::class)->except(['index', 'show']);
     /* #endregion */
     Route::prefix('teacher/courses')->name('teacher.courses.')->group(function () {
-        // Route::get('/', [CourseController::class, 'teacherIndex'])->name('index');
         Route::get('/create', [CourseController::class, 'teacherCreate'])->name('create');
         Route::get('/{course}/edit', [CourseController::class, 'teacherEdit'])->name('edit');
+        Route::get('/{course}/submit', [CourseController::class, 'teacherSubmit'])->name('submit');
         Route::get('/{course}/lessons/{lesson}', [CourseController::class, 'teacherLessonShow'])->name('lessons.show');
         Route::post('/{course}/lessons', [CourseController::class, 'teacherLessonStore'])->name('lessons.store');
         Route::patch('/{course}/lessons/{lesson}', [CourseController::class, 'teacherLessonUpdate'])->name('lessons.update');
@@ -95,9 +93,9 @@ Route::middleware(['auth', 'role:teacher'])->group(function () {
         Route::get('/{course}', [CourseController::class, 'teacherShow'])->name('show');
     });
     Route::prefix('quiz')->name('quiz.')->group(function () {
-        Route::get('/quiz', [QuizController::class, 'index'])->name('index');
         Route::get('/quiz/create', [QuizController::class, 'create'])->name('create');
         Route::put('/quiz/update/{quiz}', [QuizController::class, 'update'])->name('update');
+        Route::get('/quiz/submit/{quiz}', [QuizController::class, 'submit'])->name('submit');
         Route::post('/quiz/store', [QuizController::class, 'store'])->name('store');
         Route::delete('/{quiz}/delete', [QuizController::class, 'delete'])->name('delete');
         Route::get('/monitoring/{quiz}', [QuizController::class, 'TeacherMonitoring'])->name('monitoring');

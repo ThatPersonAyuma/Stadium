@@ -54,26 +54,31 @@ class CourseController extends Controller
         if ($user===NULL){
             return redirect()->route('login');;
         }
-        // $student = $user && $user->role === 'student'
-            // ? $user
-            // : User::where('role', 'student')->first();
         $student = $user->student;
-        $courses = Course::all()->map(function ($course) use ($student) {
-                    $result = $this->getStudentCourseProgress($course, $student);
-                    $status = $result['status'] ?? 'new';
-                    $progress = $result['progress_percentage'] ?? 0;
-                    $cta = match ($status) {
-                        'completed' => 'Review Course',
-                        'activity'  => 'Continue Learning',
-                        default     => 'Start Learning',
-                    };
-                    $course->progress = $progress;
-                    $course->cta = $cta;
-                    $course->color = $course->color ?? '#1D4ED8';
-                    $course->title = $course->title ?? 'Course';
-                    $course->user_status = $status;
-                    return $course;
+        $courses = Course::where('status', CourseStatus::APPROVED)
+            ->get()
+            ->map(function ($course) use ($student) {
+
+                $progressData = $this->getStudentCourseProgress($course, $student);
+
+                $status   = $progressData['status'] ?? 'new';
+                $progress = $progressData['progress_percentage'] ?? 0;
+
+                $cta = match ($status) {
+                    'completed' => 'Review Course',
+                    'activity'  => 'Continue Learning',
+                    default     => 'Start Learning',
+                };
+
+                return tap($course, function ($c) use ($status, $progress, $cta) {
+                    $c->progress     = $progress;
+                    $c->cta          = $cta;
+                    $c->color        = $c->color ?? '#1D4ED8';
+                    $c->title        = $c->title ?? 'Course';
+                    $c->user_status  = $status;
                 });
+            });
+
 
         $summary = [
             'all'       => $courses->count(),
@@ -94,13 +99,13 @@ class CourseController extends Controller
         if ($user==NULL){
             return;
         }
-        $teacher = $user->with('teacher')->first();
+        $teacher = $user->teacher;
         $courses = Course::query()
             ->when($teacher, fn ($q) => $q->where('teacher_id', $teacher->id))
             ->withCount('lessons')
             ->latest()
             ->get();
-
+        Log::info($teacher);
         $summary = [
             'total'   => $courses->count(),
             'draft'   => $courses->where('status', CourseStatus::DRAFT)->count(),
@@ -509,5 +514,10 @@ class CourseController extends Controller
             'progress_percentage' => $percentage,
         ]);
     }
-
+    public function teacherSubmit(Course $course)
+    {
+        $course->status = CourseStatus::PENDING;
+        $course->save();
+        return back();
+    }
 }

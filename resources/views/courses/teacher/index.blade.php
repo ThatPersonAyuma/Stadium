@@ -70,7 +70,7 @@
                         @if($teacher ?? false)
                             <span class="inline-flex items-center gap-2">
                                 <i class="fa-solid fa-user text-white/80"></i>
-                                {{ $teacher->name ?? $teacher->username }}
+                                {{ $teacher->user->name ?? $teacher->user->username }}
                             </span>
                         @endif
                     </div>
@@ -80,11 +80,23 @@
                             <i class="fa-solid fa-eye"></i>
                             Detail Course
                         </a>
-                        <a href="{{ route('teacher.courses.edit', $course) }}"
-                           class="inline-flex items-center justify-center gap-2 rounded-lg border border-white/30 bg-white/10 px-3 py-2 text-sm font-semibold text-white transition hover:-translate-y-0.5">
-                            <i class="fa-solid fa-pen-to-square"></i>
-                            Edit Course
-                        </a>
+                        @if ($course->status == App\Enums\CourseStatus::DRAFT || $course->status == App\Enums\CourseStatus::REVISION )
+                            <a href="{{ route('teacher.courses.submit', $course) }}"
+                            class="inline-flex items-center justify-center gap-2 rounded-lg border border-white/30 bg-white/10 px-3 py-2 text-sm font-semibold text-white transition hover:-translate-y-0.5">
+                                <i class="fa-solid fa-arrow-up-from-bracket"></i>
+                                Ajukan Course
+                            </a>
+                            <a href="{{ route('teacher.courses.edit', $course) }}"
+                            class="inline-flex items-center justify-center gap-2 rounded-lg border border-white/30 bg-white/10 px-3 py-2 text-sm font-semibold text-white transition hover:-translate-y-0.5">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                                Edit Course
+                            </a>  
+                        @endif
+                        @if ($course->status == App\Enums\CourseStatus::PENDING)
+                            <div class="inline-flex items-center justify-center gap-2 rounded-lg border border-white/30 bg-[#f59e0b] px-3 py-2 text-sm font-semibold text-white transition hover:-translate-y-0.5">
+                                Menunggu Disetujui
+                            </div>
+                        @endif
                         <form action="{{ route('teacher.courses.destroy', $course) }}" method="POST" class="inline-flex" data-course-delete-form>
                             @csrf
                             @method('DELETE')

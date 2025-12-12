@@ -17,7 +17,7 @@ class ManajemenQuizController extends Controller
         // 1. Ambil semua quiz, urutkan dari yang terbaru
         // Gunakan 'with' untuk mengambil relasi creator (teacher) dan user-nya agar query ringan
         $quizzes = Quiz::with(['creator.user', 'questions'])
-            ->where('status', '!=', CourseStatus::DRAFT)
+            ->where('status', CourseStatus::PENDING)
             ->latest()
             ->get();
 

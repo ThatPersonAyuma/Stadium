@@ -11,6 +11,7 @@ use App\Events\AnswerSubmitted;
 use App\Events\QuizEnd;
 use Illuminate\Support\Facades\Auth;
 use App\Enums\UserRole;
+use App\Enums\CourseStatus;
 use App\Models\Quiz;
 use App\Models\QuizParticipant;
 use App\Models\QuizQuestion;
@@ -71,17 +72,13 @@ class QuizController extends Controller
         $quiz = Quiz::findOrFail($validated['quiz_id']);
         $quiz->running_index = $validated['quiz_order'];
         $quiz->save();
-        // 1. Ambil question berdasarkan quiz_id + order_index
         $question = QuizQuestion::where('quiz_id', $validated['quiz_id'])
             ->where('order_index', $validated['quiz_order'])
             ->firstOrFail();
-
-        // 2. Ambil pilihan jawaban
         $choices = QuizQuestionChoice::where('question_id', $question->id)
             ->orderBy('label') // A, B, C, D
             ->get(['id', 'label', 'text']); // jangan kirim is_correct!
 
-        // 3. Format options ke array sederhana
         $options = $choices->map(function ($choice) {
             return [
                 'id' => $choice->id,
@@ -259,9 +256,10 @@ class QuizController extends Controller
         ]);
         $quiz = Quiz::findOrFail($validated['quiz_id']);
         if (!($quiz->is_finished)){
+            $quiz->code = NULL;
             $quiz->is_finished = true;
             $quiz->save();
-        }
+        }   
         broadcast(new QuizEnd($validated['quiz_id']));
         $participants = QuizParticipant::where('quiz_id', $quiz->id)
             ->with('student')
@@ -561,5 +559,11 @@ class QuizController extends Controller
                     ];
                 }),
         ];
+    }
+    public function submit(Quiz $quiz)
+    {
+        $quiz->status = CourseStatus::PENDING;
+        $quiz->save();
+        return back();
     }
 }
