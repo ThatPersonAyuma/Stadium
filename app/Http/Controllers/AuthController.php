@@ -14,6 +14,7 @@ use App\Enums\AccountStatus;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Log;
+use Carbon\Carbon;
 	
 
 class AuthController extends Controller
@@ -74,7 +75,7 @@ class AuthController extends Controller
             'social_media_type' => 'required_if:role,' . UserRole::TEACHER->value . '|nullable|string',
             'institution'       => 'required_if:role,' . UserRole::TEACHER->value . '|nullable|string',
         ]);
-
+        Log::info($request->all());
         $user = User::create([
             'username' => $validated['username'],
             'name' => $validated['fullname'],
@@ -87,7 +88,7 @@ class AuthController extends Controller
 
         $student = null;
         $teacher = null;
-        $redirectRoute = 'dashboard.student';
+        $redirectRoute = 'dashboard.index';
 
         if ($user->role === UserRole::TEACHER) {
             $teacher = Teacher::create([
@@ -98,7 +99,7 @@ class AuthController extends Controller
                 'institution'   =>$validated['institution'],
                 'status'        =>AccountStatus::WAITING,
             ]);
-            $redirectRoute = 'dashboard.teacher';
+            $redirectRoute = 'login';
         } else {
             $rank = Rank::where('min_xp', 0)->first();
             $student = Student::create([

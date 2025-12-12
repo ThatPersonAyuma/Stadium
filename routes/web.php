@@ -23,47 +23,33 @@ Route::get('/', function () {
 Route::get('/login', fn () => view('auth.login'))->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-
 Route::get('/register', fn () => view('auth.choose-role'))->name('register');
 Route::get('/register/student', fn () => view('auth.register'))->name('register.student');
 Route::get('/register/teacher', fn () => view('auth.register-teacher'))->name('register.teacher');
 Route::post('/register', [AuthController::class, 'register'])->name('register.post');
 
 Route::prefix('admin')->name('admin.')->group(function () {
-    
     Route::get('/admin/manajemen-teacher', [ManajemenTeachersController::class, 'index'])
         ->name('manajemen.teachers');
-    // 1. Daftar (Index)
     Route::get('/manajemen-courses', [ManajemenCourseController::class, 'index'])
     ->name('manajemen-course.index');
-    
-    // 2. Detail (Show)
     Route::get('/manajemen-courses/{course}', [ManajemenCourseController::class, 'show'])
     ->name('manajemen-course.show');
-
     Route::post('/manajemen-courses/action', [ManajemenCourseController::class, 'action'])
         ->name('manajemen.course.action');
-
     Route::get('/manajemen-courses/content/{content}', [ManajemenCourseController::class, 'previewContent'])
         ->name('manajemen-course.preview');
-
     Route::post('/admin/manajemen-teacher/action', [ManajemenTeachersController::class, 'action'])
         ->name('manajemen.teachers.action');
-
-
     Route::get('/manajemen-quiz', [ManajemenQuizController::class, 'index'])->name('manajemen-quiz.index');
     Route::post('/manajemen-quiz/action', [ManajemenQuizController::class, 'action'])->name('manajemen.quiz.action');
-    // 2. Detail / Review Quiz
     Route::get('/manajemen-quiz/{id}', [ManajemenQuizController::class, 'show'])->name('manajemen-quiz.show');
 });
 
 
-Route::middleware('auth')->group(function () { // dont fotget you must have route login
+Route::middleware('auth')->group(function () {
     Route::get('/leaderboard', [LeaderboardController::class, 'index'])
         ->name('leaderboard.index');
-    Route::get('/debug-session', function () {
-        return session()->all();
-    });
     Route::get('/quiz', [QuizController::class, 'ShowIndex'])->name('quiz.index');
     Route::get('/course', [CourseController::class, 'index'])->name('course.index');
     Route::get('/profile', [AuthController::class, 'ProfileIndex'])->name('profile.index');
@@ -72,15 +58,23 @@ Route::middleware('auth')->group(function () { // dont fotget you must have rout
     )->name('profile.update');
     Route::get('/dashboard', [DashboardController::class, 'dashboard'])
         ->name('dashboard.index');
+    Route::get('/courses', [CourseController::class, 'index'])->name('courses.index');
+    Route::get('/courses/{course}', [CourseController::class, 'show'])->name('courses.show');
+    Route::get('/lessons', [LessonController::class, 'index'])->name('lessons.index');
+    Route::get('/lessons/{lesson}', [LessonController::class, 'show'])->name('lessons.show');
+    Route::get('/contents', [ContentController::class, 'index'])->name('contents.index');
+    Route::get('/contents/{content}', [ContentController::class, 'show'])->name('contents.show');
+    Route::get('/cards', [CardController::class, 'index'])->name('cards.index');
+    Route::get('/cards/{card}', [CardController::class, 'show'])->name('cards.show');
+    Route::get('/blocks', [BlockController::class, 'index'])->name('blocks.index');
+    Route::get('/blocks/{block}', [BlockController::class, 'show'])->name('blocks.show');
 });
 Route::middleware(['auth', 'role:teacher'])->group(function () {
-    /* #region resource*/
     Route::resource('courses', CourseController::class)->except(['index', 'show']);
     Route::resource('lessons', LessonController::class)->except(['index', 'show']);
     Route::resource('contents', ContentController::class)->except(['index', 'show']);
     Route::resource('cards', CardController::class)->except(['index', 'show']);
     Route::resource('blocks', BlockController::class)->except(['index', 'show']);
-    /* #endregion */
     Route::prefix('teacher/courses')->name('teacher.courses.')->group(function () {
         Route::get('/create', [CourseController::class, 'teacherCreate'])->name('create');
         Route::get('/{course}/edit', [CourseController::class, 'teacherEdit'])->name('edit');
@@ -114,18 +108,6 @@ Route::middleware(['auth', 'role:teacher'])->group(function () {
     });
 
 });
-/* #region resource*/
-Route::get('/courses', [CourseController::class, 'index'])->name('courses.index');
-Route::get('/courses/{course}', [CourseController::class, 'show'])->name('courses.show');
-Route::get('/lessons', [LessonController::class, 'index'])->name('lessons.index');
-Route::get('/lessons/{lesson}', [LessonController::class, 'show'])->name('lessons.show');
-Route::get('/contents', [ContentController::class, 'index'])->name('contents.index');
-Route::get('/contents/{content}', [ContentController::class, 'show'])->name('contents.show');
-Route::get('/cards', [CardController::class, 'index'])->name('cards.index');
-Route::get('/cards/{card}', [CardController::class, 'show'])->name('cards.show');
-Route::get('/blocks', [BlockController::class, 'index'])->name('blocks.index');
-Route::get('/blocks/{block}', [BlockController::class, 'show'])->name('blocks.show');
-/* #endregion */
 Route::middleware(['auth', 'role:student'])->group(function () {
     Route::post('/lesson/finish', [BlockController::class, 'finish_content'])->name('content.finish');
     Route::get('/course/{course}', [CourseController::class, 'detail'])->name('course.detail');

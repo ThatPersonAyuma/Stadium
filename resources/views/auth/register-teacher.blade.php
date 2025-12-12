@@ -15,11 +15,11 @@
             <h3 class="form-label">Email</h3>
             <input type="email" name="email" placeholder="Please enter your email" class="text-black" required>
             <h3 class="form-label">Phone Number</h3>
-            <input type="tel" name="phone" placeholder="Please enter your phone number" class="text-black" required>
+            <input type="tel" name="phone_number" placeholder="Please enter your phone number" class="text-black" required>
             <h3 class="form-label">Institution</h3>
             <input type="text" name="institution" placeholder="Your current institution (university/school/company)" class="text-black" required>
             <h3 class="form-label">Social Media</h3>
-            <select name="social_platform" class="text-black" required>
+            <select name="social_media_type" class="text-black" required>
                 <option value="">Select platform</option>
                 <option value="instagram">Instagram</option>
                 <option value="github">GitHub</option>
@@ -27,7 +27,7 @@
                 <option value="other">Other</option>
             </select>
             <h3 class="form-label">Social Username / Link</h3>
-            <input type="text" name="social_handle" placeholder="Enter your username or profile link" class="text-black" required>
+            <input type="text" name="social_media" placeholder="Enter your username or profile link" class="text-black" required>
             <h3 class="form-label">Username</h3>
             <input type="text" name="username" placeholder="Please enter your username" class="text-black" required>
             <h3 class="form-label">Password</h3>

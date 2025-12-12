@@ -10,7 +10,6 @@ Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
 });
 
 Broadcast::channel('quiz.{quiz_id}', function ($user, $quiz_id) {
-
     switch ($user->role){
         case UserRole::STUDENT:
             $isParticipant = QuizParticipant::where('quiz_id', $quiz_id)
