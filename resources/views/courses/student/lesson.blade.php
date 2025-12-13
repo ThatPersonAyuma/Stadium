@@ -338,6 +338,10 @@ ${escapeHtml(data.code)}
         const data = await res.json();
 
         if (data.status === "ok") {
+            if(data.is_done){
+                window.location.href = data.redirect;
+                return;
+            }
             handleExpGain(
                 data.exp_before,
                 data.exp_gain,

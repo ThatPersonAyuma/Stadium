@@ -42,7 +42,7 @@
              style="background: linear-gradient(135deg, #059669 0%, #047857 100%);">
             <div class="relative z-10">
                 <p class="text-sm font-bold opacity-70 tracking-wider uppercase mb-1">Approved</p>
-                <h2 class="text-4xl font-extrabold font-heading">{{ $stats['approved'] ?? 0 }}</h2>
+                <h2 class="text-4xl font-extrabold font-heading">{{ $quizzes->where('status', App\Enums\CourseStatus::APPROVED)->count() ?? 0 }}</h2>
             </div>
             {{-- Icon: fa-check-double (Active) --}}
             <i class="fas fa-check-double absolute -right-4 -bottom-4 text-8xl opacity-10 group-hover:scale-110 transition-transform"></i>
@@ -66,7 +66,7 @@
 
         {{-- GRID LIST QUIZ --}}
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 w-full">
-            @forelse($quizzes as $quiz)
+            @forelse($quizzes->where('status', App\Enums\CourseStatus::PENDING)  as $quiz)
                 <div class="group relative bg-[#001E5C] rounded-[2.5rem] p-1 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl">
                     
                     {{-- Border Gradient Effect --}}

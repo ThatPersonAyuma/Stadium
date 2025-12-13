@@ -25,6 +25,6 @@ class AppServiceProvider extends ServiceProvider
 
         $schedule->call(function () {
             StudentController::reset_heart();
-        })->everyMinute();
+        })->daily();
     }
 }

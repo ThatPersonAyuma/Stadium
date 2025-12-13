@@ -487,6 +487,7 @@ class BlockController extends Controller
             {
                 return response()->json([
                     'status' => 'ok',
+                    'is_done' => true,
                     'redirect' => route('course.detail', [
                         'course'  => $content->lesson->course_id,
                     ])

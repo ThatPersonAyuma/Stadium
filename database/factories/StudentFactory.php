@@ -10,7 +10,7 @@ class StudentFactory extends Factory
 {
     public function definition()
     {
-        $xp = $this->faker->numberBetween(0, 1100);
+        $xp = $this->faker->numberBetween(0, 1000);
 
         // 2. Cari rank yang cocok untuk XP ini
         $rank = Rank::where('min_xp', '<=', $xp)
