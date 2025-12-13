@@ -15,24 +15,18 @@ class ManajemenCourseController extends Controller
      */
     public function index()
     {
-        // 1. Ambil data dengan Eager Loading (biar ringan)
-        // Kita gunakan orderByRaw agar status 'pending' punya prioritas (muncul duluan)
-        // CASE WHEN status = 'pending' THEN 0 ELSE 1 END -> Artinya pending dianggap angka 0 (kecil), sisanya 1 (besar)
         $courses = Course::with(['teacher.user', 'lessons'])
             ->where('status', CourseStatus::PENDING->value)
-            ->orderByRaw("CASE WHEN status = 'pending' THEN 0 ELSE 1 END") 
-            ->latest() // Setelah dipisah pending/bukan, urutkan berdasarkan tanggal terbaru
+            ->latest()
             ->get();
 
-        // 2. Hitung Summary untuk Statistik di halaman Index
         $summary = [
-            'total'    => $courses->count(),
-            'pending'  => $courses->where('status', 'pending')->count(),
-            'approved' => $courses->where('status', 'approved')->count(),
-            'rejected' => $courses->where('status', 'rejected')->count(),
+            'total'    => Course::count(),
+            'pending'  => Course::where('status', CourseStatus::PENDING->value)->count(),
+            'approved' => Course::where('status', CourseStatus::APPROVED->value)->count(),
+            'rejected' => Course::where('status', CourseStatus::REJECTED->value)->count(),
         ];
 
-        // Pastikan nama view sesuai dengan folder resources/views/admin/manajemen-course/index.blade.php
         return view('admin.manajemen-course.index', compact('courses', 'summary'));
     }
 
@@ -64,14 +58,13 @@ class ManajemenCourseController extends Controller
      */
     public function approve(Course $course)
     {
-        // Update status jadi approved
         $course->update([
             'status' => 'approved',
-            'rejection_note' => null // Hapus catatan penolakan jika ada (biar bersih)
+            'rejection_note' => null
         ]);
 
         return redirect()
-            ->back() // Kembali ke halaman sebelumnya (bisa index atau show)
+            ->back() 
             ->with('success', "Course '{$course->title}' berhasil disetujui (Approved).");
     }
 

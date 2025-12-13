@@ -51,13 +51,18 @@
                 <h2 class="section-t2 mt-10">Course</h2>
 
                 @forelse ($courses as $course)
-                    @php $progress = $course->pivot->progress ?? 0; @endphp
+                    @php
+                        $progress = $course->progress ?? optional($course->pivot)->progress ?? 0;
+                        $courseTitle = $course->title ?? $course->name ?? 'Course';
+                    @endphp
                     <div class="course-card" style="background: {{ $course->color }}">
                         <div class="course-thumb"></div>
 
                         <div class="course-info">
-                            <h3 class="course-title">{{ $course->name }}</h3>
-                            <p class="course-topic">Topic: {{ $course->topic }}</p>
+                            <h3 class="course-title">{{ $courseTitle }}</h3>
+                            @if(!empty($course->topic))
+                                <p class="course-topic">Topic: {{ $course->topic }}</p>
+                            @endif
                             <div class="course-progress">
                                 <div class="course-progress-fill" style="width: {{ $progress }}%;"></div>
                             </div>
