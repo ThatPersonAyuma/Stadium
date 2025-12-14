@@ -17,7 +17,7 @@
                 <i class="fa-solid fa-arrow-left"></i>
                 Kembali ke Course
             </a>
-            <a href="{{ route('teacher.courses.index') }}"
+            <a href="{{ route('courses.index') }}"
                class="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-white text-slate-900 px-4 py-2.5 text-sm font-semibold shadow-md transition hover:-translate-y-0.5">
                 <i class="fa-solid fa-list"></i>
                 Daftar Course

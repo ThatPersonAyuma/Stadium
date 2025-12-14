@@ -52,7 +52,7 @@
                         <i class="fa-solid fa-circle-check"></i>
                         Simpan Course
                     </button>
-                    <a href="{{ route('teacher.courses.index') }}"
+                    <a href="{{ route('courses.index') }}"
                        class="inline-flex items-center justify-center gap-2 rounded-xl border border-white/30 bg-white/10 px-4 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5">
                         <i class="fa-solid fa-arrow-left"></i>
                         Batal

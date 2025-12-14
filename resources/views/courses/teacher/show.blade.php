@@ -13,7 +13,7 @@
     <div class="relative z-10 mx-auto max-w-6xl space-y-10">
         <x-dashboard-header title="Detail Course" subtitle="{{ $course->title }}" />
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <a href="{{ route('teacher.courses.index') }}"
+            <a href="{{ route('courses.index') }}"
                class="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-white/25 bg-white/5 px-4 py-2.5 text-sm font-semibold text-white transition hover:-translate-y-0.5">
                 <i class="fa-solid fa-arrow-left"></i>
                 Kembali

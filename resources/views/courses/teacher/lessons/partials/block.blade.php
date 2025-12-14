@@ -30,12 +30,6 @@
             @case('text')
                 <p class="m-0 opacity-85">{{ \Illuminate\Support\Str::limit($block->data['content'] ?? '', 180) }}</p>
                 @break
-            {{-- @case('image')
-            @case('gif')
-            @case('video')
-                <p class="m-0 opacity-85">File: {{ $block->data['filename'] ?? 'Tidak ada file' }}</p>
-                <p class="m-0 text-xs opacity-70">Alt: {{ $block->data['alt'] ?? '-' }}</p>
-                @break --}}
             @case('image')
             @case('gif')
             @case('video')

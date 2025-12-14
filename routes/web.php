@@ -74,6 +74,7 @@ Route::middleware(['auth', 'role:teacher'])->group(function () {
     Route::resource('lessons', LessonController::class)->except(['index', 'show']);
     Route::resource('contents', ContentController::class)->except(['index', 'show']);
     Route::resource('cards', CardController::class)->except(['index', 'show']);
+    Route::get('/teacher/get-blocks/{card}', [CardController::class, 'getBlocksOfCard'])->name('card.get-blocks');
     Route::resource('blocks', BlockController::class)->except(['index', 'show']);
     Route::prefix('teacher/courses')->name('teacher.courses.')->group(function () {
         Route::get('/create', [CourseController::class, 'teacherCreate'])->name('create');
@@ -121,3 +122,4 @@ Route::middleware(['auth', 'role:student'])->group(function () {
     Route::get('/leaderboard/fetch', [LeaderboardController::class, 'fetch']);
 });
 
+Route::get('/ya', function(){return redirect()->route('course.index');})->name('teacher.courses.index');
