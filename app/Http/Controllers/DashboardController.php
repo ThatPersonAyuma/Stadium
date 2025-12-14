@@ -7,6 +7,8 @@ use App\Models\Course;
 use App\Models\Teacher;
 use App\Models\Quiz;
 use App\Models\Student;
+use App\Models\StudentContentProgress;
+use App\Models\QuizParticipant;
 use App\Enums\UserRole;
 use App\Enums\CourseStatus;
 use App\Enums\AccountStatus;
@@ -22,10 +24,11 @@ class DashboardController extends Controller
     public function student()
     {
         $user = Auth::user();
-        if (!$user && $user->role !== UserRole::STUDENT) {
+        if (! $user || $user->role !== UserRole::STUDENT) {
             return respone()->json("Silakan login dengan aku student",403);
             // $user = User::where('role', 'student')->first();
         }
+        $student = $user->student;
         // Fallback demo user
         if (! $user) {
             $user = User::create([
@@ -43,36 +46,44 @@ class DashboardController extends Controller
         $courses = $hasPivot
             ? $user->courses()
                 ->select('courses.*')
-                ->withPivot('progress')
+                ->withPivot(['progress', 'updated_at'])
+                ->orderByDesc('course_user.updated_at')
+                ->take(3)
                 ->get()
             : collect();
-
-        if ($courses->isEmpty()) {
-            // Demo data if belum ada relasi
-            $courses = collect([
-                (object)[
-                    'id' => 1,
-                    'name' => 'Algoritma',
-                    'topic' => 'Binary Search',
-                    'color' => '#FF3B3B',
-                    'pivot' => (object)['progress' => 90]
-                ],
-                (object)[
-                    'id' => 2,
-                    'name' => 'PBO',
-                    'topic' => 'CRUD',
-                    'color' => '#0047FF',
-                    'pivot' => (object)['progress' => 50]
-                ],
-                (object)[
-                    'id' => 3,
-                    'name' => 'PWEB',
-                    'topic' => 'Laravel',
-                    'color' => '#B000F7',
-                    'pivot' => (object)['progress' => 10]
-                ]
-            ]);
+        // Fallback: jika tabel pivot belum ada atau belum ada enrollment, ambil course dari progres konten siswa
+        if ($courses->isEmpty() && $student) {
+            $courses = StudentContentProgress::with('content.lesson.course')
+                ->where('student_id', $student->id)
+                ->orderByDesc('completed_at')
+                ->get()
+                ->map(fn ($p) => $p->content?->lesson?->course)
+                ->filter()
+                ->unique('id')
+                ->take(3)
+                ->values();
         }
+        // Tambahkan warna dan progress ke setiap course
+        $palette = ['#0B4DAE', '#0D5AC1', '#0F6CE5', '#0A4B8F', '#0D74D8', '#0F7BEA', '#1281F5', '#0E5EA8', '#0A5EC4'];
+        $courses = $courses->values()->map(function ($course, $idx) use ($palette, $student) {
+            if (empty($course->color)) {
+                $course->color = $palette[$course->id % count($palette)] ?? $palette[$idx % count($palette)];
+            }
+            // Hitung progress jika belum tersedia di pivot
+            if (isset($course->pivot) && $course->pivot?->progress !== null) {
+                $course->progress = $course->pivot->progress;
+            } elseif ($student) {
+                $totalContents = $course->contents()->count();
+                $completed = StudentContentProgress::where('student_id', $student->id)
+                    ->where('is_completed', true)
+                    ->whereHas('content.lesson', fn ($q) => $q->where('course_id', $course->id))
+                    ->count();
+                $course->progress = $totalContents > 0 ? round(($completed / $totalContents) * 100, 2) : 0;
+            } else {
+                $course->progress = 0;
+            }
+            return $course;
+        });
 
         $champions = Student::with('user')
             ->orderByDesc('experience')
@@ -106,11 +117,80 @@ class DashboardController extends Controller
                 ],
             ]);
 
-        $recentActivity = [
-            ['title' => 'Completed Quiz: Binary Search',     'time' => '2 hours ago'],
-            ['title' => 'Unlocked Badge: Fast Learner',      'time' => 'Yesterday'],
-            ['title' => 'Finished Module: Laravel Basics',   'time' => '3 days ago'],
-        ];
+        $recentActivity = collect();
+
+        if ($student) {
+            $recentContent = StudentContentProgress::with('content.lesson.course')
+                ->where('student_id', $student->id)
+                ->where('is_completed', true)
+                ->whereNotNull('completed_at')
+                ->orderByDesc('completed_at')
+                ->take(5)
+                ->get()
+                ->map(function ($progress) {
+                    $courseTitle = $progress->content?->lesson?->course?->title;
+                    $lessonTitle = $progress->content?->lesson?->title;
+                    $contentTitle = $progress->content?->title;
+
+                    $label = collect([$courseTitle, $lessonTitle, $contentTitle])
+                        ->filter()
+                        ->implode(' • ');
+
+                    return [
+                        'title'      => 'Completed: ' . ($label ?: 'Content'),
+                        'time'       => $progress->completed_at?->diffForHumans(),
+                        'timestamp'  => $progress->completed_at,
+                    ];
+                });
+
+            $recentQuizzes = QuizParticipant::with('quiz')
+                ->where('participant_id', $student->id)
+                ->orderByDesc('updated_at')
+                ->take(5)
+                ->get()
+                ->map(function ($participant) {
+                    $quizTitle = $participant->quiz?->title ?? 'Quiz';
+                    $timeStamp = $participant->updated_at ?? $participant->created_at;
+
+                    return [
+                        'title'     => 'Quiz: ' . $quizTitle,
+                        'time'      => $timeStamp?->diffForHumans(),
+                        'timestamp' => $timeStamp,
+                    ];
+                });
+
+            $recentCourseProgress = $hasPivot
+                ? $user->courses()
+                    ->select('courses.*')
+                    ->withPivot(['progress', 'updated_at'])
+                    ->orderByDesc('course_user.updated_at')
+                    ->take(5)
+                    ->get()
+                    ->map(function ($course) {
+                        $timeStamp = $course->pivot?->updated_at;
+                        return [
+                            'title'     => 'Course progress: ' . ($course->name ?? 'Course') . ' (' . ($course->pivot?->progress ?? 0) . '%)',
+                            'time'      => $timeStamp?->diffForHumans(),
+                            'timestamp' => $timeStamp,
+                        ];
+                    })
+                : collect();
+
+            $recentActivity = collect()
+                ->merge($recentContent)
+                ->merge($recentQuizzes)
+                ->merge($recentCourseProgress)
+                ->filter(fn ($item) => ! empty($item['timestamp']))
+                ->sortByDesc('timestamp')
+                ->take(3)
+                ->map(function ($item) {
+                    return [
+                        'title' => $item['title'],
+                        'time'  => $item['time'] ?? '-',
+                    ];
+                })
+                ->values();
+        }
 
         return view('dashboard.student', [
             'user'           => $user,
@@ -232,118 +312,26 @@ class DashboardController extends Controller
     
     public function admin()
         {
-            // 1. STATISTIK UTAMA (Angka Karangan)
+            // Statistik
             $stats = [
-                'total_quizzes'      => 24, 
-                'total_courses'      => 12,
-                'active_users'       => 1543,
-                'total_teachers'     => 45,
-                'new_teachers_today' => 3,
-                'new_courses_week'   => 5,
+                'total_quizzes'      => Quiz::count(),
+                'total_courses'      => Course::count(),
+                'active_users'       => User::where('role', UserRole::STUDENT)->count(),
+                'total_teachers'     => User::where('role', UserRole::TEACHER)->count(),
+                'new_teachers_today' => 0, // tabel teachers tidak menyimpan timestamp reliably
+                'new_courses_week'   => Course::where('created_at', '>=', now()->subWeek())->count(),
             ];
 
-            // 2. DUMMY LIST TEACHER (Pura-pura ada di database)
-            // Struktur object disesuaikan biar cocok sama View ($t->user->name)
-            $pendingTeachers = User::where('role', 'teacher')
+            $pendingTeachers = User::where('role', UserRole::TEACHER)
                 ->with('teacher')
                 ->whereHas('teacher', function ($q) {
                     $q->where('status', AccountStatus::WAITING);
                 })
-                ->latest()
                 ->get();
 
-            // $pendingTeachers = collect([
-            //     (object)[
-            //         'id' => 1,
-            //         'expertise' => 'Matematika Murni',
-            //         'experience_years' => 5,
-            //         'created_at' => Carbon::now()->subHours(2),
-            //         'user' => (object)[ 'name' => 'Dr. Budi Santoso' ]
-            //     ],
-            //     (object)[
-            //         'id' => 2,
-            //         'expertise' => 'Fisika Kuantum',
-            //         'experience_years' => 8,
-            //         'created_at' => Carbon::now()->subDays(1),
-            //         'user' => (object)[ 'name' => 'Prof. Sarah Wijaya' ]
-            //     ],
-            //     (object)[
-            //         'id' => 3,
-            //         'expertise' => 'Sastra Inggris',
-            //         'experience_years' => 3,
-            //         'created_at' => Carbon::now()->subDays(2),
-            //         'user' => (object)[ 'name' => 'Andi Pratama, M.Pd' ]
-            //     ],
-            // ]);
-
-            // 3. DUMMY LIST COURSE
-            // Struktur: $c->teacher->user->name
             $pendingCourses = Course::where('status', CourseStatus::PENDING)->get();
-            // $pendingCourses = collect([
-            //     (object)[
-            //         'id' => 101,
-            //         'title' => 'Mastering Laravel 11',
-            //         'category' => 'Web Development',
-            //         'created_at' => Carbon::now()->subHours(5),
-            //         'teacher' => (object)[
-            //             'user' => (object)[ 'name' => 'Prof. Sarah Wijaya' ]
-            //         ]
-            //     ],
-            //     (object)[
-            //         'id' => 102,
-            //         'title' => 'Dasar-Dasar Kalkulus',
-            //         'category' => 'Matematika',
-            //         'created_at' => Carbon::now()->subDays(1),
-            //         'teacher' => (object)[
-            //             'user' => (object)[ 'name' => 'Dr. Budi Santoso' ]
-            //         ]
-            //     ],
-            //     (object)[
-            //         'id' => 103,
-            //         'title' => 'Speaking for IELTS',
-            //         'category' => 'Bahasa',
-            //         'created_at' => Carbon::now()->subDays(3),
-            //         'teacher' => (object)[
-            //             'user' => (object)[ 'name' => 'Andi Pratama, M.Pd' ]
-            //         ]
-            //     ]
-            // ]);
-
-            // 4. DUMMY LIST QUIZ
-            // Struktur: $q->creator->user->name
             $pendingQuizzes = Quiz::where('status', CourseStatus::PENDING)->get();
-            // $pendingQuizzes = collect([
-            //     (object)[
-            //         'id' => 501,
-            //         'title' => 'Ujian Tengah Semester Aljabar',
-            //         'questions_count' => 25,
-            //         'created_at' => Carbon::now()->subMinutes(45),
-            //         'creator' => (object)[
-            //             'user' => (object)[ 'name' => 'Dr. Budi Santoso' ]
-            //         ]
-            //     ],
-            //     (object)[
-            //         'id' => 502,
-            //         'title' => 'Tes Vocabulary Level 1',
-            //         'questions_count' => 50,
-            //         'created_at' => Carbon::now()->subHours(6),
-            //         'creator' => (object)[
-            //             'user' => (object)[ 'name' => 'Andi Pratama, M.Pd' ]
-            //         ]
-            //     ],
-            //     (object)[
-            //         'id' => 503,
-            //         'title' => 'Kuis Logika Pemrograman',
-            //         'questions_count' => 10,
-            //         'created_at' => Carbon::now()->subDays(2),
-            //         'creator' => (object)[
-            //             'user' => (object)[ 'name' => 'Prof. Sarah Wijaya' ]
-            //         ]
-            //     ]
-            // ]);
 
-            // Kirim semua data dummy ke View
-        
             return view('dashboard.admin', compact('stats', 'pendingTeachers', 'pendingCourses', 'pendingQuizzes'));
         }
 

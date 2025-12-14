@@ -76,7 +76,9 @@ Route::middleware(['auth', 'role:teacher'])->group(function () {
     Route::resource('cards', CardController::class)->except(['index', 'show']);
     Route::get('/teacher/get-blocks/{card}', [CardController::class, 'getBlocksOfCard'])->name('card.get-blocks');
     Route::resource('blocks', BlockController::class)->except(['index', 'show']);
+    Route::get('/cards/{card}/blocks', [CardController::class, 'getBlocksOfCard'])->name('card.get-blocks');
     Route::prefix('teacher/courses')->name('teacher.courses.')->group(function () {
+        Route::get('/', [CourseController::class, 'teacherIndex'])->name('index');
         Route::get('/create', [CourseController::class, 'teacherCreate'])->name('create');
         Route::get('/{course}/edit', [CourseController::class, 'teacherEdit'])->name('edit');
         Route::get('/{course}/submit', [CourseController::class, 'teacherSubmit'])->name('submit');
