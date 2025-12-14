@@ -68,6 +68,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/cards/{card}', [CardController::class, 'show'])->name('cards.show');
     Route::get('/blocks', [BlockController::class, 'index'])->name('blocks.index');
     Route::get('/blocks/{block}', [BlockController::class, 'show'])->name('blocks.show');
+    Route::get('/leaderboard/fetch', [LeaderboardController::class, 'fetch']);
 });
 Route::middleware(['auth', 'role:teacher'])->group(function () {
     Route::resource('courses', CourseController::class)->except(['index', 'show']);
@@ -121,7 +122,6 @@ Route::middleware(['auth', 'role:student'])->group(function () {
         Route::post('/get-scoreboard', [QuizController::class, 'GetScoreboard'])->name('get-scoreboard');
     });
     Route::post('/lesson/answer', [BlockController::class, 'check_answer'])->name('lesson-answer');
-    Route::get('/leaderboard/fetch', [LeaderboardController::class, 'fetch']);
 });
 
 Route::get('/ya', function(){return redirect()->route('course.index');})->name('teacher.courses.index');

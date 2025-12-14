@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Enums\ContentType;
+use Illuminate\Support\Facades\Log;
 use App\Helpers\FileHelper;
 
 

@@ -97,25 +97,7 @@ class DashboardController extends Controller
                     'avatar_filename' => $u->user?->avatar_filename,
                 ];
             });
-        $leaderboard = $champions != NULL
-            ? $champions
-            : collect([
-                (object)[
-                    'name' => 'Damrowr',
-                    'score' => 2001,
-                    'avatar_filename' => '/assets/icons/mascotss.png'
-                ],
-                (object)[
-                    'name' => 'Denmit',
-                    'score' => 2000,
-                    'avatar_filename' => '/assets/icons/mascotss.png'
-                ],
-                (object)[
-                    'name' => 'Darma',
-                    'score' => 1999,
-                    'avatar_filename' => '/assets/icons/mascotss.png'
-                ],
-            ]);
+        $leaderboard = $champions;
 
         $recentActivity = collect();
 

@@ -17,7 +17,7 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
             <div class="rounded-2xl bg-white/10 border border-white/15 p-4 shadow-lg">
                 <p class="m-0 text-xs uppercase tracking-wide opacity-70">Course Aktif</p>
-                <p class="m-0 text-3xl font-black">{{ $summary['courses'] ?? 0 }}</p>
+                <p class="m-0 text-3xl font-black">{{  $courses->where('status', App\Enums\CourseStatus::APPROVED)->count() ?? 0 }}</p>
             </div>
             <div class="rounded-2xl bg-white/10 border border-white/15 p-4 shadow-lg">
                 <p class="m-0 text-xs uppercase tracking-wide opacity-70">Total Siswa</p>

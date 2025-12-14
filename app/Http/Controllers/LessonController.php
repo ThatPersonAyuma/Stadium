@@ -9,6 +9,7 @@ use App\Models\StudentContentProgress;
 use Illuminate\Http\Request;
 use App\Helpers\FileHelper;
 use App\Enums\ContentType;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 
 class LessonController extends Controller
@@ -183,7 +184,9 @@ class LessonController extends Controller
             'order_index' => 'required|integer|min:1',
             'course_id' => 'required|integer|exist:course_id',
         ]);
-
+        $nextOrder = (Lesson::where('course_id', $validated['course_id'])->max('order_index') ?? 0) + 1;
+        $order = max(1, min($validated['order_index'], $nextOrder));
+        $validated['order_index'] = $order;
         // Simpan course baru
         $lesson = Lesson::create($validated);
 
@@ -214,35 +217,52 @@ class LessonController extends Controller
         
         return response()->json($lesson);
     }
+    private function reposition_order_index(Lesson $Lesson, $new_index)
+    {
+        $old_index = $Lesson->order_index;
+        if ($old_index == $new_index){
+            return;
+        }else if ($old_index > $new_index){
+                Lesson::where('course_id', $Lesson->course_id)
+                            ->whereBetween('order_index', [$new_index, $old_index-1])
+                            ->increment('order_index');
+        }else{
+                Lesson::where('course_id', $Lesson->course_id)
+                            ->whereBetween('order_index', [$old_index+1, $new_index])
+                            ->decrement('order_index');
+        }
 
+        $Lesson->order_index=$new_index;
+        $Lesson->save();
+    }
     /**
      * Update the specified resource in storage.
      */
     public function update(Request $request, Lesson $lesson)
     {
+        Log::info("Fire");
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
             'order_index' => 'required|integer|min:1',
-            'course_id' => 'required|integer|exist:course_id',
+            'course_id' => ['required', 'integer', 'exists:courses,id'],
         ]);
-        $old_path = FileHelper::getFolderName($validated['course_id'], $lesson->id);
+        $old_path = FileHelper::getFolderName($validated['course_id'], $lesson->course_id);
         if (file_exists($old_path)) {
         } else {
             return response()->json(['message' => 'Ini salah ew old path' . $old_path], 500);
+        } 
+        $maxOrder = Lesson::where('course_id', $lesson->course_id)->count();
+        if ($validated['order_index']>$maxOrder){
+            $validated['order_index']=$maxOrder;
         }
+        Log::info($maxOrder);
         $content->title = $validated['title'];
         $content->description = $validated['description'];
-        $content->order_index = $validated['order_index'];
         $content->course_id = $validated['course_id'];
-        $content->save();
+        $this->reposition_order_index($lesson, $validated['order_index']);
         $new_path = FileHelper::getFolderName($validated['course_id'], $lesson->id);
         $result = rename($old_path, $new_path);
-        if ($result){
-            return response()->json(['message' => 'Resource created successfully' . $old_path . $new_path], 200); // 201 Created
-        }else{
-            return response()->json(['message' => 'Failed to change folder'], 500); // 201 Created
-        }
         return response()->json($lesson);
     }
 

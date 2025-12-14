@@ -256,7 +256,6 @@
                     return `<p class="m-0 opacity-85">${escapeHtml(data.content || '')}</p>`;
                 case 'image':
                 case 'gif':
-                case 'video':
                     const fileUrl = `${urlPrefix}/${block.id}-${data.filename}`;
 
                     return [
@@ -275,6 +274,30 @@
                             >
                         ` : ''
                     ].join('');
+                case 'video':
+                    const fileUrl1 = `${urlPrefix}/${block.id}-${data.filename}`;
+
+                    return [
+                        `<p class="m-0 opacity-85">File: ${escapeHtml(data.filename || 'Tidak ada file')}</p>`,
+                        `<p class="m-0 text-xs opacity-70">Alt: ${escapeHtml(data.alt || '-')}</p>`,
+                        data.filename ? `
+                            <video 
+                                src="${escapeHtml(fileUrl1)}"
+                                alt="${escapeHtml(data.alt || '')}"
+                                controls 
+                                style="
+                                    width: 100%;
+                                    height: 100%;
+                                    object-fit: contain;
+                                    border-radius: 6px;
+                                "
+                            >
+                                Your browser does not support the video tag.
+                            </video>
+                        ` : ''
+                    ].join('');
+                    
+
                 case 'quiz': {
                     const choices = data.choices || {};
                     const items = Object.keys(choices).map((key) => {
@@ -341,7 +364,7 @@
                         ${renderPreview(block)}
                     </div>
 
-                    <form class="space-y-3 rounded-lg border border-white/10 bg-white/5 p-3 hidden" data-block-edit data-block-id="${block.id}" data-block-type="${type}">
+                    <form class="space-y-3 rounded-lg border border-white/10 bg-white/5 p-3 hidden" enctype="multipart/form-data" data-block-edit data-block-id="${block.id}" data-block-type="${type}">
                         <input type="hidden" name="_token" value="${token}">
                         <input type="hidden" name="_method" value="PUT">
                         <input type="hidden" name="card_id" value="{{ $card->id }}">
@@ -401,26 +424,29 @@
 
                         <div class="space-y-2" data-fields-for="image">
                             <label class="text-xs uppercase tracking-wide opacity-70">File Gambar</label>
-                            <input type="file" name="data[file]" accept=".jpg,.jpeg,.png" data-require-for="image"
+                            <input type="file" name="data[file]" accept=".jpg,.jpeg,.png"
                                    class="w-full rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-white focus:border-white/60 focus:outline-none">
                             <input type="text" name="data[alt]" data-fill="img-alt"
                                    class="w-full rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-white placeholder-white/60 focus:border-white/60 focus:outline-none" placeholder="Alt text">
+                            <p class="text-xs opacity-60">Current file: ${escapeHtml(data.filename || 'No file')}</p>
                         </div>
 
                         <div class="space-y-2" data-fields-for="gif">
                             <label class="text-xs uppercase tracking-wide opacity-70">File GIF</label>
-                            <input type="file" name="data[file]" accept=".gif" data-require-for="gif"
+                            <input type="file" name="data[file]" accept=".gif"
                                    class="w-full rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-white focus:border-white/60 focus:outline-none">
                             <input type="text" name="data[alt]" data-fill="gif-alt"
                                    class="w-full rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-white placeholder-white/60 focus:border-white/60 focus:outline-none" placeholder="Alt text">
+                            <p class="text-xs opacity-60">Current file: ${escapeHtml(data.filename || 'No file')}</p>
                         </div>
 
                         <div class="space-y-2" data-fields-for="video">
                             <label class="text-xs uppercase tracking-wide opacity-70">File Video (mp4)</label>
-                            <input type="file" name="data[file]" accept=".mp4" data-require-for="video"
+                            <input type="file" name="data[file]" accept=".mp4"
                                    class="w-full rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-white focus:border-white/60 focus:outline-none">
                             <input type="text" name="data[alt]" data-fill="video-alt"
                                    class="w-full rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-white placeholder-white/60 focus:border-white/60 focus:outline-none" placeholder="Alt text">
+                            <p class="text-xs opacity-60">Current file: ${escapeHtml(data.filename || 'No file')}</p>
                         </div>
 
                         <div class="space-y-2" data-fields-for="code">
@@ -458,6 +484,7 @@
             node.find('[data-fill="video-alt"]').val(data.alt || '');
             node.find('[data-fill="code-language"]').val(data.language || '');
             node.find('[data-fill="code-body"]').val(data.code || '');
+            
 
             syncTypeFields(node.find('[data-block-edit]'));
             return node;
@@ -497,19 +524,12 @@
             });
         };
 
-        renderBlocks();
-
-        $('[data-block-create] [data-block-type]').on('change', function () {
-            syncTypeFields($(this).closest('form'));
-        }).trigger('change');
-
-        $('[data-block-create]').on('submit', function (e) {
-            e.preventDefault();
-            const form = $(this);
+        // Helper function to build FormData properly for both create and update
+        const buildFormDataForBlock = (form) => {
             const formData = new FormData();
             const type = form.find('[name="type"]').val();
     
-            // Ambil semua input file & alt berdasarkan DOM
+            // Get file inputs and alt texts based on type
             const imageFile = form.find('[data-fields-for="image"] input[type="file"]')[0];
             const gifFile   = form.find('[data-fields-for="gif"] input[type="file"]')[0];
             const videoFile = form.find('[data-fields-for="video"] input[type="file"]')[0];
@@ -518,38 +538,56 @@
             const gifAlt   = form.find('[data-fields-for="gif"] input[name="data[alt]"]').val();
             const videoAlt = form.find('[data-fields-for="video"] input[name="data[alt]"]').val();
 
-            // Buat FormData baru (bersih)
-            // const fd = new FormData();
-
-            // Masukkan semua input selain file/alt dulu
+            // Add all non-file/alt fields
             form.serializeArray().forEach(item => {
-                // skip alt karena kita isi manual
                 if (!item.name.startsWith('data[alt]') && !item.name.startsWith('data[file]')) {
                     formData.append(item.name, item.value);
                 }
             });
 
-            // Tambahkan input file + alt sesuai tipe
+            // Add file and alt based on type
             if (type === 'image') {
-                formData.append('data[file]', imageFile.files[0] ?? '');
+                if (imageFile && imageFile.files[0]) {
+                    formData.append('data[file]', imageFile.files[0]);
+                }
                 formData.append('data[alt]', imageAlt ?? '');
             }
 
             if (type === 'gif') {
-                formData.append('data[file]', gifFile.files[0] ?? '');
+                if (gifFile && gifFile.files[0]) {
+                    formData.append('data[file]', gifFile.files[0]);
+                }
                 formData.append('data[alt]', gifAlt ?? '');
             }
 
             if (type === 'video') {
-                formData.append('data[file]', videoFile.files[0] ?? '');
+                if (videoFile && videoFile.files[0]) {
+                    console.log('exist video')
+                    formData.append('data[file]', videoFile.files[0]);
+                }
                 formData.append('data[alt]', videoAlt ?? '');
             }
 
-            // DEBUG
-            console.log("=== CLEAN FORMDATA ===");
+            return formData;
+        };
+
+        renderBlocks();
+
+        $('[data-block-create] [data-block-type]').on('change', function () {
+            syncTypeFields($(this).closest('form'));
+        }).trigger('change');
+
+        // CREATE BLOCK
+        $('[data-block-create]').on('submit', function (e) {
+            e.preventDefault();
+            const form = $(this);
+            const formData = buildFormDataForBlock(form);
+
+            console.log("=== CREATE FORMDATA ===");
             for (const pair of formData.entries()) {
                 console.log(pair[0], pair[1]);
             }
+
             $.ajax({
                 url: storeUrl,
                 method: 'POST',
@@ -578,12 +616,21 @@
             }
         });
 
+        // UPDATE BLOCK - Now uses the same FormData building logic
         $(document).on('submit', '[data-block-edit]', function (e) {
             e.preventDefault();
             const form = $(this);
             const blockId = form.data('block-id');
-            const formData = new FormData(this);
+            const formData = buildFormDataForBlock(form);
+            
+            // Ensure _method is set for Laravel
             formData.set('_method', 'PUT');
+
+            console.log("=== UPDATE FORMDATA ===");
+            for (const pair of formData.entries()) {
+                console.log(pair[0], pair[1]);
+            }
+
             $.ajax({
                 url: `${baseBlockUrl}/${blockId}`,
                 method: 'POST',
@@ -634,4 +681,5 @@
         });
     });
 </script>
+
 @endsection

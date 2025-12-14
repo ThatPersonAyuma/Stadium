@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Card;
 use App\Helpers\FileHelper;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 
 class CardController extends Controller
@@ -50,10 +51,11 @@ class CardController extends Controller
         ]);
 
         $content = \App\Models\Content::findOrFail($validated['content_id']);
-        $nextOrder = $validated['order_index'] ?? (($content->cards()->max('order_index') ?? 0) + 1);
+        $nextOrder = (Card::where('content_id', $validated['content_id'])->max('order_index') ?? 0) + 1;
+        $order = max(1, min($validated['order_index'], $nextOrder));
 
         // prevent duplicate order_index
-        if ($content->cards()->where('order_index', $nextOrder)->exists()) {
+        if ($content->cards()->where('order_index', $order)->exists()) {
             if ($request->wantsJson()) {
                 return response()->json(['message' => 'Urutan card sudah digunakan.'], 422);
             }
@@ -61,7 +63,7 @@ class CardController extends Controller
         }
 
         $card = $content->cards()->create([
-            'order_index' => $nextOrder,
+            'order_index' => $order,
         ]);
 
         if ($request->wantsJson()) {

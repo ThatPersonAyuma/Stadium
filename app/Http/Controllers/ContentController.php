@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use App\Enums\ContentType;
+use Illuminate\Support\Facades\Log;
 
 class ContentController extends Controller
 {
@@ -22,44 +23,6 @@ class ContentController extends Controller
 
         return response()->json($contents);
     }
-
-    public static function getCards(Content $content)
-    {
-        $content->load('lesson.course');
-
-        // Ambil cards beserta blocks-nya
-        $cards = $content->cards()->with('blocks')->get();
-
-        // Mapping cards untuk memodifikasi filename -> url
-        $cards = $cards->map(function ($card) use ($content) {
-            $card->blocks->transform(function ($block) use ($content, $card) {
-
-                if (in_array($block->type, [ContentType::IMAGE, ContentType::GIF, ContentType::VIDEO])) {
-
-                    // generate URL
-                    $url = asset(FileHelper::getBlockUrl(
-                        $content->lesson->course_id,
-                        $content->lesson_id,
-                        $content->id,
-                        $card->id,
-                        $block->id
-                    ));
-
-                    // fix: indirect modification error
-                    $data = $block->data;
-                    $data['url'] = $url;
-                    $block->data = $data;
-                }
-
-                return $block;
-            });
-
-            return $card;
-        });
-
-        return view('TESTING.card', compact('cards'));
-    }
-
 
     public function getById(int $contentId)
     {   
@@ -91,16 +54,17 @@ class ContentController extends Controller
 
         $lesson = Lesson::findOrFail($validated['lesson_id']);
         $courseId = $validated['course_id'] ?? $lesson->course_id;
-
+        $nextOrder = (Content::where('lesson_id', $validated['lesson_id'])->max('order_index') ?? 0) + 1;
+        $order = max(1, min($validated['order_index'], $nextOrder));
         $content = null;
-        DB::transaction(function () use (&$content, $lesson, $validated) {
+        DB::transaction(function () use (&$content, $lesson, $validated, $order) {
             Content::where('lesson_id', $lesson->id)
-                ->where('order_index', '>=', $validated['order_index'])
+                ->where('order_index', '>=', $order)
                 ->increment('order_index');
 
             $content = Content::create([
                 'title'       => $validated['title'],
-                'order_index' => $validated['order_index'],
+                'order_index' => $order,
                 'lesson_id'   => $lesson->id,
             ]);
         });
@@ -153,7 +117,10 @@ class ContentController extends Controller
 
         $lesson = Lesson::findOrFail($validated['lesson_id']);
         $courseId = $validated['course_id'] ?? $lesson->course_id;
-
+        $maxOrder = Content::where('lesson_id', $lesson->id)->max('order_index');
+        if ($validated['order_index']>$maxOrder){
+            $validated['order_index']=$maxOrder;
+        }
         $oldPath = FileHelper::getFolderName($courseId, $lesson->id, $content->id);
 
         DB::transaction(function () use ($content, $lesson, $validated) {

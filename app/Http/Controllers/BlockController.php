@@ -18,8 +18,7 @@ class BlockController extends Controller
     /** Scenario of Block
      *  'type' => ContentType::TEXT,
      *        'data' => [
-     *              'title' => 'Mengapa Kita Belajar Pemrograman?',
-     *              'body' => 'Tujuan utama dari belajar pemrograman adalah untuk memecahkan masalah dan menciptakan solusi digital yang efisien.',
+     *              'content' => 'Tujuan utama dari belajar pemrograman adalah untuk memecahkan masalah dan menciptakan solusi digital yang efisien.',
      *           ],
       *          'order_index' => 1,
        *         'card_id' => 2,
@@ -81,7 +80,7 @@ class BlockController extends Controller
      */
     public function create(Request $request)
     {
-        $type = $request->get('type','text'); // misal: quiz, video, article
+        $type = $request->get('type','text'); 
         $card_id  = $request->get('card_id','number');
         // return $card_id;
         $maxOrder = Block::where('card_id', $card_id)
@@ -168,11 +167,9 @@ class BlockController extends Controller
     public function store(Request $request)
     {
         // $type = $request->input('type', 'text');
-        
+        Log::info($request->all());
+        Log::info('first');
         $type = $request['type'];
-        // Log::info('POST Request received:', $request->all());
-        // Log::info('Has file? ' . ($request->hasFile('data.file') ? 'YES' : 'NO'));
-        // Log::info('File:', [$request->file('data.file')]);
         $rules = [
             'type' => 'required|in:text,image,code,quiz,gif,video',
             'order_index' => 'required|integer|min:1',
@@ -212,11 +209,12 @@ class BlockController extends Controller
             ],
             default => []
         };
-
+        Log::info('second');
         $validated = $request->validate([
             ...$rules,
             ...$typeRules
         ]);
+        Log::info('third');
         // return ;
         $type = $validated['type'];
         $file = null;
@@ -327,7 +325,7 @@ class BlockController extends Controller
     public function update(Request $request, Block $block)
     {
         $type = $block->type;
-        
+        Log::info('first');
         $rules = [
             'order_index' => 'required|integer|min:1',
             'card_id' => 'required|exists:cards,id',
@@ -394,9 +392,10 @@ class BlockController extends Controller
         }
 
         $block->data = $validated['data'];
+        Log::info($validated['data']);
 
         self::reposition_order_index($block, $validated['order_index']);
-        
+        $block->save();
         return response()->json([
             'message' => 'Block diperbarui',
             'block' => $block->fresh(),
@@ -508,8 +507,6 @@ class BlockController extends Controller
         );
         $old_exp = $user->student->experience;
         $rank = Utils::add_exp_student($content->experience, $user->student->id);
-        // Beri redirect ke kembali ke halaman lesson.show
-        // return redirect()->route('course.detail', ['course'  => $content->lesson->course_id])->with(['rank' => $rank, 'exp_gain' => $content->experience, 'exp_before' => $old_exp]);
         return response()->json([
             'status' => 'ok',
             'redirect' => route('course.detail', [
